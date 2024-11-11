@@ -1,0 +1,499 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Tahoma', 'Segoe UI', sans-serif;
+}
+
+.window.maximized {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 40px); /* Account for taskbar */
+}
+
+.taskbar-instances {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px; /* Space between start button and taskbar instances */
+    margin-bottom: 2.5px; /* Space between start button and taskbar instances */
+    flex-grow: 1;
+}
+
+.taskbar-button {
+    height: 30px;
+    background-color: #cccccc;
+    border: 1px solid #999999;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center; /* Vertically center icon and text */
+    cursor: pointer;
+    border-radius: 1px;
+    box-shadow: -1px -1px 0px #ffffff, 2px 2px 0px #000000; /* Raised effect */
+    transition: box-shadow 0.1s, transform 0.1s; /* Smooth transition */
+}
+
+.taskbar-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px; /* Space between icon and title */
+    object-fit: contain;
+}
+
+/* Pushed in effect on click */
+.taskbar-button:active {
+    box-shadow: 1px 1px 0px #ffffff, -2px -2px 0px #000000; /* Inverted shadow for pushed look */
+    transform: translateY(1px); /* Slight downward shift */
+}
+
+/* Desktop with Classic Windows XP Wallpaper */
+.desktop {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('images/background.png'); /* Use a Windows XP-style wallpaper */
+    background-size: cover;
+    background-position: center;
+    transition: background 0.5s ease;
+}
+
+/* Desktop Icons */
+.desktop-icons {
+    position: absolute;
+    /* Removed flex properties to allow absolute positioning */
+}
+
+.desktop-icon {
+    width: 80px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    position: absolute;
+}
+
+.desktop-icon img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.desktop-icon span {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+}
+
+.desktop-icon:hover img {
+    transform: scale(1.1);
+}
+
+/* Taskbar Styles */
+.taskbar {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    background-color: #c0c0c0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #808080;
+    z-index: 1000;
+}
+
+.start-button {
+    width: 80px;
+    height: auto;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.start-button img {
+    width: 80px;
+    height: auto;
+}
+
+.system-tray {
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+}
+
+.tray-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tray-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tray-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Start Menu Styles */
+.start-menu {
+    position: absolute;
+    bottom: 50px;
+    left: 10px;
+    width: 200px;
+    background-color: #c0c0c0;
+    color: black;
+    border: 2px solid #808080;
+    border-radius: 4px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 1001;
+}
+
+.start-menu ul {
+    list-style: none;
+    padding: 5px 0;
+}
+
+.start-menu ul li {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.start-menu ul li:hover {
+    background-color: #000080;
+    color: white;
+}
+
+/* Window Styles */
+.window, .media-player {
+    position: absolute;
+    top: 60px; /* Adjusted to prevent overlapping with taskbar */
+    left: 120px;
+    width: 386.989px;
+    height: 426.983px;
+    border: 2px solid #808080;
+    background-color: #c0c0c0;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    animation: fadeIn 0.3s forwards;
+    z-index: 500;
+    overflow: hidden;
+}
+
+/* Window Header */
+.window-header, .media-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #000080;
+    padding: 5px 10px;
+    color: white;
+    cursor: move;
+    user-select: none;
+}
+
+/* Window Title */
+.window-title, .media-player-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Window Control Buttons */
+.window-buttons, .media-player-buttons {
+    display: flex;
+}
+
+.window-buttons button, .media-player-buttons button {
+    background-color: #c0c0c0;
+    border: 1px solid #808080;
+    color: black;
+    padding: 2px 6px;
+    cursor: pointer;
+    margin-left: 5px;
+    border-radius: 2px;
+    transition: background-color 0.2s;
+    font-size: 12px;
+}
+
+.window-buttons button:hover, .media-player-buttons button:hover {
+    background-color: #808080;
+    color: white;
+}
+
+/* Window Content */
+.window-content, .media-player-content {
+    flex-grow: 1;
+    padding: 0; /* Removed padding for proper scaling */
+    background-color: black;
+    position: relative;
+    overflow: hidden; /* Hide overflow to prevent scrollbars */
+}
+
+/* Iframe Wrapper */
+.iframe-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Iframe Content */
+.iframe-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+}
+
+/* Resize Handle Styles */
+.resize-handle {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: transparent;
+}
+
+.resize-handle-bottom-right {
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Fade-out Animation */
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+
+/* Animation Classes */
+.window.show, .media-player.show {
+    display: flex;
+    animation: fadeIn 0.3s forwards;
+}
+
+.window.hide, .media-player.hide {
+    animation: fadeOut 0.3s forwards;
+}
+
+/* Responsive Window Sizes */
+@media (max-width: 1200px) {
+    .window, .media-player {
+        width: 80%;
+        height: 70%;
+        top: 30px; /* Adjusted top to fit within the desktop area */
+        left: 10%;
+    }
+}
+
+@media (max-width: 768px) {
+    .window, .media-player {
+        width: 95%;
+        height: 80%;
+        left: 2.5%;
+    }
+
+    .taskbar-icon {
+        width: 40px;
+        height: 40px;
+    }
+    .start-button {
+        width: 300px;
+    }
+}
+
+.media-player-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-image: url('icons/MAIN_BACK.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+/* Media Player Content */
+#player {
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    /* Set original dimensions */
+    width: 386.989px;
+    height: 426.983px;
+
+}
+#screen {
+    position: relative;
+    margin-top: 10px;
+    width: 100%;
+    height: 200px;
+    background-color: black;
+    overflow: hidden;
+}
+
+#visualizer, #youtube-video {
+    width: 100%;
+    height: 100%;
+}
+
+#youtube-video-container {
+    position: absolute;
+    width: 100%; /* Changed from 0 to 100% */
+    height: 100%;
+    overflow: hidden;
+
+}
+
+#youtube-video {
+    width: 100%;
+    height: 100%;
+
+}
+
+#controls {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#controls img {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+#seek-bar {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    margin: 0px;
+    justify-content: center;
+    align-content: center;
+}
+
+#seek-bar img#track {
+    width: 100%;
+    height: 100%;
+}
+
+#seek-bar img#head {
+    position: absolute;
+    top: 0;
+    margin-top: 6px;
+    left: 0;
+    cursor: pointer;
+}
+
+#sliders {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+
+#volume-slider {
+    background-position: 0px -405px; /* Start position for volume slider background */
+}
+
+#volume-slider .slide-button {
+    left: 49.1956px; /* Start position for volume slider button */
+}
+
+/* Pan Slider Initial Position */
+#pan-slider {
+    background-position: 0px -202.5px; /* Start position for pan slider background */
+}
+
+#pan-slider .slide-button {
+    left: 24.5978px; /* Start position for pan slider button */
+}
+
+.slider-label {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 14px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    user-select: none;
+}
+
+.slider {
+    position: relative;
+    width: 64px;
+    height: 15px;
+    background-image: url('icons/slider.png');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    cursor: pointer;
+}
+
+.slide-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 15px;
+    background-image: url('icons/MINI_SLIDE.png');
+    cursor: pointer;
+}
+
+#playlist {
+    margin-top: 10px;
+}
+
+#playlist ul {
+    list-style: none;
+    padding: 0;
+}
+
+#playlist li {
+    padding: 5px;
+    cursor: pointer;
+}
+
+#playlist li:hover {
+    background-color: #555;
+}
+
+#playlist li.active {
+    background-color: #333;
+}
+
+#screen .fullscreen {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 1;
+}

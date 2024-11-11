@@ -1,0 +1,47 @@
+body {
+    margin: 0;
+    background-color: black;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #000;
+    border: 1px solid #fff;
+    image-rendering: pixelated;
+}
+
+.menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid white;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    background: #333;
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #555;
+}
+
+#controlsInfo {
+    text-align: left;
+    margin-top: 10px;
+}

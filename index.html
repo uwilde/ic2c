@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows XP Mockup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-window="apacheWindow" style="top: 20px; left: 20px;">
+                <img src="images/apache.png" alt="Apache Icon">
+                <span>Apache</span>
+            </div>
+            <div class="desktop-icon" data-window="starblasterWindow" style="top: 120px; left: 20px;">
+                <img src="images/starblaster.png" alt="Starblaster Icon">
+                <span>Starblaster</span>
+            </div>
+            <div class="desktop-icon" data-window="mediaPlayer" style="top: 220px; left: 20px;">
+                <img src="images/media_player.png" alt="Media Player Icon">
+                <span>Media Player</span>
+            </div>
+            <!-- Add more desktop icons as needed with unique top and left values -->
+        </div>
+
+        <!-- Taskbar -->
+        <div class="taskbar">
+            <div class="start-button" 
+                 onclick="toggleStartMenu()" 
+                 onmousedown="changeStartButtonImage('start_click.png')" 
+                 onmouseup="changeStartButtonImage('start.png')">
+                <img id="startButtonImage" src="images/start.png" alt="Start Button">
+            </div>
+
+            <div id="taskbarInstances" class="taskbar-instances"></div>
+
+            <!-- System Tray -->
+            <div class="system-tray">
+                <div class="tray-icon">
+                    <img src="images/network.png" alt="Network Status">
+                </div>
+                <div class="tray-icon">
+                    <img src="images/sound.png" alt="Sound">
+                </div>
+                <div class="tray-icon">
+                    <img src="images/battery.png" alt="Battery">
+                </div>
+                <!-- Add more system tray icons as needed -->
+            </div>
+        </div>
+
+        <!-- Start Menu -->
+        <div id="startMenu" class="start-menu">
+            <ul>
+                <li onclick="toggleWindow('apacheWindow')">Apache</li>
+                <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
+                <li onclick="toggleMediaPlayer()">Media Player</li>
+                <!-- Add more shortcuts as needed -->
+            </ul>
+        </div>
+
+        <!-- Apache Window -->
+        <div id="apacheWindow" class="window" data-original-width="825" data-original-height="410">
+            <div class="window-header">
+                <span class="window-title">Apache</span>
+                <div class="window-buttons">
+                    <button class="minimize" onclick="minimizeWindow('apacheWindow')">_</button>
+                    <button class="maximize" onclick="maximizeWindow('apacheWindow')">□</button>
+                    <button class="close" onclick="closeWindow('apacheWindow')">X</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <!-- Wrap iframe in a div for scaling -->
+                <div class="iframe-wrapper">
+                    <iframe src="apache/apache.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+            <!-- Resize Handle -->
+            <div class="resize-handle resize-handle-bottom-right"></div>
+        </div>
+
+        <!-- Starblaster Window -->
+        <div id="starblasterWindow" class="window" data-original-width="480" data-original-height="640">
+            <div class="window-header">
+                <span class="window-title">Starblaster</span>
+                <div class="window-buttons">
+                    <button class="minimize" onclick="minimizeWindow('starblasterWindow')">_</button>
+                    <button class="maximize" onclick="maximizeWindow('starblasterWindow')">□</button>
+                    <button class="close" onclick="closeWindow('starblasterWindow')">X</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <!-- Wrap iframe in a div for scaling -->
+                <div class="iframe-wrapper">
+                    <iframe src="starshooter/starshooter.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+            <!-- Resize Handle -->
+            <div class="resize-handle resize-handle-bottom-right"></div>
+        </div>
+
+        <!-- Media Player (Independent Program Window) -->
+        <div id="mediaPlayer" class="media-player" data-original-width="386.989" data-original-height="426.983">
+            <div class="media-player-header">
+                <span class="media-player-title">Media Player</span>
+                <div class="media-player-buttons">
+                    <button class="minimize" onclick="minimizeMediaPlayer()">_</button>
+                    <button class="maximize" onclick="maximizeMediaPlayer()">□</button>
+                    <button class="close" onclick="closeMediaPlayer()">X</button>
+                </div>
+            </div>
+            <div class="media-player-content">
+                <div class="media-player-wrapper">
+                <!-- Media Player Code -->
+                    <div id="player">
+                        <div id="screen">
+                            <canvas id="visualizer"></canvas>
+                            <div id="youtube-video-container">
+                                <div id="youtube-video"></div> <!-- Container for YouTube iframe -->
+                            </div>
+                            <button class="fullscreen" onclick="fullscreenMediaPlayer()">⛶</button>
+                        </div>
+                        <div id="controls">
+                            <img id="prev" src="icons/PREV.png" alt="Prev">
+                            <img id="play" src="icons/PLAY.png" alt="Play">
+                            <img id="stop" src="icons/STOP.png" alt="Stop">
+                            <img id="next" src="icons/NEXT.png" alt="Next">
+                        </div>
+                        <div id="seek-bar">
+                            <img id="track" src="icons/TRACK.png" alt="Track">
+                            <img id="head" src="icons/HEAD.png" alt="Head">
+                        </div>
+                        <div id="sliders">
+                            <div class="slider-container">
+                                <div id="volume-slider" class="slider">
+                                    <div class="slide-button"></div>
+                                </div>
+                                <div class="slider-label">Volume</div>
+                            </div>
+                            <div class="slider-container">
+                                <div id="pan-slider" class="slider">
+                                    <div class="slide-button"></div>
+                                </div>
+                                <div class="slider-label">Pan</div>
+                            </div>
+                        </div>
+                        <div id="playlist">
+                            <ul id="playlist-items">
+                                <!-- Playlist items will be added here dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- End of Media Player Code -->
+                </div>
+            </div>
+            <!-- Resize Handle -->
+            <div class="resize-handle resize-handle-bottom-right"></div>
+        </div>
+
+    </div>
+
+    <!-- Include YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="script.js"></script>
+</body>
+</html>

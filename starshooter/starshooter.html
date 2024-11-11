@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Space Shooter Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+    <div id="pauseMenu" class="menu hidden">
+        <button id="resumeButton">Resume</button>
+        <button id="controlsButton">Controls</button>
+        <div id="controlsInfo" class="hidden">
+            <p>**Controls**</p>
+            <ul>
+                <li>Move Left: **Left Arrow**</li>
+                <li>Move Right: **Right Arrow**</li>
+                <li>Shoot: **Spacebar**</li>
+                <li>Super Blaster: **Left Control**</li>
+                <li>Pause: **Escape**</li>
+            </ul>
+        </div>
+    </div>
+    <div id="gameOverMenu" class="menu hidden">
+        <p>Game Over</p>
+        <button id="restartButton">Restart</button>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
