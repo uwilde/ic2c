@@ -5,70 +5,159 @@
     box-sizing: border-box;
 }
 
-body, html {
+html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
     font-family: 'Tahoma', 'Segoe UI', sans-serif;
+    font-size: 16px; /* Base font size for scalability */
 }
 
-.window.maximized {
-    top: 0;
-    left: 0;
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Taskbar Styles */
+.taskbar {
+    position: fixed;
+    bottom: 0;
     width: 100%;
-    height: calc(100% - 40px); /* Account for taskbar */
+    height: 50px; /* Increased height for better touch targets */
+    background-color: #c0c0c0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #808080;
+    z-index: 1000;
+    padding: 0 10px;
 }
 
 .taskbar-instances {
     display: flex;
     align-items: center;
     gap: 5px;
-    margin-left: 10px; /* Space between start button and taskbar instances */
-    margin-bottom: 2.5px; /* Space between start button and taskbar instances */
     flex-grow: 1;
+    overflow-x: auto; /* Allow horizontal scrolling on smaller screens */
 }
 
 .taskbar-button {
-    height: 30px;
+    height: 40px;
     background-color: #cccccc;
     border: 1px solid #999999;
     padding: 5px 10px;
     display: flex;
-    align-items: center; /* Vertically center icon and text */
+    align-items: center;
     cursor: pointer;
-    border-radius: 1px;
-    box-shadow: -1px -1px 0px #ffffff, 2px 2px 0px #000000; /* Raised effect */
-    transition: box-shadow 0.1s, transform 0.1s; /* Smooth transition */
+    border-radius: 4px;
+    box-shadow: -1px -1px 0px #ffffff, 2px 2px 0px #000000;
+    transition: box-shadow 0.1s, transform 0.1s;
+    min-width: 80px;
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.taskbar-button:active {
+    box-shadow: 1px 1px 0px #ffffff, -2px -2px 0px #000000;
+    transform: translateY(1px);
 }
 
 .taskbar-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px; /* Space between icon and title */
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
     object-fit: contain;
 }
 
-/* Pushed in effect on click */
-.taskbar-button:active {
-    box-shadow: 1px 1px 0px #ffffff, -2px -2px 0px #000000; /* Inverted shadow for pushed look */
-    transform: translateY(1px); /* Slight downward shift */
+/* Start Button Styles */
+.start-button {
+    width: 60px;
+    height: 40px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Desktop with Classic Windows XP Wallpaper */
+.start-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* System Tray Styles */
+.system-tray {
+    display: flex;
+    align-items: center;
+}
+
+.tray-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tray-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tray-icon:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Start Menu Styles */
+.start-menu {
+    position: absolute;
+    bottom: 60px; /* Positioned above the taskbar */
+    left: 10px;
+    width: 250px;
+    background-color: #c0c0c0;
+    color: black;
+    border: 2px solid #808080;
+    border-radius: 4px;
+    display: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 1001;
+}
+
+.start-menu ul {
+    list-style: none;
+    padding: 5px 0;
+}
+
+.start-menu ul li {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.start-menu ul li:hover {
+    background-color: #000080;
+    color: white;
+}
+
+/* Desktop Styles */
 .desktop {
     position: relative;
-    width: 100vw;
-    height: 100vh;
-    background-image: url('images/background.png'); /* Use a Windows XP-style wallpaper */
+    width: 100%;
+    height: 100%;
+    background-image: url('images/background.png');
     background-size: cover;
     background-position: center;
     transition: background 0.5s ease;
+    flex-grow: 1;
+    overflow: hidden;
 }
 
 /* Desktop Icons */
 .desktop-icons {
     position: absolute;
-    /* Removed flex properties to allow absolute positioning */
+    width: 100%;
+    height: 100%;
+    /* Consider using Flexbox or Grid for better layout management */
 }
 
 .desktop-icon {
@@ -98,96 +187,15 @@ body, html {
     transform: scale(1.1);
 }
 
-/* Taskbar Styles */
-.taskbar {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 40px;
-    background-color: #c0c0c0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 2px solid #808080;
-    z-index: 1000;
-}
-
-.start-button {
-    width: 80px;
-    height: auto;
-    margin-left: 10px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.start-button img {
-    width: 80px;
-    height: auto;
-}
-
-.system-tray {
-    display: flex;
-    align-items: center;
-    padding-right: 10px;
-}
-
-.tray-icon {
-    width: 24px;
-    height: 24px;
-    margin-left: 10px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tray-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.tray-icon:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-/* Start Menu Styles */
-.start-menu {
-    position: absolute;
-    bottom: 50px;
-    left: 10px;
-    width: 200px;
-    background-color: #c0c0c0;
-    color: black;
-    border: 2px solid #808080;
-    border-radius: 4px;
-    display: none;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    z-index: 1001;
-}
-
-.start-menu ul {
-    list-style: none;
-    padding: 5px 0;
-}
-
-.start-menu ul li {
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.start-menu ul li:hover {
-    background-color: #000080;
-    color: white;
-}
-
 /* Window Styles */
 .window, .media-player {
     position: absolute;
-    top: 60px; /* Adjusted to prevent overlapping with taskbar */
+    top: 60px; /* Positioned below the taskbar */
     left: 120px;
-    width: 386.989px;
-    height: 426.983px;
+    width: 400px;
+    max-width: 90%;
+    height: 450px;
+    max-height: 90%;
     border: 2px solid #808080;
     background-color: #c0c0c0;
     display: none;
@@ -199,25 +207,31 @@ body, html {
     overflow: hidden;
 }
 
+/* Maximized Window */
+.window.maximized {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 50px); /* Adjusted for taskbar height */
+}
+
 /* Window Header */
 .window-header, .media-player-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: #000080;
-    padding: 5px 10px;
+    padding: 10px;
     color: white;
     cursor: move;
     user-select: none;
 }
 
-/* Window Title */
 .window-title, .media-player-title {
     font-size: 16px;
     font-weight: bold;
 }
 
-/* Window Control Buttons */
 .window-buttons, .media-player-buttons {
     display: flex;
 }
@@ -226,12 +240,12 @@ body, html {
     background-color: #c0c0c0;
     border: 1px solid #808080;
     color: black;
-    padding: 2px 6px;
+    padding: 4px 8px;
     cursor: pointer;
     margin-left: 5px;
     border-radius: 2px;
     transition: background-color 0.2s;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .window-buttons button:hover, .media-player-buttons button:hover {
@@ -242,10 +256,10 @@ body, html {
 /* Window Content */
 .window-content, .media-player-content {
     flex-grow: 1;
-    padding: 0; /* Removed padding for proper scaling */
+    padding: 0;
     background-color: black;
     position: relative;
-    overflow: hidden; /* Hide overflow to prevent scrollbars */
+    overflow: hidden;
 }
 
 /* Iframe Wrapper */
@@ -256,12 +270,13 @@ body, html {
     overflow: hidden;
 }
 
-/* Iframe Content */
 .iframe-content {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform-origin: center;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
 }
 
 /* Resize Handle Styles */
@@ -300,32 +315,172 @@ body, html {
     animation: fadeOut 0.3s forwards;
 }
 
+.window.hide {
+    display: none;
+}
+
+.media-player.hide {
+    display: none;
+}
+
 /* Responsive Window Sizes */
 @media (max-width: 1200px) {
     .window, .media-player {
         width: 80%;
         height: 70%;
-        top: 30px; /* Adjusted top to fit within the desktop area */
+        top: 30px;
         left: 10%;
     }
 }
 
-@media (max-width: 768px) {
-    .window, .media-player {
-        width: 95%;
-        height: 80%;
-        left: 2.5%;
+@media (max-width: 992px) {
+    /* Tablet Devices */
+    .taskbar-button {
+        min-width: 60px;
+        height: 35px;
+        padding: 4px 8px;
+        font-size: 14px;
     }
 
     .taskbar-icon {
-        width: 40px;
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+    }
+
+    .start-button {
+        width: 60px;
         height: 40px;
     }
-    .start-button {
-        width: 300px;
+
+    .desktop-icon {
+        width: 70px;
+    }
+
+    .desktop-icon img {
+        width: 56px;
+        height: 56px;
+    }
+
+    .desktop-icon span {
+        font-size: 13px;
     }
 }
 
+@media (max-width: 768px) {
+    /* Mobile Devices */
+    .window, .media-player {
+        width: 95%;
+        height: 80%;
+        top: 20px;
+        left: 2.5%;
+    }
+
+    .taskbar-button {
+        min-width: 50px;
+        height: 35px;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .taskbar-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+
+    .start-button {
+        width: 60px;
+        height: 40px;
+    }
+
+    .tray-icon {
+        width: 28px;
+        height: 28px;
+        margin-left: 8px;
+    }
+
+    .desktop-icon {
+        width: 70px;
+    }
+
+    .desktop-icon img {
+        width: 56px;
+        height: 56px;
+    }
+
+    .desktop-icon span {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Small Mobile Devices */
+    .taskbar {
+        height: 60px;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 5px;
+    }
+
+    .taskbar-instances {
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-left: 0;
+    }
+
+    .start-button {
+        width: 50px;
+        height: 50px;
+    }
+
+    .taskbar-button {
+        min-width: 50px;
+        height: 40px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+
+    .tray-icon {
+        width: 28px;
+        height: 28px;
+        margin-left: 5px;
+    }
+
+    .desktop-icon {
+        width: 60px;
+    }
+
+    .desktop-icon img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .desktop-icon span {
+        font-size: 12px;
+    }
+
+    .window, .media-player {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 0;
+    }
+
+    .window.maximized, .media-player.maximized {
+        height: calc(100% - 60px); /* Adjusted for increased taskbar height */
+    }
+
+    .start-menu {
+        width: 100%;
+        left: 0;
+        bottom: 60px;
+        border-radius: 0;
+    }
+}
+
+/* Media Player Styles */
 .media-player-wrapper {
     position: relative;
     width: 100%;
@@ -336,18 +491,15 @@ body, html {
     background-repeat: no-repeat;
 }
 
-/* Media Player Content */
 #player {
-
     position: absolute;
     top: 50%;
     left: 50%;
-    transform-origin: center;
-    /* Set original dimensions */
-    width: 386.989px;
-    height: 426.983px;
-
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
 }
+
 #screen {
     position: relative;
     margin-top: 10px;
@@ -364,16 +516,14 @@ body, html {
 
 #youtube-video-container {
     position: absolute;
-    width: 100%; /* Changed from 0 to 100% */
+    width: 100%;
     height: 100%;
     overflow: hidden;
-
 }
 
 #youtube-video {
     width: 100%;
     height: 100%;
-
 }
 
 #controls {
@@ -393,9 +543,9 @@ body, html {
     position: relative;
     width: 100%;
     height: 10px;
-    margin: 0px;
-    justify-content: center;
-    align-content: center;
+    margin: 0;
+    display: flex;
+    align-items: center;
 }
 
 #seek-bar img#track {
@@ -406,9 +556,9 @@ body, html {
 #seek-bar img#head {
     position: absolute;
     top: 0;
-    margin-top: 6px;
     left: 0;
     cursor: pointer;
+    transform: translate(-50%, -50%);
 }
 
 #sliders {
@@ -417,21 +567,43 @@ body, html {
     margin-top: 10px;
 }
 
+#volume-slider, #pan-slider {
+    position: relative;
+    width: 80px;
+    height: 15px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    cursor: pointer;
+}
+
 #volume-slider {
-    background-position: 0px -405px; /* Start position for volume slider background */
+    background-image: url('icons/slider_volume.png');
 }
 
 #volume-slider .slide-button {
-    left: 49.1956px; /* Start position for volume slider button */
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 15px;
+    background-image: url('icons/MINI_SLIDE.png');
+    cursor: pointer;
 }
 
-/* Pan Slider Initial Position */
 #pan-slider {
-    background-position: 0px -202.5px; /* Start position for pan slider background */
+    background-image: url('icons/slider_pan.png');
 }
 
 #pan-slider .slide-button {
-    left: 24.5978px; /* Start position for pan slider button */
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 15px;
+    background-image: url('icons/MINI_SLIDE.png');
+    cursor: pointer;
 }
 
 .slider-label {
@@ -445,7 +617,7 @@ body, html {
 
 .slider {
     position: relative;
-    width: 64px;
+    width: 80px;
     height: 15px;
     background-image: url('icons/slider.png');
     background-repeat: no-repeat;
@@ -457,7 +629,7 @@ body, html {
     position: absolute;
     top: 0;
     left: 0;
-    width: 10px;
+    width: 12px;
     height: 15px;
     background-image: url('icons/MINI_SLIDE.png');
     cursor: pointer;
