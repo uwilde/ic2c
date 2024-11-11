@@ -1,4 +1,4 @@
- // Function to change the start button image on mousedown and mouseup
+// Function to change the start button image on mousedown and mouseup
 function changeStartButtonImage(imagePath) {
     document.getElementById("startButtonImage").src = "images/" + imagePath;
 }
@@ -56,11 +56,11 @@ function openWindow(windowId) {
     adjustIframeScale(windowId);
 
     // Check if the taskbar button already exists
-    let taskbarButton = document.getElementById(taskbar-${windowId});
+    let taskbarButton = document.getElementById(`taskbar-${windowId}`);
     if (!taskbarButton) {
         // Create taskbar button with icon
         taskbarButton = document.createElement("button");
-        taskbarButton.id = taskbar-${windowId};
+        taskbarButton.id = `taskbar-${windowId}`;
         taskbarButton.classList.add("taskbar-button");
 
         // Create icon image element
@@ -75,7 +75,7 @@ function openWindow(windowId) {
             iconSrc = 'images/window_icon.png'; // Default icon
         }
         icon.src = iconSrc;
-        icon.alt = ${windowId} icon;
+        icon.alt = `${windowId} icon`;
         icon.classList.add("taskbar-icon");
 
         // Set title text
@@ -102,7 +102,7 @@ function openWindow(windowId) {
 
 function closeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
-    const taskbarButton = document.getElementById(taskbar-${windowId});
+    const taskbarButton = document.getElementById(`taskbar-${windowId}`);
 
     // Hide the window
     windowElement.classList.add("hide");
@@ -124,6 +124,8 @@ function minimizeWindow(windowId) {
 
 function maximizeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
+    let topPosition = (window.innerHeight - windowElement.offsetHeight) / 2;
+    let leftPosition = (window.innerWidth - windowElement.offsetWidth) / 2;
 
     if (windowElement.classList.contains('maximized')) {
         // Restore to a smaller, default size
@@ -132,15 +134,15 @@ function maximizeWindow(windowId) {
         // Set a predefined "normal" size and center it
         windowElement.style.width = '600px'; // Set desired width
         windowElement.style.height = '500px'; // Set desired height
-        windowElement.style.top = calc(50% - ${windowElement.offsetHeight / 2}px);
-        windowElement.style.left = calc(50% - ${windowElement.offsetWidth / 2}px);
+        windowElement.style.top = `${topPosition}px`;
+        windowElement.style.left = `${leftPosition}px`;
     } else {
         // Maximize the window
         windowElement.classList.add('maximized');
         windowElement.style.top = '0';
         windowElement.style.left = '0';
         windowElement.style.width = '100%';
-        windowElement.style.height = calc(100% - 40px); // Subtract taskbar height
+        windowElement.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
     }
 
     // Adjust iframe scale
@@ -163,6 +165,9 @@ function toggleMinimizeRestoreWindow(windowId) {
 }
 
 // Media Player Functions
+let mediaPlayerInitialized = false;
+let youtubePlayerReady = false;
+
 function toggleMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
     if (mediaPlayer.style.display === 'flex') {
@@ -184,18 +189,35 @@ function openMediaPlayer() {
 
     adjustMediaPlayerScale();
 
+    // Initialize media player if not already done
+    if (!mediaPlayerInitialized) {
+        if (youtubePlayerReady) {
+            initMediaPlayer();
+            mediaPlayerInitialized = true;
+        } else {
+            // Wait until YouTube player is ready, then initialize
+            let checkYouTubeReadyInterval = setInterval(() => {
+                if (youtubePlayerReady) {
+                    initMediaPlayer();
+                    mediaPlayerInitialized = true;
+                    clearInterval(checkYouTubeReadyInterval);
+                }
+            }, 100);
+        }
+    }
+
     // Check if the taskbar button already exists
-    let taskbarButton = document.getElementById(taskbar-mediaPlayer);
+    let taskbarButton = document.getElementById(`taskbar-mediaPlayer`);
     if (!taskbarButton) {
         // Create taskbar button with icon
         taskbarButton = document.createElement("button");
-        taskbarButton.id = taskbar-mediaPlayer;
+        taskbarButton.id = `taskbar-mediaPlayer`;
         taskbarButton.classList.add("taskbar-button");
 
         // Create icon image element
         const icon = document.createElement("img");
         icon.src = 'images/media_player.png';
-        icon.alt = Media Player icon;
+        icon.alt = `Media Player icon`;
         icon.classList.add("taskbar-icon");
 
         // Set title text
@@ -216,7 +238,7 @@ function openMediaPlayer() {
 
 function closeMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
-    const taskbarButton = document.getElementById(taskbar-mediaPlayer);
+    const taskbarButton = document.getElementById(`taskbar-mediaPlayer`);
 
     // Hide the media player
     mediaPlayer.classList.add("hide");
@@ -249,20 +271,25 @@ function maximizeMediaPlayer() {
         // Set the predefined "normal" size and center it
         mediaPlayer.style.width = '386.989px';
         mediaPlayer.style.height = '426.983px';
-        mediaPlayer.style.top = calc(50% - ${mediaPlayer.offsetHeight / 2}px);
-        mediaPlayer.style.left = calc(50% - ${mediaPlayer.offsetWidth / 2}px);
+
+        let topPosition = (window.innerHeight - mediaPlayer.offsetHeight) / 2;
+        let leftPosition = (window.innerWidth - mediaPlayer.offsetWidth) / 2;
+
+        mediaPlayer.style.top = `${topPosition}px`;
+        mediaPlayer.style.left = `${leftPosition}px`;
     } else {
         // Maximize the media player
         mediaPlayer.classList.add('maximized');
         mediaPlayer.style.top = '0';
         mediaPlayer.style.left = '0';
         mediaPlayer.style.width = '100%';
-        mediaPlayer.style.height = calc(100% - 40px); // Subtract taskbar height
+        mediaPlayer.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
     }
 
     // Adjust media player scale
     adjustMediaPlayerScale();
 }
+
 function toggleMinimizeRestoreMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
 
@@ -408,9 +435,9 @@ let seekBarRect;
 let playlist = [
     { title: "River Drift : (mis) Guided Imagery", type: "video", youtubeId: "f305CJq5eRM" },
     { title: "Cold Ice Tea : Uriah Wilde", type: "video", youtubeId: "wTs5KJab1cE" },
-    { title: "Johynny Depp Wins", type: "video", youtubeId: "2_a-CKrx4t0" }
+    { title: "Johnny Depp Wins", type: "video", youtubeId: "2_a-CKrx4t0" }
 ];
-let currentTrackIndex = 0;
+let currentTrackIndex = null;
 
 // Initialize when YouTube API is ready
 function onYouTubeIframeAPIReady() {
@@ -434,7 +461,7 @@ function onYouTubeIframeAPIReady() {
 }
 
 function onPlayerReady() {
-    initMediaPlayer();
+    youtubePlayerReady = true;
 }
 
 function onPlayerStateChange(event) {
@@ -443,7 +470,7 @@ function onPlayerStateChange(event) {
     } else if (event.data === YT.PlayerState.PLAYING) {
         isPlaying = true;
         updatePlayButton();
-        if (playlist[currentTrackIndex].type === 'audio') {
+        if (playlist[currentTrackIndex] && playlist[currentTrackIndex].type === 'audio') {
             setupVisualizer();
         }
     } else {
@@ -480,8 +507,7 @@ function initMediaPlayer() {
         playlistElement.appendChild(li);
     });
 
-    // Load the first track
-    loadTrack(currentTrackIndex);
+    // Do not load the first track by default
 
     // Add event listeners for buttons
     setupButtonEvents(playButton, stopButton, prevButton, nextButton);
@@ -511,12 +537,12 @@ function loadTrack(index) {
     items[index].classList.add('active');
 
     if (track.type === 'audio') {
-        youtubePlayer.loadVideoById(track.youtubeId);
+        youtubePlayer.cueVideoById(track.youtubeId);
         youtubePlayer.mute();
         document.getElementById('visualizer').style.display = 'block';
         document.getElementById('youtube-video').style.display = 'none';
     } else if (track.type === 'video') {
-        youtubePlayer.loadVideoById(track.youtubeId);
+        youtubePlayer.cueVideoById(track.youtubeId);
         youtubePlayer.unMute();
         document.getElementById('visualizer').style.display = 'none';
         document.getElementById('youtube-video').style.display = 'block';
@@ -526,8 +552,13 @@ function loadTrack(index) {
 }
 
 function play() {
-    if (!youtubePlayer) return;
+    if (!youtubePlayer || currentTrackIndex === null) {
+        console.log('No track selected. Please select a track from the playlist.');
+        return;
+    }
     youtubePlayer.playVideo();
+    isPlaying = true;
+    updatePlayButton();
 }
 
 function pause() {
@@ -545,17 +576,21 @@ function stop() {
 }
 
 function prevTrack() {
-    if (currentTrackIndex > 0) {
-        loadTrack(currentTrackIndex - 1);
-        play();
+    if (currentTrackIndex === null || currentTrackIndex <= 0) {
+        console.log('No previous track.');
+        return;
     }
+    loadTrack(currentTrackIndex - 1);
+    play();
 }
 
 function nextTrack() {
-    if (currentTrackIndex < playlist.length - 1) {
-        loadTrack(currentTrackIndex + 1);
-        play();
+    if (currentTrackIndex === null || currentTrackIndex >= playlist.length - 1) {
+        console.log('No next track.');
+        return;
     }
+    loadTrack(currentTrackIndex + 1);
+    play();
 }
 
 function setupButtonEvents(playButton, stopButton, prevButton, nextButton) {
@@ -564,7 +599,7 @@ function setupButtonEvents(playButton, stopButton, prevButton, nextButton) {
     buttons.forEach(button => {
         button.addEventListener('mousedown', () => {
             let baseName = button.id.toUpperCase();
-            button.src = icons/${baseName}_CLICK.png;
+            button.src = `icons/${baseName}_CLICK.png`;
         });
 
         button.addEventListener('mouseup', () => {
@@ -594,7 +629,7 @@ function updateButtonImage(button) {
     if (button.id === 'play') {
         updatePlayButton();
     } else {
-        button.src = icons/${baseName}.png;
+        button.src = `icons/${baseName}.png`;
     }
 }
 
@@ -628,7 +663,7 @@ function onDragHead(e) {
     if (isDraggingHead) {
         let x = e.clientX - seekBarRect.left;
         x = Math.max(0, Math.min(x, seekBarRect.width));
-        document.getElementById('head').style.left = ${x}px;
+        document.getElementById('head').style.left = `${x}px`;
 
         let duration = youtubePlayer.getDuration() || 0;
         let seekTime = (x / seekBarRect.width) * duration;
@@ -644,12 +679,12 @@ function onReleaseHead() {
 }
 
 function updateSeekBar(head, track) {
-    if (!youtubePlayer || !youtubePlayer.getDuration) return;
+    if (!youtubePlayer || !youtubePlayer.getDuration || currentTrackIndex === null) return;
     let duration = youtubePlayer.getDuration();
     let currentTime = youtubePlayer.getCurrentTime();
     if (duration > 0) {
         let progress = (currentTime / duration) * track.offsetWidth;
-        head.style.left = ${progress}px;
+        head.style.left = `${progress}px`;
     }
 }
 
@@ -669,10 +704,10 @@ function updateSliderPosition(sliderElement, value) {
     let sliderButton = sliderElement.querySelector('.slide-button');
     let sliderWidth = sliderElement.offsetWidth - sliderButton.offsetWidth;
     let position = value * sliderWidth;
-    sliderButton.style.left = ${position}px;
+    sliderButton.style.left = `${position}px`;
 
     let frame = Math.floor(value * 27);
-    sliderElement.style.backgroundPosition = 0px ${-frame * 15}px;
+    sliderElement.style.backgroundPosition = `0px ${-frame * 15}px`;
 }
 
 function setupSlider(sliderElement, type) {
@@ -694,7 +729,7 @@ function setupSlider(sliderElement, type) {
         if (isDragging) {
             let x = e.clientX - sliderRect.left;
             x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth));
-            sliderButton.style.left = ${x}px;
+            sliderButton.style.left = `${x}px`;
 
             let value = x / (sliderRect.width - sliderButton.offsetWidth);
 
@@ -702,12 +737,12 @@ function setupSlider(sliderElement, type) {
                 youtubePlayer.setVolume(value * 100);
             } else if (type === 'pan') {
                 // Placeholder functionality for Pan slider
-                console.log(Pan value adjusted to: ${value.toFixed(2)});
+                console.log(`Pan value adjusted to: ${value.toFixed(2)}`);
                 // Future implementation can utilize Web Audio API if feasible
             }
 
             let frame = Math.floor(value * 27);
-            sliderElement.style.backgroundPosition = 0px ${-frame * 15}px;
+            sliderElement.style.backgroundPosition = `0px ${-frame * 15}px`;
         }
     }
 
@@ -718,6 +753,7 @@ function setupSlider(sliderElement, type) {
         document.removeEventListener('mouseup', onReleaseSlider);
     }
 }
+
 function setupVisualizer() {
     const canvas = document.getElementById('visualizer');
     const canvasCtx = canvas.getContext('2d');
@@ -726,7 +762,7 @@ function setupVisualizer() {
 
 function drawVisualizer(canvas, canvasCtx) {
     requestAnimationFrame(() => drawVisualizer(canvas, canvasCtx));
-    if (!isPlaying || playlist[currentTrackIndex].type !== 'audio') {
+    if (!isPlaying || !playlist[currentTrackIndex] || playlist[currentTrackIndex].type !== 'audio') {
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
         return;
     }
@@ -821,7 +857,6 @@ function fullscreenMediaPlayer() {
     }
 }
 
-
 document.addEventListener('fullscreenchange', (event) => {
     const mediaPlayerContent = document.querySelector('#mediaPlayer .media-player-content');
     if (document.fullscreenElement) {
@@ -848,8 +883,8 @@ function adjustIframeScale(windowId) {
     if (!originalWidth || !originalHeight) return;
 
     // Set the width and height of iframe-content
-    iframeContent.style.width = ${originalWidth}px;
-    iframeContent.style.height = ${originalHeight}px;
+    iframeContent.style.width = `${originalWidth}px`;
+    iframeContent.style.height = `${originalHeight}px`;
 
     // Get the size of the iframe wrapper
     const wrapperWidth = iframeWrapper.clientWidth;
@@ -859,7 +894,7 @@ function adjustIframeScale(windowId) {
     const scale = Math.min(wrapperWidth / originalWidth, wrapperHeight / originalHeight);
 
     // Apply the scale and center the iframe content
-    iframeContent.style.transform = translate(-50%, -50%) scale(${scale});
+    iframeContent.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
 
 window.addEventListener('resize', () => {
@@ -894,5 +929,5 @@ function adjustMediaPlayerScale() {
     const scale = Math.min(wrapperWidth / originalWidth, wrapperHeight / originalHeight);
 
     // Apply the scale and center the player content
-    playerContent.style.transform = translate(-50%, -50%) scale(${scale});
-} 
+    playerContent.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
