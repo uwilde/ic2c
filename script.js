@@ -519,7 +519,7 @@ function initMediaPlayer() {
     setupSliders(volumeSlider, panSlider);
 
     // Update the seek bar as the media plays
-    setInterval(() => updateSeekBar(head, track), 1000);
+    setInterval(() => updateSeekBar(head, track), 100);
 
     // Start the visualizer
     drawVisualizer(canvas, canvasCtx);
@@ -661,12 +661,12 @@ function setupSeekBar(head, track) {
 
 function onDragHead(e) {
     if (isDraggingHead) {
-        let x = e.clientX - seekBarRect.left;
-        x = Math.max(0, Math.min(x, seekBarRect.width));
-        document.getElementById('head').style.left = `${x}px`;
+        let x = e.clientX - seekBarRect.left - (head.offsetWidth / 2);
+        x = Math.max(0, Math.min(x, seekBarRect.width - head.offsetWidth));
+        head.style.left = `${x}px`;
 
         let duration = youtubePlayer.getDuration() || 0;
-        let seekTime = (x / seekBarRect.width) * duration;
+        let seekTime = (x / (seekBarRect.width - head.offsetWidth)) * duration;
         youtubePlayer.seekTo(seekTime, true);
     }
 }
@@ -680,13 +680,16 @@ function onReleaseHead() {
 
 function updateSeekBar(head, track) {
     if (!youtubePlayer || !youtubePlayer.getDuration || currentTrackIndex === null) return;
+    if (isDraggingHead) return; // Do not update while dragging
+
     let duration = youtubePlayer.getDuration();
     let currentTime = youtubePlayer.getCurrentTime();
     if (duration > 0) {
-        let progress = (currentTime / duration) * track.offsetWidth;
+        let progress = (currentTime / duration) * (track.offsetWidth - head.offsetWidth);
         head.style.left = `${progress}px`;
     }
 }
+
 
 function setupSliders(volumeSlider, panSlider) {
     setupSlider(volumeSlider, 'volume');
@@ -781,7 +784,7 @@ function drawVisualizer(canvas, canvasCtx) {
 
 // Desktop Icons Drag-and-Drop Functionality
 document.querySelectorAll('.desktop-icon').forEach(icon => {
-    // Handle dragging
+    icon.addEventListener('click', handleIconClick);
     icon.addEventListener('mousedown', function(e) {
         // Prevent dragging if clicking on inner elements
         if (e.target.tagName.toLowerCase() !== 'img' && e.target.tagName.toLowerCase() !== 'span') return;
@@ -931,3 +934,285 @@ function adjustMediaPlayerScale() {
     // Apply the scale and center the player content
     playerContent.style.transform = `translate(-50%, -50%) scale(${scale})`;
 }
+
+let isMuted = false;
+
+// Select the sound tray icon
+const soundTray = document.getElementById('soundTray');
+const soundIcon = soundTray.querySelector('img');
+
+// Add click event listener to toggle mute
+soundTray.addEventListener('click', () => {
+    if (isMuted) {
+        // Unmute all audio
+        if (youtubePlayer && typeof youtubePlayer.unMute === 'function') {
+            youtubePlayer.unMute();
+        }
+        // Unmute other audio elements if any
+        const audioElements = document.querySelectorAll('audio, video');
+        audioElements.forEach(audio => {
+            audio.muted = false;
+        });
+        // Change icon to sound.png
+        soundIcon.src = 'images/sound.png';
+        isMuted = false;
+    } else {
+        // Mute all audio
+        if (youtubePlayer && typeof youtubePlayer.mute === 'function') {
+            youtubePlayer.mute();
+        }
+        // Mute other audio elements if any
+        const audioElements = document.querySelectorAll('audio, video');
+        audioElements.forEach(audio => {
+            audio.muted = true;
+        });
+        // Change icon to no_sound.png
+        soundIcon.src = 'images/no_sound.png';
+        isMuted = true;
+    }
+});
+
+function openWifiWindow() {
+    const windowId = 'wifiWindow';
+    const title = 'Wi-Fi';
+    const message = ''; // We'll build the content dynamically
+
+    // Check if window already exists
+    let existingWindow = document.getElementById(windowId);
+    if (existingWindow) {
+        toggleWindow(windowId);
+        return;
+    }
+
+    // Create window element
+    const windowElement = document.createElement('div');
+    windowElement.id = windowId;
+    windowElement.classList.add('window');
+    windowElement.setAttribute('data-original-width', '300');
+    windowElement.setAttribute('data-original-height', '400');
+
+    // Window Header
+    const windowHeader = document.createElement('div');
+    windowHeader.classList.add('window-header');
+
+    const windowTitle = document.createElement('span');
+    windowTitle.classList.add('window-title');
+    windowTitle.textContent = title;
+
+    const windowButtons = document.createElement('div');
+    windowButtons.classList.add('window-buttons');
+
+    // Minimize Button
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.classList.add('minimize');
+    minimizeBtn.textContent = '_';
+    minimizeBtn.onclick = () => minimizeWindow(windowId);
+
+    // Maximize Button
+    const maximizeBtn = document.createElement('button');
+    maximizeBtn.classList.add('maximize');
+    maximizeBtn.textContent = '□';
+    maximizeBtn.onclick = () => maximizeWindow(windowId);
+
+    // Close Button
+    const closeBtn = document.createElement('button');
+    closeBtn.classList.add('close');
+    closeBtn.textContent = 'X';
+    closeBtn.onclick = () => closeWindow(windowId);
+
+    // Append buttons to windowButtons
+    windowButtons.appendChild(minimizeBtn);
+    windowButtons.appendChild(maximizeBtn);
+    windowButtons.appendChild(closeBtn);
+
+    // Append title and buttons to header
+    windowHeader.appendChild(windowTitle);
+    windowHeader.appendChild(windowButtons);
+
+    // Window Content
+    const windowContent = document.createElement('div');
+    windowContent.classList.add('window-content');
+
+    // Create Wi-Fi connections list
+    const wifiList = document.createElement('ul');
+    wifiList.classList.add('wifi-list');
+
+    // Fake Wi-Fi connections with humorous names
+    const fakeWifis = [
+        { name: "FBI Surveillance Van", locked: true },
+        { name: "Pretty Fly for a Wi-Fi", locked: true },
+        { name: "Wi-Fi not Available", locked: true },
+        { name: "Mom Click Here for Internet", locked: true },
+        { name: "TellMyWiFiLoveHer", locked: true },
+        { name: "CleverWifiName123", locked: true }
+    ];
+
+    fakeWifis.forEach(wifi => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('wifi-item');
+
+        const wifiName = document.createElement('span');
+        wifiName.textContent = wifi.name;
+
+        const wifiStatus = document.createElement('span');
+        wifiStatus.classList.add('wifi-status');
+        if (wifi.locked) {
+            wifiStatus.innerHTML = '🔒'; // Lock icon
+        } else {
+            wifiStatus.innerHTML = '🔓'; // Unlock icon
+        }
+
+        listItem.appendChild(wifiName);
+        listItem.appendChild(wifiStatus);
+        wifiList.appendChild(listItem);
+    });
+
+    windowContent.appendChild(wifiList);
+
+    // Append header and content to window
+    windowElement.appendChild(windowHeader);
+    windowElement.appendChild(windowContent);
+
+    // Add resize handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.classList.add('resize-handle', 'resize-handle-bottom-right');
+    windowElement.appendChild(resizeHandle);
+
+    // Append window to desktop
+    document.querySelector('.desktop').appendChild(windowElement);
+
+    // Open the window
+    openWindow(windowId);
+}
+
+// Update Event Listener for Network Tray Icon
+networkTray.addEventListener('click', () => {
+    openWifiWindow();
+});
+
+function openBatteryWindow() {
+    const windowId = 'batteryWindow';
+    const title = 'Power Options';
+    const message = ''; // We'll build the content dynamically
+
+    // Check if window already exists
+    let existingWindow = document.getElementById(windowId);
+    if (existingWindow) {
+        toggleWindow(windowId);
+        return;
+    }
+
+    // Create window element
+    const windowElement = document.createElement('div');
+    windowElement.id = windowId;
+    windowElement.classList.add('window');
+    windowElement.setAttribute('data-original-width', '250');
+    windowElement.setAttribute('data-original-height', '300');
+
+    // Window Header
+    const windowHeader = document.createElement('div');
+    windowHeader.classList.add('window-header');
+
+    const windowTitle = document.createElement('span');
+    windowTitle.classList.add('window-title');
+    windowTitle.textContent = title;
+
+    const windowButtons = document.createElement('div');
+    windowButtons.classList.add('window-buttons');
+
+    // Minimize Button
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.classList.add('minimize');
+    minimizeBtn.textContent = '_';
+    minimizeBtn.onclick = () => minimizeWindow(windowId);
+
+    // Maximize Button
+    const maximizeBtn = document.createElement('button');
+    maximizeBtn.classList.add('maximize');
+    maximizeBtn.textContent = '□';
+    maximizeBtn.onclick = () => maximizeWindow(windowId);
+
+    // Close Button
+    const closeBtn = document.createElement('button');
+    closeBtn.classList.add('close');
+    closeBtn.textContent = 'X';
+    closeBtn.onclick = () => closeWindow(windowId);
+
+    // Append buttons to windowButtons
+    windowButtons.appendChild(minimizeBtn);
+    windowButtons.appendChild(maximizeBtn);
+    windowButtons.appendChild(closeBtn);
+
+    // Append title and buttons to header
+    windowHeader.appendChild(windowTitle);
+    windowHeader.appendChild(windowButtons);
+
+    // Window Content
+    const windowContent = document.createElement('div');
+    windowContent.classList.add('window-content');
+
+    // Create power options list
+    const powerList = document.createElement('ul');
+    powerList.classList.add('power-list');
+
+    // Funny Power Options
+    const funnyOptions = [
+        { name: "Never Wake Up" },
+        { name: "Carbon-footprint Exterminator" },
+        { name: "Restart, but with Unicorns" },
+        { name: "Crash and Roll" }
+    ];
+
+    funnyOptions.forEach(option => {
+        const listItem = document.createElement('li');
+        listItem.classList.add('power-item');
+        listItem.textContent = option.name;
+        listItem.addEventListener('click', () => {
+            alert(`${option.name} selected! Just kidding...`);
+        });
+        powerList.appendChild(listItem);
+    });
+
+    windowContent.appendChild(powerList);
+
+    // Append header and content to window
+    windowElement.appendChild(windowHeader);
+    windowElement.appendChild(windowContent);
+
+    // Add resize handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.classList.add('resize-handle', 'resize-handle-bottom-right');
+    windowElement.appendChild(resizeHandle);
+
+    // Append window to desktop
+    document.querySelector('.desktop').appendChild(windowElement);
+
+    // Open the window
+    openWindow(windowId);
+}
+
+// Update Event Listener for Battery Tray Icon
+batteryTray.addEventListener('click', () => {
+    openBatteryWindow();
+});
+
+function clearSelections() {
+    const selectedIcons = document.querySelectorAll('.desktop-icon.selected');
+    selectedIcons.forEach(icon => {
+        icon.classList.remove('selected');
+    });
+}
+
+function handleIconClick(event) {
+    const icon = event.currentTarget;
+    
+    // If the clicked icon is already selected, deselect it
+    if (icon.classList.contains('selected')) {
+        icon.classList.remove('selected');
+    } else {
+        // Deselect all other icons and select the clicked one
+        clearSelections();
+        icon.classList.add('selected');
+    }
+}
+
