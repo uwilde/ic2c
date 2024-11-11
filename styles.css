@@ -669,3 +669,30 @@ body {
     padding: 5px;
     z-index: 1;
 }
+
+@media (max-width: 480px) {
+    .window, .media-player {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 0;
+    }
+
+    .window.maximized, .media-player.maximized {
+        height: 100%; /* Full height on mobile */
+    }
+
+    .window-header, .media-player-header {
+        padding: 15px; /* Increased padding for better touch */
+    }
+
+    .window-title, .media-player-title {
+        font-size: 18px; /* Larger font for readability */
+    }
+
+    .window-buttons button, .media-player-buttons button {
+        padding: 6px 12px;
+        font-size: 16px;
+    }
+}
