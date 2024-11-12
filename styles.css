@@ -589,6 +589,37 @@ body, html {
 }
 
 @media (max-width: 1200px) and (min-width: 801px) {
+
+    .taskbar-instances {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: 10px; /* Space between start button and taskbar instances */
+        margin-bottom: 2.5px; /* Space between start button and taskbar instances */
+        flex-grow: 1;
+    }
+
+    .taskbar-button {
+        height: 30px;
+        background-color: #cccccc;
+        border: 1px solid #999999;
+        padding: 5px 10px;
+        display: flex;
+        align-items: center; /* Vertically center icon and text */
+        cursor: pointer;
+        border-radius: 1px;
+        box-shadow: -1px -1px 0px #ffffff, 2px 2px 0px #000000; /* Raised effect */
+        transition: box-shadow 0.1s, transform 0.1s; /* Smooth transition */
+    }
+
+.taskbar-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px; /* Space between icon and title */
+    object-fit: contain;
+    }
+
+
     .window, .media-player {
         width: 80%;
         height: 70%;
@@ -628,10 +659,18 @@ body, html {
 @media (max-width: 800px) and (min-width: 501px) {
     /* Adjust Taskbar */
     .taskbar {
-        height: 100px;
-        flex-direction: column;
-        align-items: stretch;
-        padding: 5px 0;
+        height: 50px;
+    }
+
+    .desktop {
+        background-color: #171a24;
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('images/background_land2.png'); 
+        background-size: cover;
+        background-position: center;
+        transition: background 0.5s ease;
     }
 
     .start-button {
@@ -642,24 +681,17 @@ body, html {
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .taskbar-instances {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-left: 10px; /* Space between start button and taskbar instances */
-        margin-bottom: 2.5px; /* Space between start button and taskbar instances */
-        flex-grow: 1;
-    }
 
     .taskbar-button {
-        height: 80px;
+        width: 100px;
+        height: 30px;
         padding: 10px;
         font-size: 12px;
     }
 
     .taskbar-icon {
-        width: 64px;
-        height: 64px;
+        width: 20px;
+        height: 20px;
     }
 
     /* System Tray */
@@ -670,9 +702,9 @@ body, html {
     }
 
     .tray-icon {
-        width: 70px;
-        height: 70px;
-        margin-left: 5px;
+        width: 50px;
+        height: 50px;
+        margin-right: 5px;
     }
 
     /* Desktop Icons */
@@ -815,12 +847,12 @@ body, html {
 @media (max-width: 500px) {
     /* Adjust Taskbar */
     .taskbar {
-        height: 200px;
+        height: 100px;
         padding: 10px 0;
     }
 
     .start-button {
-        width: 140px;
+        width: 200px;
         height: auto;
         margin-left: 10px;
         cursor: pointer;
@@ -828,6 +860,8 @@ body, html {
     }
 
     .taskbar-instances {
+        width: 100%;
+        height: auto;
         display: flex;
         align-items: center;
         gap: 5px;
@@ -837,14 +871,14 @@ body, html {
     }
 
     .taskbar-button {
-        height: 120px;
+        height: 40px;
         padding: 10px;
         font-size: 16px;
     }
 
     .taskbar-icon {
-        width: 104px;
-        height: 104px;
+        width: 5px;
+        height: 5px;
     }
 
     /* System Tray */
@@ -912,24 +946,22 @@ body, html {
         transform: translate(-50%, -50%);
     }
 
-    /* Window Header */
     .window-header, .media-player-header {
         padding: 15px 20px;
         font-size: 20px;
     }
 
-    /* Window Control Buttons */
     .window-buttons button, .media-player-buttons button {
         padding: 8px 12px;
         font-size: 18px;
     }
 
-    /* Window Content */
+
     .window-content, .media-player-content {
         padding: 10px;
     }
 
-    /* Resize Handle */
+
     .resize-handle {
         width: 25px;
         height: 25px;
@@ -998,25 +1030,16 @@ body, html {
         scrollbar-width: none;  /* Firefox */
     }
 
-    /* Desktop Background Scaling */
+
     .desktop {
         background-size: contain; /* Ensure the background scales down proportionally */
         background-repeat: no-repeat;
     }
 }
 
-/* Portrait Orientation for Small Screens */
+
 @media (max-width: 500px) and (orientation: portrait) {
     /* Increase Desktop Icons */
-    .desktop-icon {
-        width: 300px;
-        margin: 15px;
-    }
-
-    .desktop-icon img {
-        width: 220px;
-        height: 220px;
-    }
 
     .desktop-icon span {
         font-size: 18px;
@@ -1024,7 +1047,7 @@ body, html {
 
     /* Increase Taskbar Elements */
     .taskbar {
-        height: 220px;
+        height: 50px;
         padding: 10px 0;
     }
 
@@ -1037,31 +1060,23 @@ body, html {
     }
 
     .taskbar-button {
-        height: 140px;
+        height: 30px;
         padding: 15px;
-        font-size: 20px;
+        font-size: 0px;
     }
 
     .taskbar-icon {
-        width: 120px;
-        height: 120px;
+        width: 30px;
+        height: 30px;
     }
 
     .tray-icon {
-        width: 130px;
+        width: 50px;
         height: 130px;
         margin-left: 10px;
     }
 
-    /* Adjust Taskbar Instances to Prevent Stretching */
-    .taskbar-instances {
-        flex-grow: 0; /* Prevents stretching */
-        justify-content: center; /* Centers the taskbar buttons */
-        margin-left: 0; /* Removes left margin */
-        margin-bottom: 10px; /* Adds spacing below if flex-direction is column */
-    }
 
-    /* Desktop Icons */
     .desktop-icons {
         display: flex;
         flex-wrap: wrap;
@@ -1070,23 +1085,23 @@ body, html {
     }
 
     .desktop-icon {
-        width: 300px;
+        width: 150px;
         margin: 20px;
         position: static;
     }
 
     .desktop-icon img {
-        width: 220px;
-        height: 220px;
+        width: 150px;
+        height: 150px;
     }
 
     .desktop-icon span {
         font-size: 18px;
     }
 
-    /* Start Menu */
+
     .start-menu {
-        width: 95%;
+        width: 50%;
         left: 2.5%;
         bottom: 70px;
     }
@@ -1096,42 +1111,35 @@ body, html {
         font-size: 16px;
     }
 
-    /* Windows */
+
     .window, .media-player {
-        width: 95%;
-        height: 85%;
+        width: 10%;
+        height: 10%;
         top: 5%;
         left: 2.5%;
     }
 
-    /* Window Header */
     .window-header, .media-player-header {
         padding: 20px 25px;
         font-size: 22px;
     }
 
-    /* Window Control Buttons */
     .window-buttons button, .media-player-buttons button {
         padding: 10px 15px;
         font-size: 20px;
     }
 
-    /* Window Content */
     .window-content, .media-player-content {
         padding: 15px;
     }
 
-    /* Resize Handle */
+
     .resize-handle {
         width: 25px;
         height: 25px;
     }
 
-    /* Media Player Controls */
-    #controls img {
-        width: 48px;
-        height: 48px;
-    }
+
 
     #seek-bar img#track {
         height: 25px;
@@ -1179,5 +1187,14 @@ body, html {
     .desktop {
         background-size: cover; /* Switch back to cover for better coverage */
         background-position: center;
+    }
+}
+
+@media (orientation: portrait) {
+    .desktop {
+        background-image: url('images/background_port.png'); 
+        background-size: cover;
+        background-position: center;
+        transition: background 0.5s ease;
     }
 }
