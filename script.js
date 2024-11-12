@@ -1064,45 +1064,55 @@ function drawVisualizer(canvas, canvasCtx) {
 
 document.querySelectorAll('.desktop-icon').forEach(icon => {
     icon.addEventListener('click', handleIconClick);
-    icon.addEventListener('mousedown', function(e) {
-        // Prevent dragging if clicking on inner elements
-        if (e.target.tagName.toLowerCase() !== 'img' && e.target.tagName.toLowerCase() !== 'span') return;
 
-        e.preventDefault(); // Prevent default behavior like text selection
+    icon.addEventListener('mousedown', function(e) {
+        // Only left mouse button
+        if (e.button !== 0) return;
 
         let iconElement = this;
+        let startX = e.pageX;
+        let startY = e.pageY;
         let shiftX = e.clientX - iconElement.getBoundingClientRect().left;
         let shiftY = e.clientY - iconElement.getBoundingClientRect().top;
+        let isDragging = false;
+        const dragThreshold = 5; // Pixels
 
-        iconElement.style.position = 'absolute';
-        iconElement.style.zIndex = 1000;
-
-        moveAt(e.pageX, e.pageY);
-
-        // Move the icon under the pointer
-        function moveAt(pageX, pageY) {
-            iconElement.style.left = pageX - shiftX + 'px';
-            iconElement.style.top = pageY - shiftY + 'px';
-        }
-
-        // Move the icon as the mouse moves
         function onMouseMove(event) {
-            moveAt(event.pageX, event.pageY);
+            let moveX = event.pageX - startX;
+            let moveY = event.pageY - startY;
+            let distance = Math.sqrt(moveX * moveX + moveY * moveY);
+
+            if (!isDragging && distance > dragThreshold) {
+                isDragging = true;
+                // Begin dragging
+                iconElement.style.position = 'absolute';
+                iconElement.style.zIndex = 1000;
+            }
+
+            if (isDragging) {
+                let pageX = event.pageX;
+                let pageY = event.pageY;
+                iconElement.style.left = pageX - shiftX + 'px';
+                iconElement.style.top = pageY - shiftY + 'px';
+                e.preventDefault(); // Prevent text selection
+            }
         }
 
-        // Listen for mousemove on the document
-        document.addEventListener('mousemove', onMouseMove);
-
-        // Define the onMouseUp handler
-        function onMouseUp() {
-            // Remove the event listeners to stop dragging
+        function onMouseUp(event) {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
 
-            // Optionally, snap the icon to a grid or perform other drop logic here
+            if (!isDragging) {
+                // This was a click, not a drag
+                // Optionally, handle the click here
+                // For example, select the icon or open it
+            } else {
+                // Optionally, snap the icon to a grid or perform other drop logic here
+            }
         }
 
-        // Listen for mouseup on the document
+        // Listen for mousemove and mouseup on the document
+        document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     });
 
@@ -1111,31 +1121,47 @@ document.querySelectorAll('.desktop-icon').forEach(icon => {
         if (e.touches.length !== 1) return;
 
         const touch = e.touches[0];
-        e.preventDefault(); // Prevent scrolling
-
         let iconElement = this;
+        let startX = touch.pageX;
+        let startY = touch.pageY;
         let shiftX = touch.clientX - iconElement.getBoundingClientRect().left;
         let shiftY = touch.clientY - iconElement.getBoundingClientRect().top;
-
-        iconElement.style.position = 'absolute';
-        iconElement.style.zIndex = 1000;
-
-        moveAt(touch.pageX, touch.pageY);
-
-        function moveAt(pageX, pageY) {
-            iconElement.style.left = pageX - shiftX + 'px';
-            iconElement.style.top = pageY - shiftY + 'px';
-        }
+        let isDragging = false;
+        const dragThreshold = 5; // Pixels
 
         function onTouchMove(event) {
+            if (event.touches.length !== 1) return;
             const moveTouch = event.touches[0];
-            moveAt(moveTouch.pageX, moveTouch.pageY);
+            let moveX = moveTouch.pageX - startX;
+            let moveY = moveTouch.pageY - startY;
+            let distance = Math.sqrt(moveX * moveX + moveY * moveY);
+
+            if (!isDragging && distance > dragThreshold) {
+                isDragging = true;
+                // Begin dragging
+                iconElement.style.position = 'absolute';
+                iconElement.style.zIndex = 1000;
+                e.preventDefault(); // Prevent scrolling
+            }
+
+            if (isDragging) {
+                let pageX = moveTouch.pageX;
+                let pageY = moveTouch.pageY;
+                iconElement.style.left = pageX - shiftX + 'px';
+                iconElement.style.top = pageY - shiftY + 'px';
+                e.preventDefault(); // Prevent scrolling
+            }
         }
 
         function onTouchEnd() {
             document.removeEventListener('touchmove', onTouchMove);
             document.removeEventListener('touchend', onTouchEnd);
-            iconElement.style.zIndex = ''; // Reset z-index if necessary
+            if (isDragging) {
+                iconElement.style.zIndex = ''; // Reset z-index if necessary
+            } else {
+                // This was a tap, not a drag
+                // Optionally, handle the tap here
+            }
         }
 
         document.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -1169,7 +1195,6 @@ document.querySelectorAll('.desktop-icon').forEach(icon => {
         lastTap = currentTime;
     });
 });
-
 // Fullscreen Media Player
 function fullscreenMediaPlayer() {
     const screenElement = document.getElementById('screen');
@@ -1549,3 +1574,16 @@ function handleIconClick(event) {
         icon.classList.add('selected');
     }
 }
+
+document.querySelectorAll('.window-buttons button, .media-player-buttons button').forEach(button => {
+    // For touch devices
+    button.addEventListener('touchstart', function(e) {
+        e.stopPropagation();
+    }, { passive: true });
+
+    // For mouse devices (optional but good practice)
+    button.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+    });
+});
+
