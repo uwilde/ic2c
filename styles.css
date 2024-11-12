@@ -19,6 +19,10 @@ body, html {
     height: calc(100% - 40px); /* Account for taskbar */
 }
 
+.media-player-buttons .maximize {
+    display: none;
+}
+
 .taskbar-instances {
     display: flex;
     align-items: center;
@@ -105,7 +109,7 @@ body, html {
 
 /* Taskbar Styles */
 .taskbar {
-    position: absolute;
+    position: fixed;
     bottom: 0;
     width: 100%;
     height: 40px;
@@ -114,7 +118,7 @@ body, html {
     justify-content: space-between;
     align-items: center;
     border-top: 2px solid #808080;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 .start-button {
@@ -259,7 +263,7 @@ body, html {
     max-width: 556.42px; /* Maximum width */
     max-height: 617px; /* Maximum height */
     aspect-ratio: 556.42 / 617; /* Maintain aspect ratio */
-    transform: translate(-50%, -50%); /* Center the window */
+    transform: translate(-50%, -50%);
     border: 2px solid #808080;
     background-color: #c0c0c0;
     display: none; 
@@ -517,7 +521,7 @@ body, html {
 .slider-label {
     text-align: center;
     margin-top: 5px;
-    font-size: 14px;
+    font-size: 10px;
     color: white;
     text-shadow: 1px 1px 2px black;
     user-select: none;
@@ -525,11 +529,12 @@ body, html {
 
 .slider {
     position: relative;
-    width: 64px;
+    width: 66px;
     height: 15px;
     background-image: url('icons/slider.png');
     background-repeat: no-repeat;
     background-position: 0 0;
+    margin: 0 auto;
     cursor: pointer;
 }
 
@@ -591,32 +596,27 @@ body, html {
 @media (max-width: 1200px) and (min-width: 801px) {
 
     .taskbar-instances {
+        width: 100%;
+        height: auto;
         display: flex;
         align-items: center;
         gap: 5px;
         margin-left: 10px; /* Space between start button and taskbar instances */
-        margin-bottom: 2.5px; /* Space between start button and taskbar instances */
+        margin-bottom: 2.7px; /* Space between start button and taskbar instances */
         flex-grow: 1;
     }
 
     .taskbar-button {
-        height: 30px;
-        background-color: #cccccc;
-        border: 1px solid #999999;
+        height: 28px;
         padding: 5px 10px;
-        display: flex;
-        align-items: center; /* Vertically center icon and text */
-        cursor: pointer;
-        border-radius: 1px;
-        box-shadow: -1px -1px 0px #ffffff, 2px 2px 0px #000000; /* Raised effect */
-        transition: box-shadow 0.1s, transform 0.1s; /* Smooth transition */
+
     }
 
-.taskbar-icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px; /* Space between icon and title */
-    object-fit: contain;
+    .taskbar-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 5px; /* Space between icon and title */
+        object-fit: contain;
     }
 
 
@@ -633,7 +633,6 @@ body, html {
     }
 
     .start-button {
-        width: 300px;
         height: auto;
         margin-left: 10px;
         cursor: pointer;
@@ -764,7 +763,7 @@ body, html {
 
     /* Window Content */
     .window-content, .media-player-content {
-        padding: 5px;
+        padding: 0px;
     }
 
     /* Resize Handle */
@@ -773,6 +772,10 @@ body, html {
         height: 20px;
     }
 
+    #controls {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
     /* Media Player Controls */
     #controls img {
         width: 32px;
@@ -794,9 +797,6 @@ body, html {
         align-items: center;
     }
 
-    .slider {
-        width: 80%;
-    }
 
     .slider-label {
         font-size: 12px;
@@ -804,7 +804,7 @@ body, html {
 
     /* Playlist */
     #playlist {
-        height: 100px;
+        height: 60px;
     }
 
     #playlist ul {
@@ -958,13 +958,18 @@ body, html {
 
 
     .window-content, .media-player-content {
-        padding: 10px;
+        padding: 0px;
     }
 
 
     .resize-handle {
         width: 25px;
         height: 25px;
+    }
+
+    #controls {
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 
     /* Media Player Controls */
@@ -984,21 +989,20 @@ body, html {
     }
 
     #sliders .slider-container {
+        margin-top: 10px;
         flex-direction: column;
         align-items: center;
     }
 
-    .slider {
-        width: 90%;
-    }
+
 
     .slider-label {
-        font-size: 14px;
+        font-size: 10px;
     }
 
     /* Playlist */
     #playlist {
-        height: 120px;
+        height: 60px;
     }
 
     #playlist ul {
@@ -1045,6 +1049,11 @@ body, html {
         font-size: 18px;
     }
 
+    #seek-bar {
+        width: 85%;
+        margin: 0 auto;
+    }
+
     /* Increase Taskbar Elements */
     .taskbar {
         height: 50px;
@@ -1085,14 +1094,13 @@ body, html {
     }
 
     .desktop-icon {
-        width: 150px;
         margin: 20px;
         position: static;
     }
 
     .desktop-icon img {
-        width: 150px;
-        height: 150px;
+        width: 100px;
+        height: 100px;
     }
 
     .desktop-icon span {
@@ -1120,17 +1128,17 @@ body, html {
     }
 
     .window-header, .media-player-header {
-        padding: 20px 25px;
+        padding: 10px 15px;
         font-size: 22px;
     }
 
     .window-buttons button, .media-player-buttons button {
-        padding: 10px 15px;
+        padding: 8px 13px;
         font-size: 20px;
     }
 
     .window-content, .media-player-content {
-        padding: 15px;
+        padding: 0px;
     }
 
 
@@ -1156,17 +1164,18 @@ body, html {
         align-items: center;
     }
 
-    .slider {
-        width: 90%;
-    }
+
 
     .slider-label {
-        font-size: 16px;
+        font-size: 10px;
     }
 
     /* Playlist */
     #playlist {
-        height: 140px;
+        height:  80px;
+        width:  85%;
+        margin: 0 auto;
+        margin-top: 10px;
     }
 
     #playlist ul {
@@ -1179,6 +1188,12 @@ body, html {
         font-size: 24px;
     }
 
+    .media-player-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
     body, html {
         font-size: 18px;
     }
@@ -1188,6 +1203,9 @@ body, html {
         background-size: cover; /* Switch back to cover for better coverage */
         background-position: center;
     }
+
+
+
 }
 
 @media (orientation: portrait) {
@@ -1197,4 +1215,10 @@ body, html {
         background-position: center;
         transition: background 0.5s ease;
     }
+
+    .window-buttons .maximize,
+    .media-player-buttons .maximize {
+        display: none;
+    }
+
 }
