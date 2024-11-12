@@ -233,7 +233,7 @@ body, html {
 }
 
 /* Window Styles */
-.window, .media-player {
+.window {
     position: absolute;
     top: 60px; /* Adjusted to prevent overlapping with taskbar */
     left: 120px;
@@ -242,6 +242,27 @@ body, html {
     border: 2px solid #808080;
     background-color: #c0c0c0;
     display: none;
+    flex-direction: column;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    animation: fadeIn 0.3s forwards;
+    z-index: 500;
+    overflow: hidden;
+}
+
+.media-player {
+    position: absolute;
+    top: 50%; /* Positioning to allow centering */
+    left: 50%;
+    width: 556.42px; /* Initial width */
+    height: 617px; /* Initial height */
+    max-width: 556.42px; /* Maximum width */
+    max-height: 617px; /* Maximum height */
+    aspect-ratio: 556.42 / 617; /* Maintain aspect ratio */
+    transform: translate(-50%, -50%); /* Center the window */
+    border: 2px solid #808080;
+    background-color: #c0c0c0;
+    display: none; 
     flex-direction: column;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
     border-radius: 8px;
@@ -362,10 +383,10 @@ body, html {
 
 /* Responsive Window Sizes */
 @media (max-width: 1200px) {
-    .window, .media-player {
+    .window {
         width: 80%;
         height: 70%;
-        top: 30px; /* Adjusted top to fit within the desktop area */
+        top: 30px; 
         left: 10%;
     }
 }
@@ -406,7 +427,6 @@ body, html {
     /* Set original dimensions */
     width: 386.989px;
     height: 426.983px;
-
 }
 #screen {
     position: relative;
@@ -534,7 +554,7 @@ body, html {
     font-family: 'Press Start 2P', sans-serif;
     list-style: none;
     padding: 0;
-    color:
+    color: white;
 }
 
 #playlist li {
@@ -566,4 +586,598 @@ body, html {
     cursor: pointer;
     padding: 5px;
     z-index: 1;
+}
+
+@media (max-width: 1200px) and (min-width: 801px) {
+    .window, .media-player {
+        width: 80%;
+        height: 70%;
+        top: 30px; /* Adjusted top to fit within the desktop area */
+        left: 10%;
+    }
+
+    .tray-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .start-button {
+        width: 300px;
+        height: auto;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    /* Adjust desktop icons */
+    .desktop-icon {
+        width: 90px;
+    }
+
+    .desktop-icon img {
+        width: 72px;
+        height: 72px;
+    }
+
+    .desktop-icon span {
+        font-size: 13px;
+    }
+}
+
+/* Tablets and Large Phones (501px to 800px) */
+@media (max-width: 800px) and (min-width: 501px) {
+    /* Adjust Taskbar */
+    .taskbar {
+        height: 100px;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 5px 0;
+    }
+
+    .start-button {
+        width: 100px;
+        height: auto;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .taskbar-instances {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: 10px; /* Space between start button and taskbar instances */
+        margin-bottom: 2.5px; /* Space between start button and taskbar instances */
+        flex-grow: 1;
+    }
+
+    .taskbar-button {
+        height: 80px;
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .taskbar-icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    /* System Tray */
+    .system-tray {
+        flex-direction: row;
+        justify-content: center;
+        padding: 5px 0;
+    }
+
+    .tray-icon {
+        width: 70px;
+        height: 70px;
+        margin-left: 5px;
+    }
+
+    /* Desktop Icons */
+    .desktop-icons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .desktop-icon {
+        width: 100px;
+        margin: 10px;
+        position: static;
+    }
+
+    .desktop-icon img {
+        width: 88px;
+        height: 88px;
+    }
+
+    .desktop-icon span {
+        font-size: 12px;
+    }
+
+    /* Start Menu */
+    .start-menu {
+        width: 90%;
+        left: 5%;
+        bottom: 70px;
+    }
+
+    .start-menu ul li {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    /* Windows */
+    .window, .media-player {
+        width: 90%;
+        height: 80%;
+        top: 10%;
+        left: 5%;
+    }
+
+    /* Window Header */
+    .window-header, .media-player-header {
+        padding: 10px 15px;
+        font-size: 18px;
+    }
+
+    /* Window Control Buttons */
+    .window-buttons button, .media-player-buttons button {
+        padding: 5px 10px;
+        font-size: 16px;
+    }
+
+    /* Window Content */
+    .window-content, .media-player-content {
+        padding: 5px;
+    }
+
+    /* Resize Handle */
+    .resize-handle {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Media Player Controls */
+    #controls img {
+        width: 32px;
+        height: 32px;
+    }
+
+    #seek-bar img#track {
+        height: 20px;
+    }
+
+    #seek-bar img#head {
+        width: 20px;
+        height: 20px;
+        margin-top: 0;
+    }
+
+    #sliders .slider-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .slider {
+        width: 80%;
+    }
+
+    .slider-label {
+        font-size: 12px;
+    }
+
+    /* Playlist */
+    #playlist {
+        height: 100px;
+    }
+
+    #playlist ul {
+        font-size: 12px;
+    }
+
+    #screen .fullscreen {
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+    }
+
+    body, html {
+        font-size: 14px;
+    }
+
+    /* Enhance Clickable Areas */
+    .start-button, .tray-icon, .taskbar-button, .desktop-icon, .window-buttons button, .media-player-buttons button, .slider, #head, .fullscreen {
+        touch-action: manipulation;
+    }
+
+    /* Hide Scrollbars on Windows */
+    .window-content::-webkit-scrollbar, .media-player-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .window-content, .media-player-content {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Desktop Background Scaling */
+    .desktop {
+        background-size: contain; /* Adjusted from cover to contain for better scaling */
+        background-repeat: no-repeat;
+    }
+}
+
+/* Mobile Phones (Below 500px) */
+@media (max-width: 500px) {
+    /* Adjust Taskbar */
+    .taskbar {
+        height: 200px;
+        padding: 10px 0;
+    }
+
+    .start-button {
+        width: 140px;
+        height: auto;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .taskbar-instances {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-left: 10px; /* Space between start button and taskbar instances */
+        margin-bottom: 2.5px; /* Space between start button and taskbar instances */
+        flex-grow: 1;
+    }
+
+    .taskbar-button {
+        height: 120px;
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    .taskbar-icon {
+        width: 104px;
+        height: 104px;
+    }
+
+    /* System Tray */
+    .system-tray {
+        flex-direction: row;
+        justify-content: center;
+        padding: 5px 0;
+    }
+
+    .tray-icon {
+        width: 110px;
+        height: 110px;
+        margin-left: 5px;
+    }
+
+    /* Desktop Icons */
+    .desktop-icons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .desktop-icon {
+        width: 250px;
+        margin: 15px;
+        position: static;
+    }
+
+    .desktop-icon img {
+        width: 188px;
+        height: 188px;
+    }
+
+    .desktop-icon span {
+        font-size: 16px;
+    }
+
+    /* Start Menu */
+    .start-menu {
+        width: 95%;
+        left: 2.5%;
+        bottom: 70px;
+    }
+
+    .start-menu ul li {
+        padding: 15px 25px;
+        font-size: 16px;
+    }
+
+    /* Windows */
+    .window  {
+        width: 95%;
+        height: 85%;
+        top: 5%;
+        left: 2.5%;
+    }
+
+    .media-player {
+        width: 95%;
+        height: 85%;
+        max-width: 556.42px;
+        max-height: 617px;
+        aspect-ratio: 556.42 / 617;
+        transform: translate(-50%, -50%);
+    }
+
+    /* Window Header */
+    .window-header, .media-player-header {
+        padding: 15px 20px;
+        font-size: 20px;
+    }
+
+    /* Window Control Buttons */
+    .window-buttons button, .media-player-buttons button {
+        padding: 8px 12px;
+        font-size: 18px;
+    }
+
+    /* Window Content */
+    .window-content, .media-player-content {
+        padding: 10px;
+    }
+
+    /* Resize Handle */
+    .resize-handle {
+        width: 25px;
+        height: 25px;
+    }
+
+    /* Media Player Controls */
+    #controls img {
+        width: 40px;
+        height: 40px;
+    }
+
+    #seek-bar img#track {
+        height: 25px;
+    }
+
+    #seek-bar img#head {
+        width: 25px;
+        height: 25px;
+        margin-top: 0;
+    }
+
+    #sliders .slider-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .slider {
+        width: 90%;
+    }
+
+    .slider-label {
+        font-size: 14px;
+    }
+
+    /* Playlist */
+    #playlist {
+        height: 120px;
+    }
+
+    #playlist ul {
+        font-size: 14px;
+    }
+
+    #screen .fullscreen {
+        width: 35px;
+        height: 35px;
+        font-size: 22px;
+    }
+
+    body, html {
+        font-size: 16px;
+    }
+
+    /* Enhance Clickable Areas */
+    .start-button, .tray-icon, .taskbar-button, .desktop-icon, .window-buttons button, .media-player-buttons button, .slider, #head, .fullscreen {
+        touch-action: manipulation;
+    }
+
+    /* Hide Scrollbars on Windows */
+    .window-content::-webkit-scrollbar, .media-player-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .window-content, .media-player-content {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Desktop Background Scaling */
+    .desktop {
+        background-size: contain; /* Ensure the background scales down proportionally */
+        background-repeat: no-repeat;
+    }
+}
+
+/* Portrait Orientation for Small Screens */
+@media (max-width: 500px) and (orientation: portrait) {
+    /* Increase Desktop Icons */
+    .desktop-icon {
+        width: 300px;
+        margin: 15px;
+    }
+
+    .desktop-icon img {
+        width: 220px;
+        height: 220px;
+    }
+
+    .desktop-icon span {
+        font-size: 18px;
+    }
+
+    /* Increase Taskbar Elements */
+    .taskbar {
+        height: 220px;
+        padding: 10px 0;
+    }
+
+    .start-button {
+        width: 160px;
+        height: auto;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .taskbar-button {
+        height: 140px;
+        padding: 15px;
+        font-size: 20px;
+    }
+
+    .taskbar-icon {
+        width: 120px;
+        height: 120px;
+    }
+
+    .tray-icon {
+        width: 130px;
+        height: 130px;
+        margin-left: 10px;
+    }
+
+    /* Adjust Taskbar Instances to Prevent Stretching */
+    .taskbar-instances {
+        flex-grow: 0; /* Prevents stretching */
+        justify-content: center; /* Centers the taskbar buttons */
+        margin-left: 0; /* Removes left margin */
+        margin-bottom: 10px; /* Adds spacing below if flex-direction is column */
+    }
+
+    /* Desktop Icons */
+    .desktop-icons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .desktop-icon {
+        width: 300px;
+        margin: 20px;
+        position: static;
+    }
+
+    .desktop-icon img {
+        width: 220px;
+        height: 220px;
+    }
+
+    .desktop-icon span {
+        font-size: 18px;
+    }
+
+    /* Start Menu */
+    .start-menu {
+        width: 95%;
+        left: 2.5%;
+        bottom: 70px;
+    }
+
+    .start-menu ul li {
+        padding: 15px 25px;
+        font-size: 16px;
+    }
+
+    /* Windows */
+    .window, .media-player {
+        width: 95%;
+        height: 85%;
+        top: 5%;
+        left: 2.5%;
+    }
+
+    /* Window Header */
+    .window-header, .media-player-header {
+        padding: 20px 25px;
+        font-size: 22px;
+    }
+
+    /* Window Control Buttons */
+    .window-buttons button, .media-player-buttons button {
+        padding: 10px 15px;
+        font-size: 20px;
+    }
+
+    /* Window Content */
+    .window-content, .media-player-content {
+        padding: 15px;
+    }
+
+    /* Resize Handle */
+    .resize-handle {
+        width: 25px;
+        height: 25px;
+    }
+
+    /* Media Player Controls */
+    #controls img {
+        width: 48px;
+        height: 48px;
+    }
+
+    #seek-bar img#track {
+        height: 25px;
+    }
+
+    #seek-bar img#head {
+        width: 25px;
+        height: 25px;
+        margin-top: 0;
+    }
+
+    #sliders .slider-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .slider {
+        width: 90%;
+    }
+
+    .slider-label {
+        font-size: 16px;
+    }
+
+    /* Playlist */
+    #playlist {
+        height: 140px;
+    }
+
+    #playlist ul {
+        font-size: 16px;
+    }
+
+    #screen .fullscreen {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+
+    body, html {
+        font-size: 18px;
+    }
+
+    /* Desktop Background Scaling */
+    .desktop {
+        background-size: cover; /* Switch back to cover for better coverage */
+        background-position: center;
+    }
 }
