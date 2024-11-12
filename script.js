@@ -1,4 +1,3 @@
-// Function to change the start button image on mousedown and mouseup
 function changeStartButtonImage(imagePath) {
     document.getElementById("startButtonImage").src = "images/" + imagePath;
 }
@@ -181,6 +180,18 @@ function openMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
     const taskbarInstances = document.getElementById("taskbarInstances");
 
+    // Set initial size and maximum dimensions
+    mediaPlayer.style.width = '556.42px';
+    mediaPlayer.style.height = '617px';
+    mediaPlayer.style.maxWidth = '556.42px';
+    mediaPlayer.style.maxHeight = '617px';
+
+    // Center the mediaPlayer
+    const topPosition = (window.innerHeight - 617) / 2;
+    const leftPosition = (window.innerWidth - 556.42) / 2;
+    mediaPlayer.style.top = `${topPosition}px`;
+    mediaPlayer.style.left = `${leftPosition}px`;
+
     // Show the media player
     mediaPlayer.classList.add("show");
     mediaPlayer.classList.remove("hide");
@@ -231,6 +242,12 @@ function openMediaPlayer() {
         // Toggle minimize/restore on click
         taskbarButton.onclick = () => toggleMinimizeRestoreMediaPlayer();
 
+        // Add touch event listener for mobile devices
+        taskbarButton.addEventListener('touchend', (e) => {
+            e.preventDefault(); // Prevents the simulated mouse events
+            toggleMinimizeRestoreMediaPlayer();
+        });
+
         // Append button to taskbar
         taskbarInstances.appendChild(taskbarButton);
     }
@@ -265,19 +282,19 @@ function maximizeMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
 
     if (mediaPlayer.classList.contains('maximized')) {
-        // Restore to a smaller, default size
+        // Restore to previous size and position
         mediaPlayer.classList.remove('maximized');
-
-        // Set the predefined "normal" size and center it
-        mediaPlayer.style.width = '386.989px';
-        mediaPlayer.style.height = '426.983px';
-
-        let topPosition = (window.innerHeight - mediaPlayer.offsetHeight) / 2;
-        let leftPosition = (window.innerWidth - mediaPlayer.offsetWidth) / 2;
-
-        mediaPlayer.style.top = `${topPosition}px`;
-        mediaPlayer.style.left = `${leftPosition}px`;
+        mediaPlayer.style.width = originalWidth + 'px';
+        mediaPlayer.style.height = originalHeight + 'px';
+        mediaPlayer.style.top = originalY + 'px';
+        mediaPlayer.style.left = originalX + 'px';
     } else {
+        // Store original size and position
+        originalWidth = mediaPlayer.offsetWidth;
+        originalHeight = mediaPlayer.offsetHeight;
+        originalX = mediaPlayer.offsetLeft;
+        originalY = mediaPlayer.offsetTop;
+
         // Maximize the media player
         mediaPlayer.classList.add('maximized');
         mediaPlayer.style.top = '0';
@@ -299,6 +316,14 @@ function toggleMinimizeRestoreMediaPlayer() {
         mediaPlayer.classList.add("show");
         mediaPlayer.style.display = "flex";
         bringToFront(mediaPlayer);
+
+        // Re-center the mediaPlayer
+        const width = parseFloat(mediaPlayer.style.width);
+        const height = parseFloat(mediaPlayer.style.height);
+        const topPosition = (window.innerHeight - height) / 2;
+        const leftPosition = (window.innerWidth - width) / 2;
+        mediaPlayer.style.top = `${topPosition}px`;
+        mediaPlayer.style.left = `${leftPosition}px`;
     } else {
         // Minimize the media player
         minimizeMediaPlayer();
@@ -311,29 +336,56 @@ let currentWindow = null;
 let offsetX = 0;
 let offsetY = 0;
 
-// Attach mousedown event to all window headers
+// Attach mousedown and touchstart event to all window headers
 document.querySelectorAll('.window-header, .media-player-header').forEach(header => {
-    header.addEventListener('mousedown', function (e) {
-        // Only left mouse button
-        if (e.button !== 0) return;
-
-        isDragging = true;
-        currentWindow = this.parentNode;
-        offsetX = e.clientX - currentWindow.getBoundingClientRect().left;
-        offsetY = e.clientY - currentWindow.getBoundingClientRect().top;
-        bringToFront(currentWindow);
-    });
+    header.addEventListener('mousedown', startDrag);
+    header.addEventListener('touchstart', startDragTouch, { passive: false });
 });
 
-// Handle mousemove and mouseup events for dragging
-document.addEventListener('mousemove', function (e) {
+function startDrag(e) {
+    // Only left mouse button
+    if (e.type === 'mousedown' && e.button !== 0) return;
+
+    isDragging = true;
+    currentWindow = this.parentNode;
+    offsetX = e.clientX - currentWindow.getBoundingClientRect().left;
+    offsetY = e.clientY - currentWindow.getBoundingClientRect().top;
+    bringToFront(currentWindow);
+
+    // Prevent text selection
+    e.preventDefault();
+}
+
+function startDragTouch(e) {
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    isDragging = true;
+    currentWindow = this.parentNode;
+    const rect = currentWindow.getBoundingClientRect();
+    offsetX = touch.clientX - rect.left;
+    offsetY = touch.clientY - rect.top;
+    bringToFront(currentWindow);
+
+    // Prevent scrolling
+    e.preventDefault();
+}
+
+// Handle mousemove and touchmove events for dragging
+document.addEventListener('mousemove', dragMove);
+document.addEventListener('touchmove', dragMoveTouch, { passive: false });
+
+function dragMove(e) {
     if (isDragging && currentWindow && !currentWindow.classList.contains('maximized')) {
-        let newX = e.clientX - offsetX;
-        let newY = e.clientY - offsetY;
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+
+        let newX = clientX - offsetX;
+        let newY = clientY - offsetY;
 
         // Calculate maximum positions to prevent overlapping the taskbar and going off-screen
         const maxX = window.innerWidth - currentWindow.offsetWidth;
-        const maxY = window.innerHeight - currentWindow.offsetHeight - 40; // 40px taskbar height
+        const maxY = window.innerHeight - currentWindow.offsetHeight - 60; // 60px taskbar height on mobile
 
         newX = Math.max(0, Math.min(newX, maxX));
         newY = Math.max(0, Math.min(newY, maxY));
@@ -341,16 +393,47 @@ document.addEventListener('mousemove', function (e) {
         currentWindow.style.left = newX + 'px';
         currentWindow.style.top = newY + 'px';
     }
-});
+}
 
-document.addEventListener('mouseup', function () {
+function dragMoveTouch(e) {
+    if (isDragging && currentWindow && !currentWindow.classList.contains('maximized')) {
+        if (e.touches.length !== 1) return;
+
+        const touch = e.touches[0];
+        let clientX = touch.clientX;
+        let clientY = touch.clientY;
+
+        let newX = clientX - offsetX;
+        let newY = clientY - offsetY;
+
+        // Calculate maximum positions to prevent overlapping the taskbar and going off-screen
+        const maxX = window.innerWidth - currentWindow.offsetWidth;
+        const maxY = window.innerHeight - currentWindow.offsetHeight - 60; // 60px taskbar height on mobile
+
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+
+        currentWindow.style.left = newX + 'px';
+        currentWindow.style.top = newY + 'px';
+    }
+
+    // Prevent scrolling while dragging
+    e.preventDefault();
+}
+
+// Handle mouseup and touchend events to stop dragging
+document.addEventListener('mouseup', stopDrag);
+document.addEventListener('touchend', stopDrag, { passive: false });
+
+function stopDrag() {
     isDragging = false;
     currentWindow = null;
-});
+}
 
 // Resizable Windows
 document.querySelectorAll('.resize-handle').forEach(handle => {
     handle.addEventListener('mousedown', initResize, false);
+    handle.addEventListener('touchstart', initResizeTouch, { passive: false });
 });
 
 let currentResizeWindow = null;
@@ -375,39 +458,132 @@ function initResize(e) {
     window.addEventListener('mouseup', stopResize, false);
 }
 
+function initResizeTouch(e) {
+    e.preventDefault();
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    currentResizeWindow = e.target.parentElement;
+    originalWidth = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('width').replace('px', ''));
+    originalHeight = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('height').replace('px', ''));
+    originalX = currentResizeWindow.getBoundingClientRect().left;
+    originalY = currentResizeWindow.getBoundingClientRect().top;
+    originalMouseX = touch.clientX;
+    originalMouseY = touch.clientY;
+
+    window.addEventListener('touchmove', ResizeTouch, { passive: false });
+    window.addEventListener('touchend', stopResizeTouch, false);
+}
+
 function Resize(e) {
     if (currentResizeWindow) {
-        const width = originalWidth + (e.clientX - originalMouseX);
-        const height = originalHeight + (e.clientY - originalMouseY);
+        // Only proceed if not maximized
+        if (currentResizeWindow.classList.contains('maximized')) return;
 
-        // Set minimum and maximum sizes
-        const minWidth = 300;
-        const minHeight = 200;
-        const maxWidth = window.innerWidth - originalX;
-        const maxHeight = window.innerHeight - originalY - 40; // 40px taskbar height
-
-        currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
-        currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
-
-        // Adjust iframe or media player scale
         if (currentResizeWindow.id === 'mediaPlayer') {
+            // Resize the media player while maintaining aspect ratio
+            let newWidth = originalWidth + (e.clientX - originalMouseX);
+            const aspectRatio = originalWidth / originalHeight;
+            let newHeight = newWidth / aspectRatio;
+
+            // Ensure new dimensions do not exceed window boundaries
+            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+            newWidth = Math.max(300, Math.min(newWidth, maxWidth));
+            newHeight = Math.max(200, Math.min(newHeight, maxHeight));
+
+            currentResizeWindow.style.width = `${newWidth}px`;
+            currentResizeWindow.style.height = `${newHeight}px`;
+
+            // Do not re-center the media player
+            // Adjust media player scale
             adjustMediaPlayerScale();
+
         } else {
+            // Resize other windows normally
+            const width = originalWidth + (e.clientX - originalMouseX);
+            const height = originalHeight + (e.clientY - originalMouseY);
+
+            // Set minimum and maximum sizes
+            const minWidth = 300;
+            const minHeight = 200;
+            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+            currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
+            currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
+
+            // Adjust iframe scale
             adjustIframeScale(currentResizeWindow.id);
         }
     }
 }
+function ResizeTouch(e) {
+    if (currentResizeWindow && e.touches.length === 1) {
+        // Only proceed if not maximized
+        if (currentResizeWindow.classList.contains('maximized')) return;
 
+        const touch = e.touches[0];
+
+        if (currentResizeWindow.id === 'mediaPlayer') {
+            // Resize the media player while maintaining aspect ratio
+            let newWidth = originalWidth + (touch.clientX - originalMouseX);
+            const aspectRatio = originalWidth / originalHeight;
+            let newHeight = newWidth / aspectRatio;
+
+            // Ensure new dimensions do not exceed window boundaries
+            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+            newWidth = Math.max(300, Math.min(newWidth, maxWidth));
+            newHeight = Math.max(200, Math.min(newHeight, maxHeight));
+
+            currentResizeWindow.style.width = `${newWidth}px`;
+            currentResizeWindow.style.height = `${newHeight}px`;
+
+            // Do not re-center the media player
+            // Adjust media player scale
+            adjustMediaPlayerScale();
+
+        } else {
+            // Resize other windows normally
+            const width = originalWidth + (touch.clientX - originalMouseX);
+            const height = originalHeight + (touch.clientY - originalMouseY);
+
+            // Set minimum and maximum sizes
+            const minWidth = 300;
+            const minHeight = 200;
+            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+            currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
+            currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
+
+            // Adjust iframe scale
+            adjustIframeScale(currentResizeWindow.id);
+        }
+
+        // Prevent scrolling
+        e.preventDefault();
+    }
+}
 function stopResize() {
     window.removeEventListener('mousemove', Resize, false);
     window.removeEventListener('mouseup', stopResize, false);
     currentResizeWindow = null;
 }
 
+function stopResizeTouch() {
+    window.removeEventListener('touchmove', ResizeTouch, { passive: false });
+    window.removeEventListener('touchend', stopResizeTouch, false);
+    currentResizeWindow = null;
+}
+
 // Ensure windows do not go beyond the taskbar upon resizing
 function constrainWindow(windowElement) {
     const rect = windowElement.getBoundingClientRect();
-    const maxHeight = window.innerHeight - 40; // 40px taskbar height
+    const maxHeight = window.innerHeight - 60; // 60px taskbar height on mobile
     const maxWidth = window.innerWidth;
 
     if (rect.top + rect.height > maxHeight) {
@@ -425,6 +601,11 @@ window.addEventListener('mouseup', function() {
         constrainWindow(currentResizeWindow);
     }
 });
+window.addEventListener('touchend', function() {
+    if (currentResizeWindow) {
+        constrainWindow(currentResizeWindow);
+    }
+}, { passive: false });
 
 /* Media Player Script */
 
@@ -609,9 +790,27 @@ function setupButtonEvents(playButton, stopButton, prevButton, nextButton) {
         button.addEventListener('mouseout', () => {
             updateButtonImage(button);
         });
+
+        // Add touch events for mobile devices
+        button.addEventListener('touchstart', () => {
+            let baseName = button.id.toUpperCase();
+            button.src = `icons/${baseName}_CLICK.png`;
+        }, { passive: true });
+
+        button.addEventListener('touchend', () => {
+            updateButtonImage(button);
+        }, { passive: true });
     });
 
-    playButton.addEventListener('click', () => {
+    const addClickAndTouchListener = (element, handler) => {
+        element.addEventListener('click', handler);
+        element.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handler();
+        });
+    };
+
+    addClickAndTouchListener(playButton, () => {
         if (isPlaying) {
             pause();
         } else {
@@ -619,9 +818,9 @@ function setupButtonEvents(playButton, stopButton, prevButton, nextButton) {
         }
     });
 
-    stopButton.addEventListener('click', stop);
-    prevButton.addEventListener('click', prevTrack);
-    nextButton.addEventListener('click', nextTrack);
+    addClickAndTouchListener(stopButton, stop);
+    addClickAndTouchListener(prevButton, prevTrack);
+    addClickAndTouchListener(nextButton, nextTrack);
 }
 
 function updateButtonImage(button) {
@@ -657,6 +856,26 @@ function setupSeekBar(head, track) {
         document.addEventListener('mouseup', onReleaseHead);
         e.preventDefault();
     });
+
+    // Add touch events
+    head.addEventListener('touchstart', (e) => {
+        isDraggingHead = true;
+        head.src = 'icons/HEAD_CLICK.png';
+        seekBarRect = track.getBoundingClientRect();
+        document.addEventListener('touchmove', onDragHeadTouch, { passive: false });
+        document.addEventListener('touchend', onReleaseHeadTouch);
+        e.preventDefault();
+    });
+
+    track.addEventListener('touchstart', (e) => {
+        isDraggingHead = true;
+        head.src = 'icons/HEAD_CLICK.png';
+        seekBarRect = track.getBoundingClientRect();
+        onDragHeadTouch(e);
+        document.addEventListener('touchmove', onDragHeadTouch, { passive: false });
+        document.addEventListener('touchend', onReleaseHeadTouch);
+        e.preventDefault();
+    });
 }
 
 function onDragHead(e) {
@@ -678,6 +897,28 @@ function onReleaseHead() {
     document.removeEventListener('mouseup', onReleaseHead);
 }
 
+function onDragHeadTouch(e) {
+    if (isDraggingHead && e.touches.length === 1) {
+        const touch = e.touches[0];
+        let x = touch.clientX - seekBarRect.left - (head.offsetWidth / 2);
+        x = Math.max(0, Math.min(x, seekBarRect.width - head.offsetWidth));
+        head.style.left = `${x}px`;
+
+        let duration = youtubePlayer.getDuration() || 0;
+        let seekTime = (x / (seekBarRect.width - head.offsetWidth)) * duration;
+        youtubePlayer.seekTo(seekTime, true);
+
+        e.preventDefault();
+    }
+}
+
+function onReleaseHeadTouch() {
+    isDraggingHead = false;
+    document.getElementById('head').src = 'icons/HEAD.png';
+    document.removeEventListener('touchmove', onDragHeadTouch);
+    document.removeEventListener('touchend', onReleaseHeadTouch);
+}
+
 function updateSeekBar(head, track) {
     if (!youtubePlayer || !youtubePlayer.getDuration || currentTrackIndex === null) return;
     if (isDraggingHead) return; // Do not update while dragging
@@ -689,7 +930,6 @@ function updateSeekBar(head, track) {
         head.style.left = `${progress}px`;
     }
 }
-
 
 function setupSliders(volumeSlider, panSlider) {
     setupSlider(volumeSlider, 'volume');
@@ -728,6 +968,17 @@ function setupSlider(sliderElement, type) {
         e.preventDefault();
     });
 
+    // Add touch events
+    sliderButton.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        sliderButton.style.backgroundImage = 'url("icons/MINI_SLIDE_CLICK.png")';
+        sliderRect = sliderElement.getBoundingClientRect();
+        onDragSliderTouch(e);
+        document.addEventListener('touchmove', onDragSliderTouch, { passive: false });
+        document.addEventListener('touchend', onReleaseSliderTouch);
+        e.preventDefault();
+    });
+
     function onDragSlider(e) {
         if (isDragging) {
             let x = e.clientX - sliderRect.left;
@@ -754,6 +1005,35 @@ function setupSlider(sliderElement, type) {
         sliderButton.style.backgroundImage = 'url("icons/MINI_SLIDE.png")';
         document.removeEventListener('mousemove', onDragSlider);
         document.removeEventListener('mouseup', onReleaseSlider);
+    }
+
+    function onDragSliderTouch(e) {
+        if (isDragging && e.touches.length === 1) {
+            const touch = e.touches[0];
+            let x = touch.clientX - sliderRect.left;
+            x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth));
+            sliderButton.style.left = `${x}px`;
+
+            let value = x / (sliderRect.width - sliderButton.offsetWidth);
+
+            if (type === 'volume') {
+                youtubePlayer.setVolume(value * 100);
+            } else if (type === 'pan') {
+                console.log(`Pan value adjusted to: ${value.toFixed(2)}`);
+            }
+
+            let frame = Math.floor(value * 27);
+            sliderElement.style.backgroundPosition = `0px ${-frame * 15}px`;
+
+            e.preventDefault();
+        }
+    }
+
+    function onReleaseSliderTouch() {
+        isDragging = false;
+        sliderButton.style.backgroundImage = 'url("icons/MINI_SLIDE.png")';
+        document.removeEventListener('touchmove', onDragSliderTouch);
+        document.removeEventListener('touchend', onReleaseSliderTouch);
     }
 }
 
@@ -782,7 +1062,6 @@ function drawVisualizer(canvas, canvasCtx) {
     }
 }
 
-// Desktop Icons Drag-and-Drop Functionality
 document.querySelectorAll('.desktop-icon').forEach(icon => {
     icon.addEventListener('click', handleIconClick);
     icon.addEventListener('mousedown', function(e) {
@@ -827,7 +1106,44 @@ document.querySelectorAll('.desktop-icon').forEach(icon => {
         document.addEventListener('mouseup', onMouseUp);
     });
 
-    // Handle double-click to open window
+    // Handle touch events for dragging icons
+    icon.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+
+        const touch = e.touches[0];
+        e.preventDefault(); // Prevent scrolling
+
+        let iconElement = this;
+        let shiftX = touch.clientX - iconElement.getBoundingClientRect().left;
+        let shiftY = touch.clientY - iconElement.getBoundingClientRect().top;
+
+        iconElement.style.position = 'absolute';
+        iconElement.style.zIndex = 1000;
+
+        moveAt(touch.pageX, touch.pageY);
+
+        function moveAt(pageX, pageY) {
+            iconElement.style.left = pageX - shiftX + 'px';
+            iconElement.style.top = pageY - shiftY + 'px';
+        }
+
+        function onTouchMove(event) {
+            const moveTouch = event.touches[0];
+            moveAt(moveTouch.pageX, moveTouch.pageY);
+        }
+
+        function onTouchEnd() {
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+            iconElement.style.zIndex = ''; // Reset z-index if necessary
+        }
+
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd, { passive: false });
+    });
+
+    // Handle double-click and double-tap to open window
+    let lastTap = 0;
     icon.addEventListener('dblclick', function() {
         const windowId = this.getAttribute('data-window');
         if (windowId === 'mediaPlayer') {
@@ -835,6 +1151,22 @@ document.querySelectorAll('.desktop-icon').forEach(icon => {
         } else {
             toggleWindow(windowId);
         }
+    });
+
+    icon.addEventListener('touchend', function(e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            // Double-tap detected
+            const windowId = this.getAttribute('data-window');
+            if (windowId === 'mediaPlayer') {
+                toggleMediaPlayer();
+            } else {
+                toggleWindow(windowId);
+            }
+            e.preventDefault();
+        }
+        lastTap = currentTime;
     });
 });
 
@@ -1086,6 +1418,7 @@ function openWifiWindow() {
 }
 
 // Update Event Listener for Network Tray Icon
+const networkTray = document.getElementById('networkTray');
 networkTray.addEventListener('click', () => {
     openWifiWindow();
 });
@@ -1192,6 +1525,7 @@ function openBatteryWindow() {
 }
 
 // Update Event Listener for Battery Tray Icon
+const batteryTray = document.getElementById('batteryTray');
 batteryTray.addEventListener('click', () => {
     openBatteryWindow();
 });
@@ -1215,4 +1549,3 @@ function handleIconClick(event) {
         icon.classList.add('selected');
     }
 }
-
