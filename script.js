@@ -1,3 +1,19 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const volumeSlider = document.getElementById('volume-slider');
+    const panSlider = document.getElementById('pan-slider');
+
+    setupSlider(volumeSlider, 'volume');
+    setupSlider(panSlider, 'pan');
+});
+
+const mediaPlayerState = { 
+    originalWidth: null,
+    originalHeight: null,
+    originalX: null,
+    originalY: null,
+    maximized: false
+};
+
 function changeStartButtonImage(imagePath) {
     document.getElementById("startButtonImage").src = "images/" + imagePath;
 }
@@ -48,7 +64,7 @@ function openWindow(windowId) {
 
     // Maximize Apache and Starblaster windows when opened
     if (windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
-        maximizeWindow(windowId);
+        maximizeWindow(windowId, true); // Always maximize when opening
     }
 
     // Adjust iframe scale
@@ -121,27 +137,29 @@ function minimizeWindow(windowId) {
     windowElement.style.display = "none";
 }
 
-function maximizeWindow(windowId) {
+function maximizeWindow(windowId, maximize = true) {
     const windowElement = document.getElementById(windowId);
-    let topPosition = (window.innerHeight - windowElement.offsetHeight) / 2;
-    let leftPosition = (window.innerWidth - windowElement.offsetWidth) / 2;
 
-    if (windowElement.classList.contains('maximized')) {
-        // Restore to a smaller, default size
-        windowElement.classList.remove('maximized');
-
-        // Set a predefined "normal" size and center it
-        windowElement.style.width = '600px'; // Set desired width
-        windowElement.style.height = '500px'; // Set desired height
-        windowElement.style.top = `${topPosition}px`;
-        windowElement.style.left = `${leftPosition}px`;
-    } else {
+    if (maximize) {
         // Maximize the window
         windowElement.classList.add('maximized');
         windowElement.style.top = '0';
         windowElement.style.left = '0';
         windowElement.style.width = '100%';
         windowElement.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
+    } else {
+        // Restore to a smaller, default size
+        windowElement.classList.remove('maximized');
+
+        // Set a predefined "normal" size and center it
+        windowElement.style.width = '600px'; // Set desired width
+        windowElement.style.height = '500px'; // Set desired height
+
+        // Center the window
+        let topPosition = (window.innerHeight - parseInt(windowElement.style.height)) / 2;
+        let leftPosition = (window.innerWidth - parseInt(windowElement.style.width)) / 2;
+        windowElement.style.top = `${topPosition}px`;
+        windowElement.style.left = `${leftPosition}px`;
     }
 
     // Adjust iframe scale
@@ -180,17 +198,12 @@ function openMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
     const taskbarInstances = document.getElementById("taskbarInstances");
 
-    // Set initial size and maximum dimensions
-    mediaPlayer.style.width = '556.42px';
-    mediaPlayer.style.height = '617px';
-    mediaPlayer.style.maxWidth = '556.42px';
-    mediaPlayer.style.maxHeight = '617px';
+    // Set initial size as a percentage of viewport size
+    mediaPlayer.style.width = '100vw'; // 80% of viewport width
+    mediaPlayer.style.height = '100vh'; // 80% of viewport height
+    mediaPlayer.style.maxWidth = '556.42px'; // Optional maximum width
+    mediaPlayer.style.maxHeight = '617px'; // Optional maximum height
 
-    // Center the mediaPlayer
-    const topPosition = (window.innerHeight - 617) / 2;
-    const leftPosition = (window.innerWidth - 556.42) / 2;
-    mediaPlayer.style.top = `${topPosition}px`;
-    mediaPlayer.style.left = `${leftPosition}px`;
 
     // Show the media player
     mediaPlayer.classList.add("show");
@@ -215,6 +228,15 @@ function openMediaPlayer() {
                 }
             }, 100);
         }
+    }
+
+    if (isPortrait()) {
+        maximizeMediaPlayer();
+    } else {
+        // Restore to normal size and center the media player
+        mediaPlayer.classList.remove('maximized');
+        centerWindow('mediaPlayer');
+        adjustMediaPlayerScale();
     }
 
     // Check if the taskbar button already exists
@@ -253,6 +275,23 @@ function openMediaPlayer() {
     }
 }
 
+function handleOrientationChange() {
+    const mediaPlayer = document.getElementById('mediaPlayer');
+    if (mediaPlayer.style.display === 'flex') {
+        if (isPortrait()) {
+            maximizeMediaPlayer();
+        } else {
+            const mediaPlayer = document.getElementById('mediaPlayer');
+            mediaPlayer.classList.remove('maximized');
+            centerWindow('mediaPlayer');
+            adjustMediaPlayerScale();
+        }
+    }
+}
+
+window.addEventListener('orientationchange', handleOrientationChange);
+window.addEventListener('resize', handleOrientationChange); 
+
 function closeMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
     const taskbarButton = document.getElementById(`taskbar-mediaPlayer`);
@@ -273,9 +312,50 @@ function closeMediaPlayer() {
 
 function minimizeMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
+
+    // Check if already minimized
+    if (mediaPlayer.classList.contains('minimized')) return;
+
+    // Save current state before minimizing
+    mediaPlayerState.width = mediaPlayer.style.width;
+    mediaPlayerState.height = mediaPlayer.style.height;
+    mediaPlayerState.top = mediaPlayer.style.top;
+    mediaPlayerState.left = mediaPlayer.style.left;
+    mediaPlayerState.transform = mediaPlayer.style.transform;
+    mediaPlayerState.maximized = mediaPlayer.classList.contains('maximized');
+
+    // Hide the Media Player
     mediaPlayer.classList.add("hide");
     mediaPlayer.classList.remove("show");
     mediaPlayer.style.display = "none";
+    mediaPlayer.classList.add('minimized');
+}
+
+function restoreMediaPlayer() {
+    const mediaPlayer = document.getElementById('mediaPlayer');
+
+    // Check if it's minimized
+    if (!mediaPlayer.classList.contains('minimized')) return;
+
+    // Restore state
+    mediaPlayer.style.width = mediaPlayerState.width;
+    mediaPlayer.style.height = mediaPlayerState.height;
+    mediaPlayer.style.top = mediaPlayerState.top;
+    mediaPlayer.style.left = mediaPlayerState.left;
+    mediaPlayer.style.transform = mediaPlayerState.transform;
+
+    if (mediaPlayerState.maximized) {
+        mediaPlayer.classList.add('maximized');
+    } else {
+        mediaPlayer.classList.remove('maximized');
+    }
+
+    // Show the Media Player
+    mediaPlayer.classList.remove("hide");
+    mediaPlayer.classList.add("show");
+    mediaPlayer.style.display = "flex";
+    mediaPlayer.classList.remove('minimized');
+    bringToFront(mediaPlayer);
 }
 
 function maximizeMediaPlayer() {
@@ -284,48 +364,51 @@ function maximizeMediaPlayer() {
     if (mediaPlayer.classList.contains('maximized')) {
         // Restore to previous size and position
         mediaPlayer.classList.remove('maximized');
-        mediaPlayer.style.width = originalWidth + 'px';
-        mediaPlayer.style.height = originalHeight + 'px';
-        mediaPlayer.style.top = originalY + 'px';
-        mediaPlayer.style.left = originalX + 'px';
+        mediaPlayer.style.width = mediaPlayerState.originalWidth + 'px';
+        mediaPlayer.style.height = mediaPlayerState.originalHeight + 'px';
+        mediaPlayer.style.top = mediaPlayerState.originalY + 'px';
+        mediaPlayer.style.left = mediaPlayerState.originalX + 'px';
+        mediaPlayerState.maximized = false;
     } else {
         // Store original size and position
-        originalWidth = mediaPlayer.offsetWidth;
-        originalHeight = mediaPlayer.offsetHeight;
-        originalX = mediaPlayer.offsetLeft;
-        originalY = mediaPlayer.offsetTop;
+        mediaPlayerState.originalWidth = mediaPlayer.offsetWidth;
+        mediaPlayerState.originalHeight = mediaPlayer.offsetHeight;
+        mediaPlayerState.originalX = mediaPlayer.offsetLeft;
+        mediaPlayerState.originalY = mediaPlayer.offsetTop;
 
         // Maximize the media player
         mediaPlayer.classList.add('maximized');
         mediaPlayer.style.top = '0';
         mediaPlayer.style.left = '0';
         mediaPlayer.style.width = '100%';
-        mediaPlayer.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
+        mediaPlayer.style.height = 'calc(100% - 40px)'; // Adjust for taskbar height
+        mediaPlayerState.maximized = true;
     }
 
     // Adjust media player scale
     adjustMediaPlayerScale();
 }
 
+function centerWindow(windowId) {
+    const windowElement = document.getElementById(windowId);
+    const windowWidth = windowElement.offsetWidth;
+    const windowHeight = windowElement.offsetHeight;
+
+    const left = (window.innerWidth - windowWidth) / 2;
+    const top = (window.innerHeight - windowHeight - 40) / 2; // Adjust for taskbar height
+
+    windowElement.style.left = `${left}px`;
+    windowElement.style.top = `${top}px`;
+}
+
 function toggleMinimizeRestoreMediaPlayer() {
     const mediaPlayer = document.getElementById('mediaPlayer');
 
-    if (mediaPlayer.style.display === "none" || mediaPlayer.classList.contains("hide")) {
-        // Restore the media player
-        mediaPlayer.classList.remove("hide");
-        mediaPlayer.classList.add("show");
-        mediaPlayer.style.display = "flex";
-        bringToFront(mediaPlayer);
-
-        // Re-center the mediaPlayer
-        const width = parseFloat(mediaPlayer.style.width);
-        const height = parseFloat(mediaPlayer.style.height);
-        const topPosition = (window.innerHeight - height) / 2;
-        const leftPosition = (window.innerWidth - width) / 2;
-        mediaPlayer.style.top = `${topPosition}px`;
-        mediaPlayer.style.left = `${leftPosition}px`;
+    if (mediaPlayer.classList.contains('minimized')) {
+        // Restore the Media Player
+        restoreMediaPlayer();
     } else {
-        // Minimize the media player
+        // Minimize the Media Player
         minimizeMediaPlayer();
     }
 }
@@ -945,7 +1028,7 @@ function initializeSliderPositions(volumeSlider, panSlider) {
 
 function updateSliderPosition(sliderElement, value) {
     let sliderButton = sliderElement.querySelector('.slide-button');
-    let sliderWidth = sliderElement.offsetWidth - sliderButton.offsetWidth;
+    let sliderWidth = sliderElement.clientWidth - sliderButton.clientWidth;
     let position = value * sliderWidth;
     sliderButton.style.left = `${position}px`;
 
@@ -957,6 +1040,8 @@ function setupSlider(sliderElement, type) {
     let isDragging = false;
     let sliderRect;
     let sliderButton = sliderElement.querySelector('.slide-button');
+
+    const limitOffset = 6;
 
     sliderButton.addEventListener('mousedown', (e) => {
         isDragging = true;
@@ -981,21 +1066,19 @@ function setupSlider(sliderElement, type) {
 
     function onDragSlider(e) {
         if (isDragging) {
-            let x = e.clientX - sliderRect.left;
-            x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth));
-            sliderButton.style.left = `${x}px`;
-
-            let value = x / (sliderRect.width - sliderButton.offsetWidth);
+            let x = e.clientX - sliderRect.left - (sliderButton.offsetWidth / 2);
+            // Reduce max allowed x by limitOffset to limit rightward movement
+            x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth - limitOffset));
+            let percentage = (x / (sliderRect.width - sliderButton.offsetWidth)) * 100;
+            sliderButton.style.left = `${percentage}%`;
 
             if (type === 'volume') {
-                youtubePlayer.setVolume(value * 100);
+                youtubePlayer.setVolume(percentage);
             } else if (type === 'pan') {
-                // Placeholder functionality for Pan slider
-                console.log(`Pan value adjusted to: ${value.toFixed(2)}`);
-                // Future implementation can utilize Web Audio API if feasible
+                console.log(`Pan value adjusted to: ${percentage.toFixed(2)}`);
             }
 
-            let frame = Math.floor(value * 27);
+            let frame = Math.floor((percentage / 100) * 27);
             sliderElement.style.backgroundPosition = `0px ${-frame * 15}px`;
         }
     }
@@ -1010,19 +1093,18 @@ function setupSlider(sliderElement, type) {
     function onDragSliderTouch(e) {
         if (isDragging && e.touches.length === 1) {
             const touch = e.touches[0];
-            let x = touch.clientX - sliderRect.left;
-            x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth));
-            sliderButton.style.left = `${x}px`;
-
-            let value = x / (sliderRect.width - sliderButton.offsetWidth);
+            let x = touch.clientX - sliderRect.left - (sliderButton.offsetWidth / 2);
+            x = Math.max(0, Math.min(x, sliderRect.width - sliderButton.offsetWidth - limitOffset));
+            let percentage = (x / (sliderRect.width - sliderButton.offsetWidth)) * 100;
+            sliderButton.style.left = `${percentage}%`;
 
             if (type === 'volume') {
-                youtubePlayer.setVolume(value * 100);
+                youtubePlayer.setVolume(percentage);
             } else if (type === 'pan') {
-                console.log(`Pan value adjusted to: ${value.toFixed(2)}`);
+                console.log(`Pan value adjusted to: ${percentage.toFixed(2)}`);
             }
 
-            let frame = Math.floor(value * 27);
+            let frame = Math.floor((percentage / 100) * 27);
             sliderElement.style.backgroundPosition = `0px ${-frame * 15}px`;
 
             e.preventDefault();
@@ -1586,4 +1668,8 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
         e.stopPropagation();
     });
 });
+
+function isPortrait() {
+    return window.matchMedia("(orientation: portrait)").matches;
+}
 
