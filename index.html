@@ -27,40 +27,40 @@
         </div>
 
         <!-- Taskbar -->
-        <div class="taskbar">
-            <div class="start-button" 
-                 onclick="toggleStartMenu()"
-                 onmousedown="changeStartButtonImage('start_click.png')"
-                 onmouseup="changeStartButtonImage('start.png')">
-                <img id="startButtonImage" src="images/start.png" alt="Start Button">
-            </div>
-
-            <div id="taskbarInstances" class="taskbar-instances"></div>
-
-            <!-- System Tray -->
-            <div class="system-tray">
-                <div class="tray-icon" id="networkTray">
-                    <img src="images/network.png" alt="Network Status">
-                </div>
-                <div class="tray-icon" id="soundTray">
-                    <img src="images/sound.png" alt="Sound">
-                </div>
-                <div class="tray-icon" id="batteryTray">
-                    <img src="images/battery.png" alt="Battery">
-                </div>
-                <!-- Add more system tray icons as needed -->
-            </div>
+    <div class="taskbar">
+        <div class="start-button" 
+             onclick="toggleStartMenu()"
+             onmousedown="changeStartButtonImage('start_click.png')"
+             onmouseup="changeStartButtonImage('start.png')">
+            <img id="startButtonImage" src="images/start.png" alt="Start Button">
         </div>
 
-        <!-- Start Menu -->
-        <div id="startMenu" class="start-menu">
-            <ul>
-                <li onclick="toggleWindow('apacheWindow')">Apache</li>
-                <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
-                <li onclick="toggleMediaPlayer()">Media Player</li>
-                <!-- Add more shortcuts as needed -->
-            </ul>
+        <div id="taskbarInstances" class="taskbar-instances"></div>
+
+        <!-- System Tray -->
+        <div class="system-tray">
+            <div class="tray-icon" id="networkTray">
+                <img src="images/network.png" alt="Network Status">
+            </div>
+            <div class="tray-icon" id="soundTray">
+                <img src="images/sound.png" alt="Sound">
+            </div>
+            <div class="tray-icon" id="batteryTray">
+                <img src="images/battery.png" alt="Battery">
+            </div>
+            <!-- Add more system tray icons as needed -->
         </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="startMenu" class="start-menu">
+        <ul>
+            <li onclick="toggleWindow('apacheWindow')">Apache</li>
+            <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
+            <li onclick="toggleMediaPlayer()">Media Player</li>
+            <!-- Add more shortcuts as needed -->
+        </ul>
+    </div>
 
         <!-- Apache Window -->
         <div id="apacheWindow" class="window" data-original-width="825" data-original-height="410">
@@ -68,7 +68,7 @@
                 <span class="window-title">Apache</span>
                 <div class="window-buttons">
                     <button class="minimize" onclick="minimizeWindow('apacheWindow')">_</button>
-                    <button class="maximize" onclick="maximizeWindow('apacheWindow')">□</button>
+                    <button class="maximize" onclick="maximizeWindow('apacheWindow', !document.getElementById('apacheWindow').classList.contains('maximized'))">□</button>
                     <button class="close" onclick="closeWindow('apacheWindow')">X</button>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                 <span class="window-title">Starblaster</span>
                 <div class="window-buttons">
                     <button class="minimize" onclick="minimizeWindow('starblasterWindow')">_</button>
-                    <button class="maximize" onclick="maximizeWindow('starblasterWindow')">□</button>
+                    <button class="maximize" onclick="maximizeWindow('starblasterWindow', !document.getElementById('starblasterWindow').classList.contains('maximized'))">□</button>
                     <button class="close" onclick="closeWindow('starblasterWindow')">X</button>
                 </div>
             </div>
