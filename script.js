@@ -1413,62 +1413,18 @@ soundTray.addEventListener('click', () => {
 
 function openWifiWindow() {
     const windowId = 'wifiWindow';
-    const title = 'Wi-Fi';
-    const message = ''; // We'll build the content dynamically
-
-    // Check if window already exists
-    let existingWindow = document.getElementById(windowId);
+    const existingWindow = document.getElementById(windowId);
     if (existingWindow) {
-        toggleWindow(windowId);
+        existingWindow.remove();
         return;
     }
 
     // Create window element
     const windowElement = document.createElement('div');
     windowElement.id = windowId;
-    windowElement.classList.add('window');
-    windowElement.setAttribute('data-original-width', '300');
-    windowElement.setAttribute('data-original-height', '400');
+    windowElement.classList.add('popup-window');
 
-    // Window Header
-    const windowHeader = document.createElement('div');
-    windowHeader.classList.add('window-header');
-
-    const windowTitle = document.createElement('span');
-    windowTitle.classList.add('window-title');
-    windowTitle.textContent = title;
-
-    const windowButtons = document.createElement('div');
-    windowButtons.classList.add('window-buttons');
-
-    // Minimize Button
-    const minimizeBtn = document.createElement('button');
-    minimizeBtn.classList.add('minimize');
-    minimizeBtn.textContent = '_';
-    minimizeBtn.onclick = () => minimizeWindow(windowId);
-
-    // Maximize Button
-    const maximizeBtn = document.createElement('button');
-    maximizeBtn.classList.add('maximize');
-    maximizeBtn.textContent = '□';
-    maximizeBtn.onclick = () => maximizeWindow(windowId);
-
-    // Close Button
-    const closeBtn = document.createElement('button');
-    closeBtn.classList.add('close');
-    closeBtn.textContent = 'X';
-    closeBtn.onclick = () => closeWindow(windowId);
-
-    // Append buttons to windowButtons
-    windowButtons.appendChild(minimizeBtn);
-    windowButtons.appendChild(maximizeBtn);
-    windowButtons.appendChild(closeBtn);
-
-    // Append title and buttons to header
-    windowHeader.appendChild(windowTitle);
-    windowHeader.appendChild(windowButtons);
-
-    // Window Content
+    // Create window content
     const windowContent = document.createElement('div');
     windowContent.classList.add('window-content');
 
@@ -1495,36 +1451,29 @@ function openWifiWindow() {
 
         const wifiStatus = document.createElement('span');
         wifiStatus.classList.add('wifi-status');
-        if (wifi.locked) {
-            wifiStatus.innerHTML = '🔒'; // Lock icon
-        } else {
-            wifiStatus.innerHTML = '🔓'; // Unlock icon
-        }
+        wifiStatus.innerHTML = wifi.locked ? '🔒' : '🔓';
 
         listItem.appendChild(wifiName);
         listItem.appendChild(wifiStatus);
         wifiList.appendChild(listItem);
     });
 
+    // Append the Wi-Fi list to window content
     windowContent.appendChild(wifiList);
 
-    // Append header and content to window
-    windowElement.appendChild(windowHeader);
+    // Append content to window
     windowElement.appendChild(windowContent);
-
-    // Add resize handle
-    const resizeHandle = document.createElement('div');
-    resizeHandle.classList.add('resize-handle', 'resize-handle-bottom-right');
-    windowElement.appendChild(resizeHandle);
 
     // Append window to desktop
     document.querySelector('.desktop').appendChild(windowElement);
 
-    // Open the window
-    openWindow(windowId);
+    // Position the popup window
+    positionPopupWindow(windowElement, 'networkTray');
+
+    // Close the popup when clicking outside
+    closePopupOnClickOutside(windowElement, 'networkTray');
 }
 
-// Update Event Listener for Network Tray Icon
 const networkTray = document.getElementById('networkTray');
 networkTray.addEventListener('click', () => {
     openWifiWindow();
@@ -1532,62 +1481,18 @@ networkTray.addEventListener('click', () => {
 
 function openBatteryWindow() {
     const windowId = 'batteryWindow';
-    const title = 'Power Options';
-    const message = ''; // We'll build the content dynamically
-
-    // Check if window already exists
-    let existingWindow = document.getElementById(windowId);
+    const existingWindow = document.getElementById(windowId);
     if (existingWindow) {
-        toggleWindow(windowId);
+        existingWindow.remove();
         return;
     }
 
     // Create window element
     const windowElement = document.createElement('div');
     windowElement.id = windowId;
-    windowElement.classList.add('window');
-    windowElement.setAttribute('data-original-width', '250');
-    windowElement.setAttribute('data-original-height', '300');
+    windowElement.classList.add('popup-window');
 
-    // Window Header
-    const windowHeader = document.createElement('div');
-    windowHeader.classList.add('window-header');
-
-    const windowTitle = document.createElement('span');
-    windowTitle.classList.add('window-title');
-    windowTitle.textContent = title;
-
-    const windowButtons = document.createElement('div');
-    windowButtons.classList.add('window-buttons');
-
-    // Minimize Button
-    const minimizeBtn = document.createElement('button');
-    minimizeBtn.classList.add('minimize');
-    minimizeBtn.textContent = '_';
-    minimizeBtn.onclick = () => minimizeWindow(windowId);
-
-    // Maximize Button
-    const maximizeBtn = document.createElement('button');
-    maximizeBtn.classList.add('maximize');
-    maximizeBtn.textContent = '□';
-    maximizeBtn.onclick = () => maximizeWindow(windowId);
-
-    // Close Button
-    const closeBtn = document.createElement('button');
-    closeBtn.classList.add('close');
-    closeBtn.textContent = 'X';
-    closeBtn.onclick = () => closeWindow(windowId);
-
-    // Append buttons to windowButtons
-    windowButtons.appendChild(minimizeBtn);
-    windowButtons.appendChild(maximizeBtn);
-    windowButtons.appendChild(closeBtn);
-
-    // Append title and buttons to header
-    windowHeader.appendChild(windowTitle);
-    windowHeader.appendChild(windowButtons);
-
-    // Window Content
+    // Create window content
     const windowContent = document.createElement('div');
     windowContent.classList.add('window-content');
 
@@ -1613,23 +1518,55 @@ function openBatteryWindow() {
         powerList.appendChild(listItem);
     });
 
+    // Append the power list to window content
     windowContent.appendChild(powerList);
 
-    // Append header and content to window
-    windowElement.appendChild(windowHeader);
+    // Append content to window
     windowElement.appendChild(windowContent);
-
-    // Add resize handle
-    const resizeHandle = document.createElement('div');
-    resizeHandle.classList.add('resize-handle', 'resize-handle-bottom-right');
-    windowElement.appendChild(resizeHandle);
 
     // Append window to desktop
     document.querySelector('.desktop').appendChild(windowElement);
 
-    // Open the window
-    openWindow(windowId);
+    // Position the popup window
+    positionPopupWindow(windowElement, 'batteryTray');
+
+    // Close the popup when clicking outside
+    closePopupOnClickOutside(windowElement, 'batteryTray');
 }
+
+function positionPopupWindow(popupWindow, trayIconId) {
+    const trayIcon = document.getElementById(trayIconId);
+    const trayRect = trayIcon.getBoundingClientRect();
+    const popupRect = popupWindow.getBoundingClientRect();
+
+    // Calculate position to align above the tray icon
+    let left = trayRect.left + trayRect.width / 2 - popupRect.width / 2;
+    let top = trayRect.top - popupRect.height;
+
+    // Adjust if the popup goes beyond the viewport
+    if (left < 0) left = 0;
+    if (left + popupRect.width > window.innerWidth) left = window.innerWidth - popupRect.width;
+    if (top < 0) top = trayRect.bottom;
+
+    popupWindow.style.left = `${left}px`;
+    popupWindow.style.top = `${top}px`;
+}
+
+function closePopupOnClickOutside(popupWindow, trayIconId) {
+    setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+    }, 0);
+
+    function handleClickOutside(event) {
+        const trayIcon = document.getElementById(trayIconId);
+        if (!popupWindow.contains(event.target) && !trayIcon.contains(event.target)) {
+            popupWindow.remove();
+            document.removeEventListener('click', handleClickOutside);
+        }
+    }
+}
+
+
 
 // Update Event Listener for Battery Tray Icon
 const batteryTray = document.getElementById('batteryTray');
