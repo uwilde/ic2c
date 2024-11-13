@@ -176,6 +176,7 @@ body, html {
 
 .wifi-item:hover {
     background-color: #000080;
+    color: black;
     cursor: default;
 }
 
@@ -203,6 +204,7 @@ body, html {
 
 .power-item:hover {
     background-color: #3333cc;
+    color: black;
 }
 
 /* Start Menu Styles */
@@ -347,6 +349,44 @@ body, html {
     top: 50%;
     left: 50%;
     transform-origin: center;
+}
+
+.popup-window {
+    position: absolute;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    z-index: 1000;
+    width: 300px; /* Adjust as needed */
+    overflow: hidden;
+}
+
+.popup-window .window-content {
+    background-color: #202124;
+    padding: 10px;
+}
+
+.popup-window .wifi-list,
+.popup-window .power-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.popup-window .wifi-item,
+.popup-window .power-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.popup-window .wifi-item:hover,
+.popup-window .power-item:hover {
+    background-color: #ddd;
+}
+
+.popup-window .wifi-status {
+    float: right;
 }
 
 /* Resize Handle Styles */
