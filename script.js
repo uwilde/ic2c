@@ -1323,25 +1323,32 @@ function adjustIframeScale(windowId) {
 
     if (!iframeWrapper || !iframeContent) return;
 
-    // Get original size from data attributes
-    const originalWidth = parseInt(windowElement.getAttribute('data-original-width'), 10);
-    const originalHeight = parseInt(windowElement.getAttribute('data-original-height'), 10);
+    if (windowId === 'apacheToob') {
+        // For apacheToob, make the iframe fill the wrapper without scaling
+        iframeContent.style.width = '100%';
+        iframeContent.style.height = '100%';
+        iframeContent.style.transform = 'none';
+    } else {
+        // Existing scaling logic for other windows
+        const originalWidth = parseInt(windowElement.getAttribute('data-original-width'), 10);
+        const originalHeight = parseInt(windowElement.getAttribute('data-original-height'), 10);
 
-    if (!originalWidth || !originalHeight) return;
+        if (!originalWidth || !originalHeight) return;
 
-    // Set the width and height of iframe-content
-    iframeContent.style.width = `${originalWidth}px`;
-    iframeContent.style.height = `${originalHeight}px`;
+        // Set the width and height of iframe-content to original dimensions
+        iframeContent.style.width = `${originalWidth}px`;
+        iframeContent.style.height = `${originalHeight}px`;
 
-    // Get the size of the iframe wrapper
-    const wrapperWidth = iframeWrapper.clientWidth;
-    const wrapperHeight = iframeWrapper.clientHeight;
+        // Get the size of the iframe wrapper
+        const wrapperWidth = iframeWrapper.clientWidth;
+        const wrapperHeight = iframeWrapper.clientHeight;
 
-    // Calculate the scale factor
-    const scale = Math.min(wrapperWidth / originalWidth, wrapperHeight / originalHeight);
+        // Calculate the scale factor
+        const scale = Math.min(wrapperWidth / originalWidth, wrapperHeight / originalHeight);
 
-    // Apply the scale and center the iframe content
-    iframeContent.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        // Apply the scale and center the iframe content
+        iframeContent.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    }
 }
 
 window.addEventListener('resize', () => {
