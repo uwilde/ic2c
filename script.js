@@ -62,8 +62,8 @@ function openWindow(windowId) {
     windowElement.style.display = "flex";
     bringToFront(windowElement);
 
-    // Maximize Apache and Starblaster windows when opened
-    if (windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
+    // Maximize ApacheToob window when opened
+    if (windowId === 'apacheToob') {
         maximizeWindow(windowId, true); // Always maximize when opening
     }
 
@@ -86,6 +86,8 @@ function openWindow(windowId) {
             iconSrc = 'images/apache.png';
         } else if (windowId === 'starblasterWindow') {
             iconSrc = 'images/starblaster.png';
+        } else if (windowId === 'apacheToob') {
+            iconSrc = 'youtube/apache-toob.png';
         } else {
             iconSrc = 'images/window_icon.png'; // Default icon
         }
@@ -99,6 +101,8 @@ function openWindow(windowId) {
             title.innerText = 'Apache';
         } else if (windowId === 'starblasterWindow') {
             title.innerText = 'Starblaster';
+        } else if (windowId === 'apacheToob') {
+            title.innerText = 'A-Toob';
         } else {
             title.innerText = windowId;
         }
@@ -114,6 +118,7 @@ function openWindow(windowId) {
         taskbarInstances.appendChild(taskbarButton);
     }
 }
+
 
 function closeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
