@@ -23,6 +23,10 @@
                 <img src="images/media_player.png" alt="Media Player Icon">
                 <span>Media Player</span>
             </div>
+            <div class="desktop-icon" data-window="apacheToob" style="top: 320px; left: 20px;">
+                <img src="youtube/apache-toob.png" alt="A-Toob">
+                <span>A-Toob</span>
+            </div>
             <!-- Add more desktop icons as needed with unique top and left values -->
         </div>
 
@@ -58,6 +62,7 @@
             <li onclick="toggleWindow('apacheWindow')">Apache</li>
             <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
             <li onclick="toggleMediaPlayer()">Media Player</li>
+            <li onclick="toggleWindow('apacheToob')">A-Toob</li>
             <!-- Add more shortcuts as needed -->
         </ul>
     </div>
@@ -160,9 +165,24 @@
             <!-- Resize Handle -->
             <div class="resize-handle resize-handle-bottom-right"></div>
         </div>
-
+    <div id="apacheToob" class="window" data-original-width="1500" data-original-height="614">
+        <div class="window-header">
+            <span class="window-title">ApacheToob</span>
+            <div class="window-buttons">
+                <button class="minimize" onclick="minimizeWindow('apacheToob')">_</button>
+                <button class="maximize" onclick="maximizeWindow('apacheToob', !document.getElementById('apacheToob').classList.contains('maximized'))">□</button>
+                <button class="close" onclick="closeWindow('apacheToob')">X</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <!-- Wrap iframe in a div for scaling -->
+            <div class="iframe-wrapper">
+                <iframe src="youtube/atoob.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+            </div>
+        </div>
+        <!-- Resize Handle -->
+        <div class="resize-handle resize-handle-bottom-right"></div>
     </div>
-
     <!-- Include YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
