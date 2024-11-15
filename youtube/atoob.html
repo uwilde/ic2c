@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Mockup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Navigation -->
+    <div class="header">
+        <!-- Top Header with Logo and Links -->
+        <div class="header-top">
+            <div class="logo">
+                <a href="index.html">
+                    <img src="Thumbnails\apache-tube.png" alt="Logo">
+                </a>
+            </div>
+            <div class="header-links">
+                <a href="#">Sign Up</a> |
+                <a href="#">History</a> |
+                <a href="#">My Account</a> |
+                <a href="#">Help</a> |
+                <a href="#">Login</a> |
+                <a href="#">Site</a>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <a href="#" class="tab active">Videos</a>
+            <a href="#" class="tab">Categories</a>
+            <a href="#" class="tab">Channels</a>
+            <a href="#" class="tab">Communities</a>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-bar-wrapper">
+            <input type="text" placeholder="Search" class="search-bar">
+            <button id="search-button" button type="Search">Search</button>
+        </div>
+        <img id="powerby" src="Thumbnails\powered_by.png" alt="Powered By">
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Top Row: Videos Being Watched, Login Form, and News Section -->
+        <div class="top-row">
+            <!-- Videos Being Watched Section -->
+            <section class="videos-watched">
+                <h2>Videos Being Watched</h2>
+                <div class="video-grid" id="watching-videos">
+                    <!-- Placeholder thumbnails -->
+                    <div class="video-thumb">
+                        <a href="video.html?video=1">
+                            <img src="Thumbnails/5.png" alt="Video 1">
+                            <p>Video Title 1</p>
+                        </a>
+                    </div>
+                    <div class="video-thumb">
+                        <a href="video.html?video=2">
+                            <img src="Thumbnails/6.png" alt="Video 2">
+                            <p>Video Title 2</p>
+                        </a>
+                    </div>
+                    <!-- Add more thumbnails as needed -->
+                </div>
+            </section>
+
+            <!-- Login and News Container -->
+            <div class="login-news-container">
+                <!-- Login Form -->
+                <section class="login-form">
+                    <h2>Login</h2>
+                    <form id="login-form">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" placeholder="Enter Username" required>
+                        
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter Password" required>
+                        
+                        <button type="submit">Login</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+
+        <!-- News Section -->
+        <section class="news-section">
+            <h2>What's News</h2>
+            <p><strong>1894:</strong> The Great London Horse Manure Crisis. The streets of London were filled with horse manure as the city’s 50,000 horses produced thousands of tons of it per year! Newspapers predicted that manure would eventually bury the city entirely.</p>
+
+            <p><strong>1950:</strong> Drunk Horse Causes Traffic Jam in Berlin. A mischievous horse wandered into a pub, ate fermented apples, and trotted into the middle of the road, causing a major traffic jam. Berliners dubbed him "the tipsy trotter," and his escapade made national news!</p>
+
+        </section>
+
+        <!-- Promoted Videos Section -->
+        <section>
+            <h2>Promoted Videos</h2>
+            <div class="video-grid" id="promoted-videos">
+                <!-- Placeholder thumbnails -->
+                <div class="video-thumb">
+                    <a href="video.html?video=3">
+                        <img src="Thumbnails/2.png" alt="Promo Video 1">
+                        <p>Promo Video 1</p>
+                    </a>
+                </div>
+                <div class="video-thumb">
+                    <a href="video.html?video=4">
+                        <img src="Thumbnails/1.png" alt="Promo Video 2">
+                        <p>Promo Video 2</p>
+                    </a>
+                </div>
+                <!-- Add more thumbnails as needed -->
+            </div>
+        </section>
+
+        <!-- Featured Videos Section -->
+        <section>
+            <h2>Featured Videos</h2>
+            <div class="video-grid" id="featured-videos">
+                <div class="video-thumb">
+                    <a href="video.html?video=5">
+                        <img src="Thumbnails/3.png" alt="Featured Video 1">
+                        <p>Featured Video 1</p>
+                    </a>
+                </div>
+                <div class="video-thumb">
+                    <a href="video.html?video=6">
+                        <img src="Thumbnails/4.png" alt="Featured Video 2">
+                        <p>Featured Video 2</p>
+                    </a>
+                </div>
+                <!-- Add more thumbnails as needed -->
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
