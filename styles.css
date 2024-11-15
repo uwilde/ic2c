@@ -23,6 +23,38 @@ body, html {
     display: none;
 }
 
+.toolbar {
+    display: flex;
+    align-items: center;
+    background-color: #c0c0c0;
+    padding: 5px;
+    border-bottom: 1px solid #808080;
+}
+
+.toolbar button {
+    background: #e0e0e0;
+    border: 1px solid #808080;
+    border-radius: 3px;
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.toolbar button:hover {
+    background: #d0d0d0;
+}
+
+.toolbar input {
+    flex-grow: 1;
+    border: 1px solid #808080;
+    padding: 5px;
+    font-size: 14px;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+
 .taskbar-instances {
     display: flex;
     align-items: center;

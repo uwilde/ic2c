@@ -1,10 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize sliders
     const volumeSlider = document.getElementById('volume-slider');
     const panSlider = document.getElementById('pan-slider');
+    if (volumeSlider && panSlider) {
+        setupSlider(volumeSlider, 'volume');
+        setupSlider(panSlider, 'pan');
+    }
 
-    setupSlider(volumeSlider, 'volume');
-    setupSlider(panSlider, 'pan');
+    // Initialize ApacheToob toolbar
+    const apacheToob = document.getElementById('apacheToob');
+    if (apacheToob) {
+        const iframe = apacheToob.querySelector('.iframe-content');
+        const toolbarHTML = `
+            <div class="toolbar">
+                <button id="homeButton">🏠</button>
+                <button id="backButton">⬅️</button>
+                <button id="forwardButton">➡️</button>
+                <button id="refreshButton">🔄</button>
+                <input type="text" id="urlBar" readonly value="https://apachetoob.com">
+            </div>
+        `;
+        const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
+        iframeWrapper.insertAdjacentHTML('beforebegin', toolbarHTML);
+
+        const urlBar = document.getElementById('urlBar');
+        const homeButton = document.getElementById('homeButton');
+        const backButton = document.getElementById('backButton');
+        const forwardButton = document.getElementById('forwardButton');
+        const refreshButton = document.getElementById('refreshButton');
+
+        const historyStack = [];
+        let historyIndex = -1;
+
+        function navigate(url, pushToHistory = true) {
+            if (pushToHistory) {
+                historyStack.splice(historyIndex + 1);
+                historyStack.push(url);
+                historyIndex++;
+            }
+            iframe.src = url;
+            urlBar.value = url === 'youtube/atoob.html' ? 'https://apachetoob.com' : url;
+        }
+
+        iframe.addEventListener('load', () => {
+            const currentURL = iframe.src;
+            urlBar.value = currentURL.includes('youtube/atoob.html') ? 'https://apachetoob.com' : currentURL;
+        });
+
+        homeButton.addEventListener('click', () => navigate('youtube/atoob.html'));
+        backButton.addEventListener('click', () => {
+            if (historyIndex > 0) {
+                historyIndex--;
+                navigate(historyStack[historyIndex], false);
+            }
+        });
+        forwardButton.addEventListener('click', () => {
+            if (historyIndex < historyStack.length - 1) {
+                historyIndex++;
+                navigate(historyStack[historyIndex], false);
+            }
+        });
+        refreshButton.addEventListener('click', () => {
+            iframe.src = iframe.src;
+        });
+
+        navigate('youtube/atoob.html', false);
+    }
 });
+
 
 const mediaPlayerState = { 
     originalWidth: null,
@@ -1621,4 +1684,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
+
+
 
