@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Video Page</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles_video.css">
 </head>
 <body>
     <!-- Header Navigation -->
     <div class="header">
-        <!-- Top Header with Logo and Links -->
         <div class="header-top">
             <div class="logo">
-                <a href="index.html">
-                    <img src="logo.png" alt="Logo">
+                <a href="atoob.html">
+                    <img src="Thumbnails/apache-tube.png" alt="Logo">
                 </a>
             </div>
             <div class="header-links">
@@ -30,46 +29,123 @@
             <a href="index.html" class="tab">Videos</a>
             <a href="#" class="tab">Categories</a>
             <a href="#" class="tab">Channels</a>
-            <a href="#" class="tab">Communities</a>
+            <a href="#" class="tab active">Community</a>
         </div>
     </div>
 
     <!-- Search Bar -->
     <div class="search-container">
-        <input type="text" placeholder="Search" class="search-bar">
+        <div class="search-bar-wrapper">
+            <input type="text" placeholder="Search" class="search-bar">
+            <button id="search-button" type="button">Search</button>
+        </div>
+        <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
     </div>
 
     <!-- Main Content -->
     <div class="main">
-        <!-- Video Content -->
-        <div class="video-page">
+        <!-- Left Column: Video Player and Details -->
+        <div class="left-column">
+            <h2>Sir-G I will not Lose</h2>
             <div class="video-player">
-                <!-- Fake video player -->
-                <img src="Thumbnails\1.png" alt="Video Player">
-            </div>
-            <div class="video-details">
-                <h2 id="video-title">Video Title</h2>
-                <div class="actions">
-                    <button id="like-button">Like 👍</button>
-                    <button id="subscribe-button">Subscribe</button>
+                <div class="player-container">
+                    <img src="Thumbnails/7.png" alt="Video Player" class="video-player-image">
+                    <p class="no-video-msg">The Wayback Machine does not have this video archived.</p>
                 </div>
-                <p id="video-description">Video description goes here. This is a mockup of a YouTube video page.</p>
+            </div>
+            
+            <div class="video-actions">
+                <a href="#" class="action-button">Share</a>
+                <a href="#" class="action-button">Favorite</a>
+                <a href="#" class="action-button">Add to Playlists</a>
+                <a href="#" class="action-button">Flag</a>
             </div>
 
-            <!-- Comments Section -->
-            <div class="comments">
-                <h3>Comments</h3>
-                <div class="comment">
-                    <p><strong>User1:</strong> This is the funniest comment ever!</p>
-                </div>
-                <div class="comment">
-                    <p><strong>User2:</strong> I can't believe this actually worked.</p>
-                </div>
-                <div class="comment">
-                    <p><strong>User3:</strong> Subscribed for more awesome mockups!</p>
-                </div>
-                <!-- Add more comments as needed -->
+            <div class="video-meta">
+                <p>Rate: ⭐⭐⭐⭐✩ 1 rating</p>
+                <p>Views: 302</p>
+                <p>Comments: 0 | Favorited: 1 time | Links: 0</p>
             </div>
+
+            <div class="embed-section">
+                <label for="embed-code">Embed:</label>
+                <input type="text" id="embed-code" value="<object width='425' height='353'><param name='movie'></object>">
+            </div>
+
+            <div class="comment-section">
+                <p><strong>Would you like to comment?</strong> Join YouTube for a free account, or <a href="#">Login</a> if you are already a member.</p>
+            </div>
+        </div>
+
+        <!-- Right Column: Related and Promoted Videos -->
+        <div class="right-column">
+            <!-- Related Videos -->
+            <section class="related-videos">
+                <h3>Related Videos</h3>
+                <div class="related-video">
+                    <a href="#"><img src="Thumbnails/video1.png" alt="Related Video 1"></a>
+                    <p><a href="#">Arlene-Korey and Kyron...</a></p>
+                    <p>Views: 9,160</p>
+                </div>
+                <div class="related-video">
+                    <a href="#"><img src="Thumbnails/video2.png" alt="Related Video 2"></a>
+                    <p><a href="#">G-Bronx Gangsters</a></p>
+                    <p>Views: 596</p>
+                </div>
+                <!-- Additional related videos go here -->
+            </section>
+
+            <!-- Promoted Videos -->
+            <section class="promoted-videos">
+                <h3>Promoted Videos</h3>
+                <div class="promoted-video">
+                    <a href="#"><img src="Thumbnails/video3.png" alt="Promoted Video 1"></a>
+                    <p><a href="#">Tarantul in Calabria...</a></p>
+                </div>
+                <div class="promoted-video">
+                    <a href="#"><img src="Thumbnails/video4.png" alt="Promoted Video 2"></a>
+                    <p><a href="#">Toxic West Virgin...</a></p>
+                </div>
+                <!-- Additional promoted videos go here -->
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-sections">
+            <div class="footer-column">
+                <h4>Your Account</h4>
+                <a href="#">Videos</a> |
+                <a href="#">Favorites</a> |
+                <a href="#">Playlists</a> |
+                <a href="#">Inbox</a> |
+                <a href="#">Subscriptions</a> |
+                <a href="#">more...</a>
+            </div>
+            <div class="footer-column">
+                <h4>Help & Info</h4>
+                <a href="#">Help Center</a> |
+                <a href="#">Video Toolbox</a> |
+                <a href="#">Developer APIs</a> |
+                <a href="#">Safety Tips</a> |
+                <a href="#">Copyright Notices</a> |
+                <a href="#">Code of Conduct</a>
+            </div>
+            <div class="footer-column">
+                <h4>YouTube</h4>
+                <a href="#">Company Info</a> |
+                <a href="#">TestTube</a> |
+                <a href="#">Terms of Use</a> |
+                <a href="#">Privacy Policy</a> |
+                <a href="#">Press</a> |
+                <a href="#">Contact</a> |
+                <a href="#">Blog</a> |
+                <a href="#">Jobs</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2007 YouTube, LLC - <a href="#">Give Feedback</a></p>
         </div>
     </div>
 

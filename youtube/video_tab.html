@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>ApacheToob Mockup</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles_vtab.css">
 </head>
 <body>
     <!-- Header Navigation -->
@@ -45,93 +45,80 @@
 
     <!-- Main Content -->
     <div class="main">
-        <!-- Main Content Area -->
+        <!-- Sidebar: Browse, Time, and Category Filters -->
+        <div class="sidebar">
+            <section class="browse-section">
+                <h2>Browse</h2>
+                <ul>
+                    <li><a href="#">Most Recent</a></li>
+                    <li><a href="#">Most Viewed</a></li>
+                    <li><a href="#">Top Rated</a></li>
+                    <li><a href="#">Most Discussed</a></li>
+                    <li><a href="#">Top Favorites</a></li>
+                    <li><a href="#">Recently Featured</a></li>
+                    <li><a href="#">Most Linked</a></li>
+                    <li><a href="#">Most Responded</a></li>
+                    <li><a href="#">Watch on Mobile</a></li>
+                </ul>
+            </section>
+
+            <section class="time-section">
+                <h2>Time</h2>
+                <ul>
+                    <li><a href="#">Today</a></li>
+                    <li><a href="#">This Week</a></li>
+                    <li><a href="#">This Month</a></li>
+                    <li><a href="#">All Time</a></li>
+                </ul>
+            </section>
+
+            <section class="category-section">
+                <h2>Category</h2>
+                <ul>
+                    <li><a href="#">All</a></li>
+                    <li><a href="#">Autos & Vehicles</a></li>
+                    <li><a href="#">Comedy</a></li>
+                    <li><a href="#">Entertainment</a></li>
+                    <li><a href="#">Film & Animation</a></li>
+                    <li><a href="#">Gadgets & Games</a></li>
+                    <li><a href="#">Howto & DIY</a></li>
+                    <li><a href="#">Music</a></li>
+                    <li><a href="#">News & Politics</a></li>
+                    <li><a href="#">Pets & Animals</a></li>
+                    <li><a href="#">Sports</a></li>
+                    <li><a href="#">Travel & Places</a></li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Main Content Area: Most Viewed Videos -->
         <div class="main-content">
-            <!-- Top Row: Videos Being Watched -->
-            <section class="videos-watched">
-                <h2>Videos Being Watched</h2>
-                <div class="video-grid" id="watching-videos">
-                    <!-- Placeholder thumbnails -->
+            <section class="most-viewed">
+                <h2>Most Viewed : (Today) : All</h2>
+                <div class="video-grid">
                     <div class="video-thumb">
                         <a href="video.html?video=1">
                             <img src="Thumbnails/5.png" alt="Video 1">
                             <p>Video Title 1</p>
+                            <p>04:37 | Views: 855,769 | ⭐ 1827 ratings</p>
                         </a>
                     </div>
                     <div class="video-thumb">
                         <a href="video.html?video=2">
                             <img src="Thumbnails/6.png" alt="Video 2">
                             <p>Video Title 2</p>
+                            <p>00:38 | Views: 434,779 | ⭐ 1362 ratings</p>
                         </a>
                     </div>
-                    <!-- Add more thumbnails as needed -->
-                </div>
-            </section>
-
-            <!-- Promoted Videos Section -->
-            <section>
-                <h2>Promoted Videos</h2>
-                <div class="video-grid" id="promoted-videos">
-                    <!-- Placeholder thumbnails -->
                     <div class="video-thumb">
                         <a href="video.html?video=3">
-                            <img src="Thumbnails/2.png" alt="Promo Video 1">
-                            <p>Promo Video 1</p>
+                            <img src="Thumbnails/2.png" alt="Video 3">
+                            <p>Diplomats "PUSH IT"</p>
+                            <p>05:23 | Views: 153,701 | ⭐ 169 ratings</p>
                         </a>
                     </div>
-                    <div class="video-thumb">
-                        <a href="video.html?video=4">
-                            <img src="Thumbnails/1.png" alt="Promo Video 2">
-                            <p>Promo Video 2</p>
-                        </a>
-                    </div>
-                    <!-- Add more thumbnails as needed -->
+                    <!-- Add more video thumbnails as needed -->
                 </div>
-            </section>
-
-            <!-- Featured Videos Section -->
-            <section>
-                <h2>Featured Videos</h2>
-                <div class="video-grid" id="featured-videos">
-                    <div class="video-thumb">
-                        <a href="video.html?video=5">
-                            <img src="Thumbnails/3.png" alt="Featured Video 1">
-                            <p>Featured Video 1</p>
-                        </a>
-                    </div>
-                    <div class="video-thumb">
-                        <a href="video.html?video=6">
-                            <img src="Thumbnails/4.png" alt="Featured Video 2">
-                            <p>Featured Video 2</p>
-                        </a>
-                    </div>
-                    <!-- Add more thumbnails as needed -->
-                </div>
-            </section>
-        </div>
-
-        <!-- Sidebar Area: Login and News -->
-        <div class="sidebar">
-            <!-- Login Form -->
-            <section class="login-form">
-                <h2>Login</h2>
-                <form id="login-form">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" placeholder="Enter Username" required>
-                    
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" placeholder="Enter Password" required>
-                    
-                    <button type="submit">Login</button>
-                </form>
-            </section>
-
-            <!-- News Section -->
-            <section class="news-section">
-                <h2>What's News</h2>
-                <p><strong>1894:</strong> The Great London Horse Manure Crisis. The streets of London were filled with horse manure as the city’s 50,000 horses produced thousands of tons of it per year! Newspapers predicted that manure would eventually bury the city entirely.</p>
-
-                <p><strong>1950:</strong> Drunk Horse Causes Traffic Jam in Berlin. A mischievous horse wandered into a pub, ate fermented apples, and trotted into the middle of the road, causing a major traffic jam. Berliners dubbed him "the tipsy trotter," and his escapade made national news!</p>
             </section>
         </div>
     </div>

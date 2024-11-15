@@ -69,3 +69,30 @@ if (params.video) {
     videoPlayer.src = `https://via.placeholder.com/640x360.png?text=Video+${videoId}`;
     videoPlayer.alt = `Video Player ${videoId}`;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const tabs = document.querySelectorAll(".tabs .tab");
+
+    // Define the page each tab should link to
+    const tabPages = {
+        "Videos": "video_tab.html",
+        "Categories": "cat_tab.html",
+        "Channels": "chan_tab.html",
+        "Community": "comm_tab.html"
+    };
+
+    // Attach click event to each tab
+    tabs.forEach(tab => {
+        tab.addEventListener("click", (event) => {
+            event.preventDefault(); // Prevent default link behavior
+
+            const tabText = tab.textContent.trim();
+            const pageUrl = tabPages[tabText];
+
+            if (pageUrl) {
+                // Redirect to the specified page
+                window.location.href = pageUrl;
+            }
+        });
+    });
+});

@@ -71,6 +71,7 @@ a {
     color: #999;
 }
 
+
 .logo img {
     height: 200px; /* Adjust the height as needed */
 }
@@ -123,8 +124,12 @@ a {
 }
 
 .tab.active {
-    background-color: #e1e1e1;
+    background: linear-gradient(to bottom, #ffffff, #cccccc);
     border-radius: 1px;
+    border-top: solid 1px #cccccc;
+    border-left: solid 1px #cccccc;
+    border-right: solid 1px #cccccc;
+    border-bottom: none;
 }
 
 .tab:hover {
