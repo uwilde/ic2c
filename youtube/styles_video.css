@@ -123,10 +123,13 @@ a {
 }
 
 .tab.active {
-    background-color: #e1e1e1;
+    background: linear-gradient(to bottom, #ffffff, #cccccc);
     border-radius: 1px;
+    border-top: solid 1px #cccccc;
+    border-left: solid 1px #cccccc;
+    border-right: solid 1px #cccccc;
+    border-bottom: none;
 }
-
 .tab:hover {
     background-color: #d1d1d1;
     color: #000;
