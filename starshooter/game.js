@@ -445,5 +445,101 @@ function activateSuperBlaster() {
     hasSuperBlaster = false;
 }
 
+const leftButton = document.getElementById('leftButton');
+const rightButton = document.getElementById('rightButton');
+const touchPauseButton = document.getElementById('touchPauseButton');
+const shootButton = document.getElementById('shootButton');
+const superBlasterButton = document.getElementById('superBlasterButton');
+
+// Prevent default scrolling behavior on touch controls
+const touchControls = document.getElementById('touchControls');
+touchControls.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+});
+
+// Movement buttons
+leftButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys['ArrowLeft'] = true;
+});
+leftButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys['ArrowLeft'] = false;
+});
+leftButton.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    keys['ArrowLeft'] = false;
+});
+leftButton.addEventListener('mousedown', () => {
+    keys['ArrowLeft'] = true;
+});
+leftButton.addEventListener('mouseup', () => {
+    keys['ArrowLeft'] = false;
+});
+leftButton.addEventListener('mouseleave', () => {
+    keys['ArrowLeft'] = false;
+});
+
+rightButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys['ArrowRight'] = true;
+});
+rightButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys['ArrowRight'] = false;
+});
+rightButton.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    keys['ArrowRight'] = false;
+});
+rightButton.addEventListener('mousedown', () => {
+    keys['ArrowRight'] = true;
+});
+rightButton.addEventListener('mouseup', () => {
+    keys['ArrowRight'] = false;
+});
+rightButton.addEventListener('mouseleave', () => {
+    keys['ArrowRight'] = false;
+});
+
+// Shoot button
+shootButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    keys['Space'] = true;
+});
+shootButton.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys['Space'] = false;
+});
+shootButton.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    keys['Space'] = false;
+});
+shootButton.addEventListener('mousedown', () => {
+    keys['Space'] = true;
+});
+shootButton.addEventListener('mouseup', () => {
+    keys['Space'] = false;
+});
+
+// Super Blaster button
+superBlasterButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (hasSuperBlaster && !gameOver && !paused) {
+        activateSuperBlaster();
+    }
+});
+
+// Pause button
+touchPauseButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    paused = !paused;
+    if (paused) {
+        showPauseMenu();
+    } else {
+        hidePauseMenu();
+    }
+});
+
 // Start the game
 gameLoop();
