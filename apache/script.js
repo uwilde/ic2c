@@ -18,12 +18,20 @@ const pauseButton = document.getElementById('pauseButton');
 const jumpButton = document.getElementById('jumpButton');
 const stompButton = document.getElementById('stompButton');
 
+let logSpawnTimer = 0;
+let enemySpawnTimer = 0;
+let coinSpawnTimer = 0;
+let platformSpawnTimer = 0;
+let powerUpSpawnTimer = 0;
+
 let imagesLoaded = 0;
 
 function checkImagesLoaded() {
     imagesLoaded++;
     if (imagesLoaded === 9) {
-        gameLoop();
+        // Initialize lastTime and start the game loop
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
     }
 }
 
@@ -54,6 +62,9 @@ const stompSound = new Audio('stomp.mp3');
 const collectSound = new Audio('collect.mp3');
 const gameOverSound = new Audio('gameover.mp3');
 
+const normalGravity = 980; 
+const jumpGravity = 2; 
+
 let horse = {
     x: 50,
     y: 300,
@@ -62,15 +73,17 @@ let horse = {
     stomping: false,
     stompCount: 0,
     score: 0,
-    speed: 5,
+    speed: 200,
     isJumping: false,
     velocityY: 0,
-    gravity: 0.5,
+    gravity: 980,
     onGround: true,
     trampleAngle: 0,
     lives: 3,
     invincible: false,
-    invincibleTimer: 0
+    invincibleTimer: 0,
+    jumpHoldTime: 0,
+    maxJumpHoldTime: 0.3,
 };
 
 let logs = [];
@@ -80,7 +93,7 @@ let platforms = [];
 let powerUps = [];
 let keys = {};
 
-let gameSpeed = 2;
+let gameSpeed = 200;
 let frame = 0;
 let level = 1;
 let isPaused = false;
@@ -100,7 +113,8 @@ document.addEventListener('keydown', function(e) {
 
     if (e.code === 'ControlLeft' && horse.onGround) {
         horse.isJumping = true;
-        horse.velocityY = -10;
+        horse.velocityY = -350;  // Initial jump velocity
+        horse.jumpHoldTime = 0;  // Reset jump hold time
         horse.onGround = false;
         jumpSound.play();
     }
@@ -183,46 +197,55 @@ function createPowerUp() {
     });
 }
 
-function updateHorse() {
+function updateHorse(deltaTime) {
     // Horizontal Movement
     if (keys['ArrowLeft']) {
-        horse.x -= horse.speed;
+        horse.x -= horse.speed * deltaTime;
     }
     if (keys['ArrowRight']) {
-        horse.x += horse.speed;
+        horse.x += horse.speed * deltaTime;
     }
-
     // Prevent going off-screen
     if (horse.x < 0) horse.x = 0;
     if (horse.x + horse.width > canvas.width) horse.x = canvas.width - horse.width;
 
     // Vertical Movement (Jumping)
     if (horse.isJumping) {
-        horse.velocityY += horse.gravity;
-        horse.y += horse.velocityY;
+        let currentGravity;
 
+        // Check if the jump button is held and within max hold time
+        if (keys['ControlLeft'] && horse.jumpHoldTime < horse.maxJumpHoldTime) {
+            horse.jumpHoldTime += deltaTime;    // Increment jump hold time
+            currentGravity = jumpGravity;       // Apply reduced gravity
+        } else {
+            currentGravity = normalGravity;     // Apply normal gravity
+        }
+        horse.velocityY += currentGravity * deltaTime; // Update vertical velocity
+        horse.y += horse.velocityY * deltaTime;   
+        // Collision detection with platforms
         platforms.forEach(platform => {
             if (collision(horse, platform)) {
-                if (horse.velocityY > 0 && horse.y + horse.height - horse.velocityY <= platform.y) {
+                if (horse.velocityY > 0 && horse.y + horse.height - horse.velocityY * deltaTime <= platform.y) {
                     horse.y = platform.y - horse.height;
                     horse.velocityY = 0;
                     horse.isJumping = false;
                     horse.onGround = true;
+                    horse.jumpHoldTime = 0; // Reset jump hold time
                 }
             }
         });
-
+        // Ground collision
         if (horse.y >= 300) { // Ground level
             horse.y = 300;
             horse.velocityY = 0;
             horse.isJumping = false;
             horse.onGround = true;
+            horse.jumpHoldTime = 0; // Reset jump hold time
         }
     }
-
     // Trample Action
     if (horse.stomping) {
-        horse.trampleAngle = Math.sin(Date.now() / 50) * 30;
+        horse.trampleAngle = Math.sin(performance.now() / 50) * 30;
     }
 
     // Invincibility Timer
@@ -244,10 +267,9 @@ function updateHorse() {
     }
 }
 
-function updateLogs() {
+function updateLogs(deltaTime) {
     logs.forEach((log, index) => {
-        log.x -= gameSpeed;
-
+        log.x -= gameSpeed * deltaTime;
         if (log.x + log.width < 0) {
             logs.splice(index, 1);
             return;
@@ -270,15 +292,13 @@ function updateLogs() {
     });
 }
 
-function updateEnemies() {
+function updateEnemies(deltaTime) {
     enemies.forEach((enemy, index) => {
-        enemy.x -= gameSpeed;
+        enemy.x -= (gameSpeed - enemy.moveDirection * enemy.moveSpeed) * deltaTime;
 
-        enemy.x += enemy.moveDirection * enemy.moveSpeed;
         if (Math.abs(enemy.x - enemy.baseX) > enemy.moveAmplitude) {
             enemy.moveDirection *= -1;
         }
-
         if (enemy.x + enemy.width < 0) {
             enemies.splice(index, 1);
             return;
@@ -310,9 +330,9 @@ function updateEnemies() {
     });
 }
 
-function updateCoins() {
+function updateCoins(deltaTime) {
     coins.forEach((coin, index) => {
-        coin.x -= gameSpeed;
+        coin.x -= gameSpeed * deltaTime;
 
         if (coin.x + coin.width < 0) {
             coins.splice(index, 1);
@@ -327,10 +347,9 @@ function updateCoins() {
         }
     });
 }
-
-function updatePlatforms() {
+function updatePlatforms(deltaTime) {
     platforms.forEach((platform, index) => {
-        platform.x -= gameSpeed;
+        platform.x -= gameSpeed * deltaTime;
 
         if (platform.x + platform.width < 0) {
             platforms.splice(index, 1);
@@ -338,10 +357,9 @@ function updatePlatforms() {
         }
     });
 }
-
-function updatePowerUps() {
+function updatePowerUps(deltaTime) {
     powerUps.forEach((powerUp, index) => {
-        powerUp.x -= gameSpeed;
+        powerUp.x -= gameSpeed * deltaTime;
 
         if (powerUp.x + powerUp.width < 0) {
             powerUps.splice(index, 1);
@@ -357,7 +375,6 @@ function updatePowerUps() {
         }
     });
 }
-
 function blockHorseMovement(obstacle) {
     if (horse.x + horse.width > obstacle.x) {
         horse.x = obstacle.x - horse.width;
@@ -372,11 +389,11 @@ function resetHorsePosition() {
     horse.onGround = true;
 }
 
-function drawBackground() {
+function drawBackground(deltaTime) {
     // Parallax Background
-    bgLayer1X -= gameSpeed * 0.2;
-    bgLayer2X -= gameSpeed * 0.5;
-    bgLayer3X -= gameSpeed * 1;
+    bgLayer1X -= gameSpeed * 0.2 * deltaTime;
+    bgLayer2X -= gameSpeed * 0.5 * deltaTime;
+    bgLayer3X -= gameSpeed * 1 * deltaTime;
 
     if (bgLayer1X <= -canvas.width) bgLayer1X = 0;
     if (bgLayer2X <= -canvas.width) bgLayer2X = 0;
@@ -485,27 +502,54 @@ function gameOver() {
     ctx.fillText('Final Score: ' + horse.score, canvas.width / 2, canvas.height / 2 + 50);
 }
 
-function gameLoop() {
+let lastTime = 0;
+
+function gameLoop(timestamp) {
     if (isPaused) return;
 
+    const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1);
+    lastTime = timestamp;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    frame++;
+    // Update spawn timers
+    logSpawnTimer += deltaTime;
+    enemySpawnTimer += deltaTime;
+    coinSpawnTimer += deltaTime;
+    platformSpawnTimer += deltaTime;
+    powerUpSpawnTimer += deltaTime;
 
-    drawBackground();
+    // Spawn objects based on time intervals
+    if (logSpawnTimer >= 2.5) {
+        createLog();
+        logSpawnTimer = 0;
+    }
+    if (enemySpawnTimer >= 5) {
+        createEnemy();
+        enemySpawnTimer = 0;
+    }
+    if (coinSpawnTimer >= 1.5) {
+        createCoin();
+        coinSpawnTimer = 0;
+    }
+    if (platformSpawnTimer >= 3.3) {
+        createPlatform();
+        platformSpawnTimer = 0;
+    }
+    if (powerUpSpawnTimer >= 8.3) {
+        createPowerUp();
+        powerUpSpawnTimer = 0;
+    }
 
-    if (frame % 150 === 0) createLog();
-    if (frame % 300 === 0) createEnemy();
-    if (frame % 100 === 0) createCoin();
-    if (frame % 200 === 0) createPlatform();
-    if (frame % 500 === 0) createPowerUp();
+    // **Add the update functions**
+    updateHorse(deltaTime);
+    updateLogs(deltaTime);
+    updateEnemies(deltaTime);
+    updateCoins(deltaTime);
+    updatePlatforms(deltaTime);
+    updatePowerUps(deltaTime);
 
-    updateHorse();
-    updateLogs();
-    updateEnemies();
-    updateCoins();
-    updatePlatforms();
-    updatePowerUps();
-
+    // **Add the draw functions**
+    drawBackground(deltaTime);
     drawPlatforms();
     drawCoins();
     drawPowerUps();
@@ -514,6 +558,7 @@ function gameLoop() {
     drawHorse();
     drawScore();
 
+    // Adjust game speed based on score and level
     if (horse.score >= level * 100) {
         level++;
         gameSpeed += 0.5;
@@ -521,7 +566,6 @@ function gameLoop() {
 
     animationId = requestAnimationFrame(gameLoop);
 }
-
 
 leftButton.addEventListener('pointerdown', function(e) {
     e.preventDefault();
@@ -561,14 +605,21 @@ pauseButton.addEventListener('pointerup', function(e) {
 });
 
 // Jump Button Event
-jumpButton.addEventListener('pointerup', function(e) {
+jumpButton.addEventListener('pointerdown', function(e) {
     e.preventDefault();
     if (horse.onGround) {
         horse.isJumping = true;
-        horse.velocityY = -10;
+        horse.velocityY = -350;  // Initial jump velocity
+        horse.jumpHoldTime = 0;  // Reset jump hold time
         horse.onGround = false;
         jumpSound.play();
     }
+    keys['ControlLeft'] = true; // Simulate holding down the jump key
+});
+
+jumpButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    keys['ControlLeft'] = false; // Simulate releasing the jump key
 });
 
 // Stomp Button Events
