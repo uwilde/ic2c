@@ -12,6 +12,12 @@ const bgLayer1 = new Image();
 const bgLayer2 = new Image();
 const bgLayer3 = new Image();
 
+const leftButton = document.getElementById('leftButton');
+const rightButton = document.getElementById('rightButton');
+const pauseButton = document.getElementById('pauseButton');
+const jumpButton = document.getElementById('jumpButton');
+const stompButton = document.getElementById('stompButton');
+
 let imagesLoaded = 0;
 
 function checkImagesLoaded() {
@@ -515,3 +521,67 @@ function gameLoop() {
 
     animationId = requestAnimationFrame(gameLoop);
 }
+
+
+leftButton.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    keys['ArrowLeft'] = true;
+});
+
+leftButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    keys['ArrowLeft'] = false;
+});
+
+// Right Button Events
+rightButton.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    keys['ArrowRight'] = true;
+});
+
+rightButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    keys['ArrowRight'] = false;
+});
+
+// Pause Button Event
+pauseButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    isPaused = !isPaused;
+    if (!isPaused) {
+        gameLoop();
+    } else {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.font = '50px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Paused', canvas.width / 2, canvas.height / 2);
+    }
+});
+
+// Jump Button Event
+jumpButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    if (horse.onGround) {
+        horse.isJumping = true;
+        horse.velocityY = -10;
+        horse.onGround = false;
+        jumpSound.play();
+    }
+});
+
+// Stomp Button Events
+stompButton.addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    if (!horse.stomping) {
+        horse.stomping = true;
+        horse.stompCount = 0;
+    }
+});
+
+stompButton.addEventListener('pointerup', function(e) {
+    e.preventDefault();
+    horse.stomping = false;
+    horse.trampleAngle = 0;
+});

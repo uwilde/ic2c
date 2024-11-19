@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    background-color: #000;
+    background-color: black;
 }
 
 #gameCanvas {
@@ -8,4 +8,57 @@ body {
     margin: 0 auto;
     background-color: #87CEEB; /* Sky blue background */
     border: 2px solid #fff;
+}
+
+
+/* Existing styles... */
+
+/* Touch Controls Styling */
+#touchControls {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+#leftRightButtons,
+#jumpStompButtons {
+    display: flex;
+    pointer-events: auto; /* Enable button interactions */
+}
+
+#touchControls button {
+    background: transparent;
+    border: solid 1px white;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 5px;
+    touch-action: none;  
+    color: white;
+}
+
+#touchControls button img {
+    width: 32px;
+    height: 32px;
+}
+
+/* Adjustments for mobile responsiveness */
+@media only screen and (max-width: 800px) {
+    #gameCanvas {
+        width: 100%;
+        height: auto;
+    }
+
+    #touchControls {
+        flex-direction: column;
+    }
+
+    #leftRightButtons,
+    #jumpStompButtons {
+        margin-bottom: 10px;
+    }
 }
