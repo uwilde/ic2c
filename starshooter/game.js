@@ -360,7 +360,7 @@ function update() {
     // Spawn enemies
     if (Math.random() < 0.02) {
         let x = Math.random() * (canvas.width - 30) + 15;
-        enemies.push(new Enemy(x, -30, 2 + Math.random() * 2));
+        enemies.push(new Enemy(x, -30, 1 + Math.random() * 1));
     }
 }
 
