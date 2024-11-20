@@ -125,8 +125,8 @@ function openWindow(windowId) {
     windowElement.style.display = "flex";
     bringToFront(windowElement);
 
-    // Maximize ApacheToob window when opened
-    if (windowId === 'apacheToob') {
+    // Maximize windows when opened
+    if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
         maximizeWindow(windowId, true); // Always maximize when opening
     }
 
