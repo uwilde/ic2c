@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
     margin: 0;
     background-color: black;
@@ -8,10 +9,9 @@ body {
     margin: 0 auto;
     background-color: #87CEEB; /* Sky blue background */
     border: 2px solid #fff;
+    max-width: 100%;
+    height: auto;
 }
-
-
-/* Existing styles... */
 
 /* Touch Controls Styling */
 #touchControls {
@@ -23,6 +23,7 @@ body {
     justify-content: space-between;
     align-items: center;
     z-index: 10;
+    pointer-events: none; /* Disable pointer events by default */
 }
 
 #leftRightButtons,
@@ -32,33 +33,98 @@ body {
 }
 
 #touchControls button {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
     border: solid 1px white;
-    padding: 10px;
+    padding: 15px;
     margin: 5px;
-    border-radius: 5px;
+    border-radius: 10px;
     touch-action: none;  
     color: white;
+    font-size: 18px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #touchControls button img {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
 }
 
-/* Adjustments for mobile responsiveness */
-@media only screen and (max-width: 800px) {
+/* Adjustments for large tablets and small laptops */
+@media only screen and (max-width: 1200px) {
     #gameCanvas {
         width: 100%;
         height: auto;
     }
 
     #touchControls {
-        flex-direction: column;
+        flex-direction: row;
+        bottom: 20px;
     }
 
     #leftRightButtons,
     #jumpStompButtons {
+        flex: 1;
+        justify-content: space-around;
+    }
+
+    #touchControls button {
+        padding: 20px;
+        margin: 10px;
+        font-size: 24px;
+    }
+
+    #touchControls button img {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Adjustments for tablets and large phones */
+@media only screen and (max-width: 768px) {
+    #touchControls {
+        flex-direction: column;
+        bottom: 10px;
+    }
+
+    #leftRightButtons,
+    #jumpStompButtons {
+        width: 100%;
+        justify-content: space-around;
         margin-bottom: 10px;
+    }
+
+    #touchControls button {
+        padding: 20px;
+        margin: 5px;
+        font-size: 20px;
+    }
+
+    #touchControls button img {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Adjustments for small mobile devices */
+@media only screen and (max-width: 480px) {
+    #touchControls button {
+        padding: 15px;
+        margin: 5px;
+        font-size: 18px;
+    }
+
+    #touchControls button img {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+/* Hide touch controls on desktop */
+@media only screen and (min-width: 1025px) {
+    #touchControls {
+        display: none;
     }
 }
