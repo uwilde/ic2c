@@ -31,7 +31,7 @@ function checkImagesLoaded() {
     if (imagesLoaded === 9) {
         // Initialize lastTime and start the game loop
         lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
+        animationId = requestAnimationFrame(gameLoop);
     }
 }
 
@@ -122,8 +122,13 @@ document.addEventListener('keydown', function(e) {
     if (e.code === 'Escape') {
         isPaused = !isPaused;
         if (!isPaused) {
-            gameLoop();
+            // Reset lastTime and start the game loop
+            lastTime = performance.now();
+            animationId = requestAnimationFrame(gameLoop);
         } else {
+            // Cancel the animation frame to stop the game loop
+            cancelAnimationFrame(animationId);
+            // Draw paused screen
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#fff';
@@ -155,18 +160,26 @@ function createLog() {
 }
 
 function createEnemy() {
+
+    const enemyY = 300 - Math.random() * 20; // y between 280 and 300
+
     enemies.push({
         x: canvas.width,
-        y: 300,
+        y: enemyY,
         width: 64,
         height: 64,
         stomped: false,
-        moveDirection: 1,
-        moveAmplitude: 30,
-        moveSpeed: 1,
-        baseX: canvas.width
+        moveDirection: 1, 
+        moveAmplitude: 50,
+        moveSpeed: 2,
+        baseX: canvas.width,
+        isJumping: false,
+        velocityY: 0,
+        gravity: 980,
+        jumpTimer: Math.random() * 2 + 1  // Random time between jumps (1 to 3 seconds)
     });
 }
+
 
 function createCoin() {
     coins.push({
@@ -294,16 +307,38 @@ function updateLogs(deltaTime) {
 
 function updateEnemies(deltaTime) {
     enemies.forEach((enemy, index) => {
+        // Horizontal movement (left-right oscillation)
         enemy.x -= (gameSpeed - enemy.moveDirection * enemy.moveSpeed) * deltaTime;
 
+        // Left-right movement logic
         if (Math.abs(enemy.x - enemy.baseX) > enemy.moveAmplitude) {
             enemy.moveDirection *= -1;
         }
+
+        // Vertical movement (jumping)
+        enemy.jumpTimer -= deltaTime;
+        if (enemy.jumpTimer <= 0 && !enemy.isJumping) {
+            enemy.isJumping = true;
+            enemy.velocityY = -200;  // Initial jump velocity (small jump)
+            enemy.jumpTimer = Math.random() * 2 + 1;  // Reset jump timer
+        }
+
+        if (enemy.isJumping) {
+            enemy.velocityY += enemy.gravity * deltaTime;  // Apply gravity
+            enemy.y += enemy.velocityY * deltaTime;
+            if (enemy.y >= 300) {  // Ground level
+                enemy.y = 300;
+                enemy.velocityY = 0;
+                enemy.isJumping = false;
+            }
+        }
+
         if (enemy.x + enemy.width < 0) {
             enemies.splice(index, 1);
             return;
         }
 
+        // Collision detection and handling
         if (collision(horse, enemy)) {
             if (horse.velocityY > 0 && horse.y + horse.height - horse.velocityY <= enemy.y) {
                 if ((horse.stomping || horse.isJumping) && !enemy.stomped) {
@@ -505,10 +540,9 @@ function gameOver() {
 let lastTime = 0;
 
 function gameLoop(timestamp) {
-    if (isPaused) return;
-
     const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
+
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Update spawn timers
@@ -523,7 +557,7 @@ function gameLoop(timestamp) {
         createLog();
         logSpawnTimer = 0;
     }
-    if (enemySpawnTimer >= 5) {
+    if (enemySpawnTimer >= 3.1) {
         createEnemy();
         enemySpawnTimer = 0;
     }
@@ -593,8 +627,13 @@ pauseButton.addEventListener('pointerup', function(e) {
     e.preventDefault();
     isPaused = !isPaused;
     if (!isPaused) {
-        gameLoop();
+        // Reset lastTime and start the game loop
+        lastTime = performance.now();
+        animationId = requestAnimationFrame(gameLoop);
     } else {
+        // Cancel the animation frame to stop the game loop
+        cancelAnimationFrame(animationId);
+        // Draw paused screen
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#fff';
@@ -604,13 +643,14 @@ pauseButton.addEventListener('pointerup', function(e) {
     }
 });
 
+
 // Jump Button Event
 jumpButton.addEventListener('pointerdown', function(e) {
     e.preventDefault();
     if (horse.onGround) {
         horse.isJumping = true;
-        horse.velocityY = -350;  // Initial jump velocity
-        horse.jumpHoldTime = 0;  // Reset jump hold time
+        horse.velocityY = -350;  
+        horse.jumpHoldTime = 0;  
         horse.onGround = false;
         jumpSound.play();
     }
