@@ -1,3 +1,7 @@
+let lastTime = 0;
+let enemySpawnTimer = 0;
+const enemySpawnInterval = 1.0; // Spawn an enemy every 1 second
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -29,11 +33,10 @@ document.addEventListener('keydown', function (e) {
 
     // Pause/Resume game
     if (e.code === 'Escape') {
-        paused = !paused;
-        if (paused) {
-            showPauseMenu();
+        if (!paused) {
+            pauseGame();
         } else {
-            hidePauseMenu();
+            resumeGame();
         }
     }
 
@@ -49,8 +52,7 @@ document.addEventListener('keyup', function (e) {
 
 // Menu button events
 resumeButton.addEventListener('click', () => {
-    paused = false;
-    hidePauseMenu();
+    resumeGame();
 });
 
 controlsButton.addEventListener('click', () => {
@@ -61,6 +63,19 @@ restartButton.addEventListener('click', () => {
     resetGame();
 });
 
+// Pause and Resume functions
+function pauseGame() {
+    paused = true;
+    showPauseMenu();
+}
+
+function resumeGame() {
+    paused = false;
+    hidePauseMenu();
+    // Reset lastTime to avoid deltaTime issues
+    lastTime = performance.now();
+}
+
 // Player class
 class Player {
     constructor() {
@@ -69,11 +84,13 @@ class Player {
         this.width = 30;
         this.height = 30;
         this.radius = 15;
-        this.speed = 5;
-        this.shooting = false;
+        this.speed = 200; // Units per second
         this.booster = false;
         this.hit = false;
         this.hitTime = 0;
+        this.shootCooldown = 0.4; // Seconds
+        this.shootTimer = 0;
+        this.boosterDuration = 0; // Remaining booster time
     }
 
     draw() {
@@ -93,18 +110,34 @@ class Player {
         ctx.restore();
     }
 
-    update() {
-        if (keys['ArrowLeft'] && this.x - this.speed > 0) {
-            this.x -= this.speed;
+    update(deltaTime) {
+        const distance = this.speed * deltaTime;
+
+        if (keys['ArrowLeft'] && this.x - distance > 0) {
+            this.x -= distance;
         }
-        if (keys['ArrowRight'] && this.x + this.speed < canvas.width) {
-            this.x += this.speed;
+        if (keys['ArrowRight'] && this.x + distance < canvas.width) {
+            this.x += distance;
         }
-        if (keys['Space']) {
+
+        // Shooting logic
+        this.shootTimer -= deltaTime;
+        if (keys['Space'] && this.shootTimer <= 0) {
             this.shoot();
         }
+
+        // Booster timing
+        if (this.booster) {
+            this.boosterDuration -= deltaTime;
+            if (this.boosterDuration <= 0) {
+                this.booster = false;
+                this.shootCooldown = 0.4;
+            }
+        }
+
+        // Hit effect timing
         if (this.hit) {
-            this.hitTime += 0.1;
+            this.hitTime += deltaTime;
             if (this.hitTime > 1) {
                 this.hit = false;
                 this.hitTime = 0;
@@ -113,11 +146,14 @@ class Player {
     }
 
     shoot() {
-        if (!this.shooting) {
-            bullets.push(new Bullet(this.x, this.y - 15, this.booster));
-            this.shooting = true;
-            setTimeout(() => { this.shooting = false; }, this.booster ? 200 : 400);
-        }
+        bullets.push(new Bullet(this.x, this.y - 15, this.booster));
+        this.shootTimer = this.booster ? 0.2 : 0.4; // Reset the timer based on booster
+    }
+
+    activateBooster() {
+        this.booster = true;
+        this.boosterDuration = 10; // Booster lasts for 10 seconds
+        this.shootCooldown = 0.2;
     }
 }
 
@@ -127,7 +163,7 @@ class Bullet {
         this.x = x;
         this.y = y;
         this.radius = booster ? 5 : 3;
-        this.speed = booster ? 10 : 7;
+        this.speed = booster ? 500 : 350; // Units per second
         this.booster = booster;
     }
 
@@ -138,8 +174,8 @@ class Bullet {
         ctx.fill();
     }
 
-    update() {
-        this.y -= this.speed;
+    update(deltaTime) {
+        this.y -= this.speed * deltaTime;
     }
 }
 
@@ -150,7 +186,7 @@ class Enemy {
         this.y = y;
         this.size = 15;
         this.radius = this.size;
-        this.speed = speed;
+        this.speed = speed; // Units per second
         this.type = Math.floor(Math.random() * 3); // Different enemy shapes
     }
 
@@ -183,8 +219,8 @@ class Enemy {
         ctx.restore();
     }
 
-    update() {
-        this.y += this.speed;
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
     }
 }
 
@@ -195,7 +231,7 @@ class Bonus {
         this.y = y;
         this.radius = 10;
         this.type = type; // 'life' or 'booster'
-        this.speed = 3;
+        this.speed = 150; // Units per second
     }
 
     draw() {
@@ -211,8 +247,8 @@ class Bonus {
         ctx.fillText(this.type === 'life' ? '+' : 'B', this.x, this.y);
     }
 
-    update() {
-        this.y += this.speed;
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
     }
 }
 
@@ -221,18 +257,22 @@ class Explosion {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.frames = 0;
+        this.duration = 0.5; // Seconds
+        this.elapsedTime = 0;
+    }
+
+    update(deltaTime) {
+        this.elapsedTime += deltaTime;
     }
 
     draw() {
-        ctx.fillStyle = 'orange';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.frames * 2, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    update() {
-        this.frames++;
+        const progress = this.elapsedTime / this.duration;
+        if (progress < 1) {
+            ctx.fillStyle = `rgba(255, ${Math.floor(255 * (1 - progress))}, 0, ${1 - progress})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, progress * 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 }
 
@@ -241,7 +281,7 @@ class Star {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.speed = Math.random() * 2 + 1;
+        this.speed = Math.random() * 100 + 50; // Units per second
         this.size = Math.random() * 2;
     }
 
@@ -250,8 +290,8 @@ class Star {
         ctx.fillRect(this.x, this.y, this.size, this.size);
     }
 
-    update() {
-        this.y += this.speed;
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
         if (this.y > canvas.height) {
             this.y = -10;
             this.x = Math.random() * canvas.width;
@@ -268,35 +308,46 @@ for (let i = 0; i < 100; i++) {
 }
 
 // Game loop
-function gameLoop() {
+function gameLoop(timestamp) {
+    if (!lastTime) {
+        lastTime = timestamp;
+    }
+
     if (gameOver) {
         showGameOverMenu();
         return;
     }
 
     if (!paused) {
-        update();
+        const deltaTime = (timestamp - lastTime) / 1000; // Convert milliseconds to seconds
+        lastTime = timestamp;
+
+        update(deltaTime);
         draw();
+    } else {
+        // Reset lastTime to prevent deltaTime from accumulating
+        lastTime = timestamp;
     }
+
     requestAnimationFrame(gameLoop);
 }
 
 // Update game state
-function update() {
+function update(deltaTime) {
     // Update stars
-    stars.forEach(star => star.update());
+    stars.forEach(star => star.update(deltaTime));
 
-    player.update();
+    player.update(deltaTime);
 
     bullets.forEach((bullet, index) => {
-        bullet.update();
+        bullet.update(deltaTime);
         if (bullet.y < 0) {
             bullets.splice(index, 1);
         }
     });
 
     enemies.forEach((enemy, eIndex) => {
-        enemy.update();
+        enemy.update(deltaTime);
         if (enemy.y > canvas.height) {
             enemies.splice(eIndex, 1);
             lives--;
@@ -305,8 +356,11 @@ function update() {
                 gameOver = true;
             }
         }
+    });
 
-        bullets.forEach((bullet, bIndex) => {
+    // Check for bullet and enemy collisions
+    bullets.forEach((bullet, bIndex) => {
+        enemies.forEach((enemy, eIndex) => {
             if (collisionCircleCircle(bullet, enemy)) {
                 explosions.push(new Explosion(enemy.x, enemy.y));
                 enemies.splice(eIndex, 1);
@@ -323,7 +377,10 @@ function update() {
                 }
             }
         });
+    });
 
+    // Check for player and enemy collisions
+    enemies.forEach((enemy, eIndex) => {
         if (collisionCircleCircle(player, enemy)) {
             explosions.push(new Explosion(player.x, player.y));
             enemies.splice(eIndex, 1);
@@ -336,13 +393,12 @@ function update() {
     });
 
     bonuses.forEach((bonus, index) => {
-        bonus.update();
+        bonus.update(deltaTime);
         if (collisionCircleCircle(player, bonus)) {
             if (bonus.type === 'life') {
                 lives++;
             } else if (bonus.type === 'booster') {
-                player.booster = true;
-                setTimeout(() => { player.booster = false; }, 10000);
+                player.activateBooster();
             }
             bonuses.splice(index, 1);
         } else if (bonus.y > canvas.height) {
@@ -351,17 +407,25 @@ function update() {
     });
 
     explosions.forEach((explosion, index) => {
-        explosion.update();
-        if (explosion.frames > 15) {
+        explosion.update(deltaTime);
+        if (explosion.elapsedTime > explosion.duration) {
             explosions.splice(index, 1);
         }
     });
 
-    // Spawn enemies
-    if (Math.random() < 0.02) {
-        let x = Math.random() * (canvas.width - 30) + 15;
-        enemies.push(new Enemy(x, -30, 1 + Math.random() * 1));
+    // Enemy spawning
+    enemySpawnTimer += deltaTime;
+    if (enemySpawnTimer >= enemySpawnInterval) {
+        enemySpawnTimer -= enemySpawnInterval;
+        spawnEnemy();
     }
+}
+
+// Spawn enemy function
+function spawnEnemy() {
+    let x = Math.random() * (canvas.width - 30) + 15;
+    let speed = Math.random() * 100 + 50; // Units per second
+    enemies.push(new Enemy(x, -30, speed));
 }
 
 // Draw game objects
@@ -379,8 +443,10 @@ function draw() {
     explosions.forEach(explosion => explosion.draw());
 
     // Draw score, lives, and super blaster indicator
+    ctx.textAlign = 'left';
     ctx.fillStyle = 'white';
     ctx.font = '16px Arial';
+    const margin = 20;
     ctx.fillText('Score: ' + score, 10, 20);
     ctx.fillText('Lives: ' + lives, 100, 20);
     ctx.fillText('Super Blaster: ' + (hasSuperBlaster ? 'Ready' : 'Not Ready'), 200, 20);
@@ -426,13 +492,16 @@ function resetGame() {
     enemyDestroyedCount = 0;
     hasSuperBlaster = false;
     gameOverMenu.classList.add('hidden');
+    lastTime = 0;
+    enemySpawnTimer = 0;
 
     // Recreate stars
     for (let i = 0; i < 100; i++) {
         stars.push(new Star());
     }
 
-    gameLoop();
+    // Start the game loop
+    requestAnimationFrame(gameLoop);
 }
 
 // Activate super blaster
@@ -533,13 +602,12 @@ superBlasterButton.addEventListener('click', (e) => {
 // Pause button
 touchPauseButton.addEventListener('click', (e) => {
     e.preventDefault();
-    paused = !paused;
-    if (paused) {
-        showPauseMenu();
+    if (!paused) {
+        pauseGame();
     } else {
-        hidePauseMenu();
+        resumeGame();
     }
 });
 
 // Start the game
-gameLoop();
+requestAnimationFrame(gameLoop);
