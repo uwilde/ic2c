@@ -16,7 +16,11 @@ body {
 #pauseButton {
     pointer-events: auto;
 }
-
+#touchControls button {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
 /* Touch Controls Styling */
 #touchControls {
     bottom: 10px;
