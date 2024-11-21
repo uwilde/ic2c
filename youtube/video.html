@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Page</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,7 +30,7 @@
             <a href="index.html" class="tab">Videos</a>
             <a href="#" class="tab">Categories</a>
             <a href="#" class="tab">Channels</a>
-            <a href="#" class="tab active">Community</a>
+            <a href="#" class="tab">Community</a>
         </div>
     </div>
 
@@ -46,14 +47,21 @@
     <div class="main">
         <!-- Left Column: Video Player and Details -->
         <div class="left-column">
-            <h2>Sir-G I will not Lose</h2>
-            <div class="video-player">
+            <h2 id="video-title">Video Title</h2>
+            <div class="video-player" id="video-player">
                 <div class="player-container">
-                    <img src="Thumbnails/7.png" alt="Video Player" class="video-player-image">
-                    <p class="no-video-msg">The Wayback Machine does not have this video archived.</p>
+                    <!-- The embedded video will be inserted here by script.js -->
                 </div>
+            </div> <!-- Closing video-player div -->
+            <p id="video-description"></p>
+
+            <!-- Video Interactions: Like and Subscribe Buttons -->
+            <div class="video-interactions">
+                <button id="like-button">Like 👍</button>
+                <button id="subscribe-button">Subscribe</button>
             </div>
-            
+
+            <!-- Video Actions -->
             <div class="video-actions">
                 <a href="#" class="action-button">Share</a>
                 <a href="#" class="action-button">Favorite</a>
@@ -61,21 +69,43 @@
                 <a href="#" class="action-button">Flag</a>
             </div>
 
+            <!-- Video Meta Information -->
             <div class="video-meta">
                 <p>Rate: ⭐⭐⭐⭐✩ 1 rating</p>
                 <p>Views: 302</p>
                 <p>Comments: 0 | Favorited: 1 time | Links: 0</p>
             </div>
 
+            <!-- Embed Section -->
             <div class="embed-section">
                 <label for="embed-code">Embed:</label>
                 <input type="text" id="embed-code" value="<object width='425' height='353'><param name='movie'></object>">
             </div>
 
+            <!-- Comment Section -->
             <div class="comment-section">
-                <p><strong>Would you like to comment?</strong> Join YouTube for a free account, or <a href="#">Login</a> if you are already a member.</p>
+                <p><strong>Would you like to comment?</strong> Join ApacheToob for a free account, or <a href="#">Login</a> if you are already a member.</p>
             </div>
-        </div>
+
+            <!-- Expandable Comments Section -->
+            <div class="comments-section">
+                <h3>Comments</h3>
+                <div class="comment-toggle">Show Comments</div>
+                <div class="comments-container" style="display: none;">
+                    <!-- Comments will go here -->
+                    <div class="comment">
+                        <p><strong>User123:</strong> I tried to watch this video on my microwave, but it didn't work!</p>
+                    </div>
+                    <div class="comment">
+                        <p><strong>CatLover:</strong> Why does my cat stare at the wall when I play this video?</p>
+                    </div>
+                    <div class="comment">
+                        <p><strong>SpaceNerd:</strong> This video convinced me that the moon is actually made of cheese.</p>
+                    </div>
+                    <!-- Add more funny comments -->
+                </div>
+            </div>
+        </div> <!-- Closing left-column div -->
 
         <!-- Right Column: Related and Promoted Videos -->
         <div class="right-column">
@@ -108,8 +138,8 @@
                 </div>
                 <!-- Additional promoted videos go here -->
             </section>
-        </div>
-    </div>
+        </div> <!-- Closing right-column div -->
+    </div> <!-- Closing main div -->
 
     <!-- Footer -->
     <div class="footer">

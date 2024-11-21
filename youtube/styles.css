@@ -11,6 +11,40 @@ a {
     color: #000;
 }
 
+.video-interactions {
+    margin-top: 15px;
+}
+
+.video-interactions button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#like-button {
+    background-color: #e1e1e1;
+    color: #000;
+}
+
+#like-button.liked {
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+#subscribe-button {
+    background-color: #e1e1e1;
+    color: #000;
+}
+
+#subscribe-button.subscribed {
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+
 .header {
     background-color: #fff;
     padding: 0;
@@ -163,7 +197,7 @@ a {
     border-radius: 2px;
 }
 
-/* Main Content */
+
 .main {
     display: flex;
     margin-top: 20px;
@@ -172,7 +206,8 @@ a {
 /* Main Content Area */
 .main-content {
     flex: 1;
-    margin-right: 20px; /* Space between main content and sidebar */
+    margin-right: 20px; 
+    padding-left: 10px;
 }
 
 /* Top Row Layout */
@@ -263,6 +298,59 @@ a {
 
 .login-form button:hover {
     background-color: #d1d1d1;
+}
+
+.comments-section {
+    margin-top: 30px;
+}
+
+.comments-section h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.comment-toggle {
+    cursor: pointer;
+    color: #065fd4;
+    margin-bottom: 10px;
+}
+
+.comment-toggle:hover {
+    text-decoration: underline;
+}
+
+.comments-container {
+    width: 
+}
+
+.pagination {
+    padding-bottom: 10px;
+    padding-right: 50px;
+    text-align: right;
+}
+.pagination a {
+    color: blue; 
+    text-decoration: underline;
+    padding: 2px 2px;
+    margin: 0 5px;
+    border-radius: 5px; 
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.pagination a:hover {
+    color: black; /* Text color on hover */
+}
+
+.comment {
+    margin-bottom: 15px;
+}
+
+.comment p {
+    margin: 0;
+}
+
+.comment strong {
+    color: #065fd4;
 }
 
 .news-section {
@@ -363,6 +451,8 @@ section h2 {
     .sidebar {
         width: 250px;
     }
+
+
 }
 
 @media (min-width: 769px) {
@@ -390,7 +480,7 @@ section h2 {
         border-top: solid 1px #3f66b7;
         border-left: solid 1px #3f66b7;
         border-right: solid 1px #3f66b7;
-        border-bottom: solid 1px #3f66b7;
+        border-bottom: none;
     }
     .main {
         flex-direction: row;
@@ -459,7 +549,7 @@ section h2 {
         flex-direction: row;
     }
 
-    .main-content {
+    .left-column {
         flex: 1;
         margin-right: 20px;
     }
@@ -468,7 +558,7 @@ section h2 {
         width: 23%;
     }
 
-    .sidebar {
+    .right-column {
         display: block;
         width: 300px;
         margin-top: 0;
@@ -535,6 +625,32 @@ section h2 {
         width: 100%;
     }
 
+    .main {
+        flex-direction: column;
+        margin: 10px;
+    }
+
+    .left-column, .right-column {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    /* Video Player */
+    .player-container {
+        aspect-ratio: 16 / 9;
+    }
+
+    /* Related and Promoted Videos */
+    .related-videos, .promoted-videos {
+        margin-top: 15px;
+    }
+
+    .related-video, .promoted-video {
+        flex-direction: column;
+        align-items: center;
+    }
+
+
     .logo img {
         height: 80px;
     }
@@ -553,19 +669,61 @@ section h2 {
         max-height: none;
     }
 
-    /* Hide Sidebar on Very Small Devices */
+
     .sidebar {
         display: none;
     }
 
-    /* Show Toggle Button on Very Small Devices */
+
     #sidebar-toggle {
         display: block;
     }
 }
 
 @media (max-width: 480px) {
-    /* When toggle is active, show the sidebar */
+
+    #video-description {
+        font-size: 14px;
+    }
+
+    /* Video Actions */
+    .video-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Embed Section */
+    #embed-code {
+        font-size: 12px;
+    }
+
+    /* Comments Section */
+    .comment-section {
+        font-size: 14px;
+    }
+
+    .comments-section h3 {
+        font-size: 16px;
+    }
+
+    .comment-toggle {
+        font-size: 14px;
+    }
+
+    .comments-container .comment p {
+        font-size: 13px;
+    }
+
+    /* Related and Promoted Videos */
+    .related-video p, .promoted-video p {
+        font-size: 13px;
+    }
+
     #sidebar-toggle.active + .sidebar {
         display: block;
         position: fixed;

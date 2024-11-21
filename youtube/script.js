@@ -54,21 +54,84 @@ function getQueryParams() {
     return params;
 }
 
+const videoData = {
+    '1': {
+        'title': 'Video Title 1',
+        'description': 'This is the description for Video 1. Enjoy watching!',
+        'youtubeId': 'viLXLTMRQAI'
+    },
+    '2': {
+        'title': 'Video Title 2',
+        'description': 'This is the description for Video 2. Enjoy watching!',
+        'youtubeId': 'Rwsqb4B1lKY'
+    },
+    '3': {
+        'title': 'Promo Video 1',
+        'description': 'This is the description for Promo Video 1. Enjoy watching!',
+        'youtubeId': 'znNllvBt_Jg'
+    },
+    '4': {
+        'title': 'Promo Video 2',
+        'description': 'This is the description for Promo Video 2. Enjoy watching!',
+        'youtubeId': 'fMDKn9iuOsA'
+    },
+    '5': {
+        'title': 'Featured Video 1',
+        'description': 'This is the description for Featured Video 1. Enjoy watching!',
+        'youtubeId': 'IEi5QerpOqs'
+    },
+    '6': {
+        'title': 'Featured Video 2',
+        'description': 'This is the description for Featured Video 2. Enjoy watching!',
+        'youtubeId': 'z4sK_zUqf0Q'
+    }
+};
+
 // Populate video details based on URL parameter
 const params = getQueryParams();
 if (params.video) {
     const videoId = params.video;
-    const videoTitle = `Video Title ${videoId}`;
-    const videoDescription = `This is the description for Video ${videoId}. Enjoy watching!`;
+    const videoInfo = videoData[videoId];
 
-    document.getElementById('video-title').textContent = videoTitle;
-    document.getElementById('video-description').textContent = videoDescription;
+    if (videoInfo) {
+        // Update the video title and description
+        const titleElement = document.getElementById('video-title');
+        if (titleElement) {
+            titleElement.textContent = videoInfo.title;
+        }
 
-    // Optionally, change the video player image
-    const videoPlayer = document.querySelector('.video-player img');
-    videoPlayer.src = `https://via.placeholder.com/640x360.png?text=Video+${videoId}`;
-    videoPlayer.alt = `Video Player ${videoId}`;
+        const descriptionElement = document.getElementById('video-description');
+        if (descriptionElement) {
+            descriptionElement.textContent = videoInfo.description;
+        }
+
+        // Embed the YouTube video
+        const videoPlayer = document.getElementById('video-player');
+        if (videoPlayer) {
+            const embedUrl = `https://www.youtube.com/embed/${videoInfo.youtubeId}`;
+            videoPlayer.innerHTML = `<iframe src="${embedUrl}" allowfullscreen></iframe>`;
+        }
+    } else {
+        console.error('Video not found for ID:', videoId);
+    }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const commentToggle = document.querySelector('.comment-toggle');
+    const commentsContainer = document.querySelector('.comments-container');
+
+    if (commentToggle && commentsContainer) {
+        commentToggle.addEventListener('click', () => {
+            if (commentsContainer.style.display === 'none' || commentsContainer.style.display === '') {
+                commentsContainer.style.display = 'block';
+                commentToggle.textContent = 'Hide Comments';
+            } else {
+                commentsContainer.style.display = 'none';
+                commentToggle.textContent = 'Show Comments';
+            }
+        });
+    }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const tabs = document.querySelectorAll(".tabs .tab");
