@@ -503,8 +503,15 @@ function drawPowerUps() {
 }
 
 function drawScore() {
-    ctx.fillStyle = '#fff';
-    ctx.font = '20px Arial';
+
+
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    
+    const margin = 10;
+    let currentY = 20;
+    const lineHeight = 20;
     ctx.fillText('Score: ' + horse.score, 10, 30);
     ctx.fillText('Lives: ' + horse.lives, 10, 60);
     ctx.fillText('Level: ' + level, 10, 90);
