@@ -23,6 +23,12 @@ body {
     -ms-user-select: none;
 }
 
+#touchControls button img {
+    user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
 #touchControls {
     position: absolute;
     left: 0;
