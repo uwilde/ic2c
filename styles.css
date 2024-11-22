@@ -1310,4 +1310,11 @@ body, html {
         display: none;
     }
 
+    .iframe-wrapper {
+    width: 100vw;
+    height: 87vh;
+    position: relative;
+    display: block;
+    }
+
 }
