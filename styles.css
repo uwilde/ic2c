@@ -340,8 +340,8 @@ body, html {
     max-height: 617px; /* Maximum height */
     aspect-ratio: 556.42 / 617; /* Maintain aspect ratio */
     transform: translate(-50%, -50%);
-    border: 2px solid #808080;
-    background-color: #c0c0c0;
+    border: 2px solid #0b0b10;
+    background-color: #0b0b10;
     display: none; 
     flex-direction: column;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
@@ -374,7 +374,7 @@ body, html {
     background-size: contain; 
     background-repeat: no-repeat; 
     background-position: center;
-    padding: 5px 10px;
+    padding: 0;
     color: white;
     cursor: move;
     user-select: none;
@@ -400,7 +400,7 @@ body, html {
     display: flex;
 }
 
-.window-buttons button, .media-player-buttons button {
+.window-buttons button {
     background-color: #c0c0c0;
     border: 1px solid #808080;
     color: black;
@@ -412,9 +412,25 @@ body, html {
     font-size: 12px;
 }
 
-.window-buttons button:hover, .media-player-buttons button:hover {
+.media-player-buttons button {
+    background-color: transparent;
+    border: none;
+    color: ##706543;
+    padding: 2px 6px;
+    cursor: pointer;
+    margin-left: 5px;
+    border-radius: 2px;
+    transition: color 0.2s;
+    font-size: 12px;
+}
+
+.window-buttons button:hover {
     background-color: #808080;
     color: white;
+}
+
+.media-player-buttons button:hover {
+    color: ##e9ea80;
 }
 
 /* Window Content */
@@ -912,7 +928,7 @@ body, html {
         font-size: 18px;
     }
     .media-player-header {
-        padding: 5px 10px;
+        padding: 0;
         font-size: 18px;
     }
 
@@ -1113,11 +1129,15 @@ body, html {
     }
 
     .media-player-header {
-        padding: 5px 10px;
+        padding: 0;
         font-size: 20px;
     }
 
-    .window-buttons button, .media-player-buttons button {
+    .window-buttons button {
+        padding: 8px 12px;
+        font-size: 18px;
+    }
+    .media-player-buttons button {
         padding: 8px 12px;
         font-size: 18px;
     }
@@ -1299,7 +1319,7 @@ body, html {
     }
 
     .media-player-header {
-        padding: 5px 10px;
+        padding: 0;
         font-size: 22px;
     }
 
