@@ -422,6 +422,12 @@ section h2 {
     margin-bottom: 20px;
 }
 
+#video-player .player-container {
+    display: flex;
+    justify-content: flex-start; 
+    align-items: flex-start;   
+}
+
 .video-details {
     margin-bottom: 20px;
 }
@@ -595,6 +601,11 @@ section h2 {
         flex-direction: column; 
     }
 
+    #video-player .player-container {
+        justify-content: center; 
+        align-items: center;   
+    }
+
 
     .search-container {
         background: transparent;
@@ -644,10 +655,9 @@ section h2 {
 
     .left-column, .right-column {
         width: 100%;
-        margin-right: 0;
+        margin: 0 auto;
     }
 
-    /* Video Player */
     .player-container {
         aspect-ratio: 16 / 9;
     }
