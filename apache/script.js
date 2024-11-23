@@ -222,39 +222,44 @@ function updateHorse(deltaTime) {
     if (horse.x < 0) horse.x = 0;
     if (horse.x + horse.width > canvas.width) horse.x = canvas.width - horse.width;
 
-    // Vertical Movement (Jumping)
-    if (horse.isJumping) {
-        let currentGravity;
+    // Apply gravity
+    let currentGravity = horse.isJumping && keys['ControlLeft'] && horse.jumpHoldTime < horse.maxJumpHoldTime
+        ? jumpGravity
+        : normalGravity;
 
-        // Check if the jump button is held and within max hold time
-        if (keys['ControlLeft'] && horse.jumpHoldTime < horse.maxJumpHoldTime) {
-            horse.jumpHoldTime += deltaTime;    // Increment jump hold time
-            currentGravity = jumpGravity;       // Apply reduced gravity
-        } else {
-            currentGravity = normalGravity;     // Apply normal gravity
-        }
-        horse.velocityY += currentGravity * deltaTime; // Update vertical velocity
-        horse.y += horse.velocityY * deltaTime;   
-        // Collision detection with platforms
-        platforms.forEach(platform => {
-            if (collision(horse, platform)) {
-                if (horse.velocityY > 0 && horse.y + horse.height - horse.velocityY * deltaTime <= platform.y) {
-                    horse.y = platform.y - horse.height;
-                    horse.velocityY = 0;
-                    horse.isJumping = false;
-                    horse.onGround = true;
-                    horse.jumpHoldTime = 0; // Reset jump hold time
-                }
+    if (horse.isJumping && keys['ControlLeft'] && horse.jumpHoldTime < horse.maxJumpHoldTime) {
+        horse.jumpHoldTime += deltaTime;
+    }
+
+    horse.velocityY += currentGravity * deltaTime;
+    horse.y += horse.velocityY * deltaTime;
+
+    // Collision detection with platforms
+    let isOnPlatform = false;
+    platforms.forEach(platform => {
+        if (collision(horse, platform)) {
+            if (horse.velocityY > 0 && horse.y + horse.height - horse.velocityY * deltaTime <= platform.y) {
+                horse.y = platform.y - horse.height;
+                horse.velocityY = 0;
+                horse.isJumping = false;
+                horse.onGround = true;
+                horse.jumpHoldTime = 0;
+                isOnPlatform = true;
             }
-        });
-        // Ground collision
-        if (horse.y >= 300) { // Ground level
-            horse.y = 300;
-            horse.velocityY = 0;
-            horse.isJumping = false;
-            horse.onGround = true;
-            horse.jumpHoldTime = 0; // Reset jump hold time
         }
+    });
+
+    // Ground collision
+    if (horse.y >= 300) {
+        // Ground level
+        horse.y = 300;
+        horse.velocityY = 0;
+        horse.isJumping = false;
+        horse.onGround = true;
+        horse.jumpHoldTime = 0;
+    } else if (!isOnPlatform) {
+        horse.isJumping = true;
+        horse.onGround = false;
     }
     // Trample Action
     if (horse.stomping) {
