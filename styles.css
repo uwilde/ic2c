@@ -370,7 +370,7 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-image: url('TASKBAR_INAC.png');
+    background-image: url('icons/TASKBAR_INAC.png');
     background-size: cover;
     padding: 5px 10px;
     color: white;
@@ -379,9 +379,10 @@ body, html {
 }
 
 .media-player-header.active {
-    background-image: url('TASKBAR_ACT.png');
+    background-image: url('icons/TASKBAR_ACT.png');
     background-size: cover;
 }
+
 
 
 /* Window Title */
