@@ -355,7 +355,7 @@ body, html {
 }
 
 /* Window Header */
-.window-header, .media-player-header {
+.window-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -365,6 +365,24 @@ body, html {
     cursor: move;
     user-select: none;
 }
+
+.media-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-image: url('TASKBAR_INAC.png');
+    background-size: cover;
+    padding: 5px 10px;
+    color: white;
+    cursor: move;
+    user-select: none;
+}
+
+.media-player-header.active {
+    background-image: url('TASKBAR_ACT.png');
+    background-size: cover;
+}
+
 
 /* Window Title */
 .window-title, .media-player-title {
