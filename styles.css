@@ -907,8 +907,12 @@ body, html {
     }
 
     /* Window Header */
-    .window-header, .media-player-header {
+    .window-header {
         padding: 10px 15px;
+        font-size: 18px;
+    }
+    .media-player-header {
+        padding: 5px 10px;
         font-size: 18px;
     }
 
@@ -1103,8 +1107,13 @@ body, html {
         transform: translate(-50%, -50%);
     }
 
-    .window-header, .media-player-header {
+    .window-header {
         padding: 15px 20px;
+        font-size: 20px;
+    }
+
+    .media-player-header {
+        padding: 5px 10px;
         font-size: 20px;
     }
 
@@ -1284,8 +1293,13 @@ body, html {
         left: 2.5%;
     }
 
-    .window-header, .media-player-header {
+    .window-header {
         padding: 10px 15px;
+        font-size: 22px;
+    }
+
+    .media-player-header {
+        padding: 5px 10px;
         font-size: 22px;
     }
 
