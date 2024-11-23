@@ -107,6 +107,8 @@ body, html {
 /* Desktop Icons */
 .desktop-icons {
     position: absolute;
+    top: 0;
+    left: 0;
     /* Removed flex properties to allow absolute positioning */
 }
 
