@@ -371,7 +371,9 @@ body, html {
     justify-content: space-between;
     align-items: center;
     background-image: url('icons/TASKBAR_INAC.png');
-    background-size: cover;
+    background-size: contain; 
+    background-repeat: no-repeat; 
+    background-position: center;
     padding: 5px 10px;
     color: white;
     cursor: move;
@@ -380,7 +382,9 @@ body, html {
 
 .media-player-header.active {
     background-image: url('icons/TASKBAR_ACT.png');
-    background-size: cover;
+    background-size: contain; 
+    background-repeat: no-repeat; 
+    background-position: center; 
 }
 
 
