@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const mediaPlayerHeader = document.querySelector('.media-player-header');
+
+    if (mediaPlayerHeader) {
+        // Simulate activation on click
+        mediaPlayerHeader.addEventListener('click', () => {
+            mediaPlayerHeader.classList.add('active');
+        });
+
+        // Simulate deactivation when clicking outside
+        window.addEventListener('click', (event) => {
+            if (!mediaPlayerHeader.contains(event.target)) {
+                mediaPlayerHeader.classList.remove('active');
+            }
+        });
+    }
     // Initialize sliders
     const volumeSlider = document.getElementById('volume-slider');
     const panSlider = document.getElementById('pan-slider');
