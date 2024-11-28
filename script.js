@@ -99,8 +99,288 @@ function changeStartButtonImage(imagePath) {
 // Function to toggle Start Menu visibility
 function toggleStartMenu() {
     const startMenu = document.getElementById('startMenu');
-    startMenu.style.display = startMenu.style.display === 'block' ? 'none' : 'block';
+    startMenu.classList.toggle('show');
+    if (startMenu.classList.contains('show')) {
+        startMenu.style.display = 'block';
+        bringToFront(startMenu);
+    } else {
+        startMenu.style.display = 'none';
+    }
 }
+
+    function togglePopup(popupId) {
+        let popup = document.getElementById(popupId);
+        if (!popup) {
+            // Create the popup if it doesn't exist
+            popup = document.createElement('div');
+            popup.id = popupId;
+            popup.classList.add('popup-window', 'show'); // Add 'show' class
+            popup.style.display = 'flex'; // Ensure it's visible
+
+            // Depending on popupId, create content
+            const windowContent = document.createElement('div');
+            windowContent.classList.add('window-content');
+
+            if (popupId === 'wifiWindow') {
+                const wifiList = document.createElement('ul');
+                wifiList.classList.add('wifi-list');
+                const fakeWifis = [
+                    { name: "FBI Surveillance Van", locked: true },
+                    { name: "Pretty Fly for a Wi-Fi", locked: true },
+                    { name: "Wi-Fi not Available", locked: true },
+                    { name: "Mom Click Here for Internet", locked: true },
+                    { name: "TellMyWiFiLoveHer", locked: true },
+                    { name: "CleverWifiName123", locked: true }
+                ];
+                fakeWifis.forEach(wifi => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('wifi-item');
+
+                    const wifiName = document.createElement('span');
+                    wifiName.textContent = wifi.name;
+
+                    const wifiStatus = document.createElement('span');
+                    wifiStatus.classList.add('wifi-status');
+                    wifiStatus.innerHTML = wifi.locked ? '🔒' : '🔓';
+
+                    listItem.appendChild(wifiName);
+                    listItem.appendChild(wifiStatus);
+                    wifiList.appendChild(listItem);
+                });
+                windowContent.appendChild(wifiList);
+            } else if (popupId === 'batteryWindow') {
+                const powerList = document.createElement('ul');
+                powerList.classList.add('power-list');
+                const funnyOptions = [
+                    { name: "Never Wake Up" },
+                    { name: "Carbon-footprint Exterminator" },
+                    { name: "Restart, but with Unicorns" },
+                    { name: "Crash and Roll" }
+                ];
+                funnyOptions.forEach(option => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('power-item');
+                    listItem.textContent = option.name;
+                    listItem.addEventListener('click', () => {
+                        alert(`${option.name} selected! Just kidding...`);
+                    });
+                    powerList.appendChild(listItem);
+                });
+                windowContent.appendChild(powerList);
+            }
+
+            // Append content to popup
+            popup.appendChild(windowContent);
+
+            // Append popup to desktop
+            document.querySelector('.desktop').appendChild(popup);
+
+            // Position the popup window
+            positionPopupWindow(popup, popupId === 'wifiWindow' ? 'networkTray' : 'batteryTray');
+
+            // Close the popup when clicking outside
+            closePopupOnClickOutside(popup, popupId === 'wifiWindow' ? 'networkTray' : 'batteryTray');
+        } else {
+            // Toggle the 'show' class
+            popup.classList.toggle('show');
+            if (popup.classList.contains('show')) {
+                popup.style.display = 'flex';
+                bringToFront(popup);
+            } else {
+                popup.style.display = 'none';
+            }
+        }
+    }
+// Function to bring the selected window to the front
+function bringToFront(element) {
+    const allElements = document.querySelectorAll('.popup-window, .start-menu');
+    let maxZ = 500; // Base z-index
+
+    allElements.forEach(el => {
+        const z = parseInt(window.getComputedStyle(el).zIndex) || 0;
+        if (z > maxZ) {
+            maxZ = z;
+        }
+    });
+
+    element.style.zIndex = maxZ + 1;
+}
+// Quirky Behaviors for Documents Popup
+function showSecretMessage() {
+    const message = document.getElementById('secretMessage');
+    if (message.style.display === 'none') {
+        message.style.display = 'block';
+        // Animate the message
+        message.style.transition = 'opacity 1s';
+        message.style.opacity = 1;
+    } else {
+        message.style.display = 'none';
+        message.style.opacity = 0;
+    }
+}
+
+function enableUnicornMode() {
+    alert("🦄 Unicorn Mode Activated! 🌈✨");
+    document.querySelector('.desktop').style.backgroundImage = "url('images/unicorn_background.gif')";
+}
+
+function setBackgroundToDancingCats() {
+    alert("🐱💃 Dancing Cats are grooving in the background!");
+    document.querySelector('.desktop').style.backgroundImage = "url('images/dancing_cats.gif')";
+}
+
+function activateDanceParty() {
+    alert("🎉 Dance Party Activated! Enjoy the music!");
+    alert("There's actually no music.");
+    const danceParty = document.createElement('div');
+    danceParty.innerHTML = "<img src='images/dance_party.gif' alt='Dance Party' style='width:auto; height:100%;'>";
+    danceParty.style.position = 'fixed';
+    danceParty.style.top = '0';
+    danceParty.style.left = '0';
+    danceParty.style.width = '100%';
+    danceParty.style.height = '100%';
+    danceParty.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    danceParty.style.display = 'flex';
+    danceParty.style.justifyContent = 'center';
+    danceParty.style.alignItems = 'center';
+    danceParty.style.zIndex = '10000';
+    danceParty.id = 'dancePartyOverlay';
+    danceParty.onclick = function() {
+        this.remove();
+    };
+    document.body.appendChild(danceParty);
+}
+
+// Quirky Behaviors for Find Popup
+function searchFunny() {
+    const input = document.getElementById('findInput').value.toLowerCase();
+    const result = document.getElementById('searchResult');
+    const funnyResponses = [
+        `You searched for "${input}"? Did you mean "dooky butter"? 🤔`,
+        `"${input}" is now trending on Mars! 🚀`,
+        `Hmm, "${input}" doesn't exist. Maybe try "naval prolapse"? 🍌💃`,
+        `Found nothing for "${input}", but here's a joke instead: Why did the computer show up at work late? It had a hard drive! 😂`,
+        `"${input}" is currently out of office. Please don't try again later. 🕒`
+    ];
+    const randomIndex = Math.floor(Math.random() * funnyResponses.length);
+    result.textContent = funnyResponses[randomIndex];
+}
+
+// Quirky Behaviors for Help Popup
+function tellJoke() {
+    const jokes = [
+        "Why don't programmers like nature? It has too many bugs. 🐛",
+        "Why do Java developers wear glasses? Because they don't see sharp! 🤓",
+        "How many programmers does it take to change a light bulb? None, that's a hardware problem. 💡",
+        "Why was the computer cold? It forgot to close its Windows! ❄️🪟"
+    ];
+    const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+    alert(randomJoke);
+}
+
+function showFunnyTip() {
+    const tips = [
+        "Tip: Always backup your files and stuff.",
+        "Tip: To make your computer faster, get a different one.",
+        "Tip: If all else fails, turn it off.",
+        "Tip: Ummm.... hi!"
+    ];
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    alert(randomTip);
+}
+
+function dance() {
+    // Create a dancing element
+    const dancer = document.createElement('div');
+    dancer.innerHTML = "<img src='images/dancer.gif' alt='Dancer' style='width:100px; height:auto;'>";
+    dancer.style.position = 'fixed';
+    dancer.style.bottom = '10px';
+    dancer.style.right = '10px';
+    dancer.style.zIndex = '10000';
+    dancer.id = 'dancer';
+    dancer.onclick = function() {
+        this.remove();
+    };
+    document.body.appendChild(dancer);
+
+    // Remove the dancer after 10 seconds
+    setTimeout(() => {
+        const dancer = document.getElementById('dancer');
+        if (dancer) dancer.remove();
+    }, 10000);
+}
+
+// Close popups when clicking outside
+    document.addEventListener('click', function(e) {
+        const startMenu = document.getElementById('startMenu');
+        const startButton = document.querySelector('.start-button');
+        const activePopups = document.querySelectorAll('.popup-window.show');
+
+        // If click is outside the Start Menu and Start Button, hide Start Menu and all popups
+        if (!startMenu.contains(e.target) && !startButton.contains(e.target)) {
+            // Hide Start Menu
+            startMenu.classList.remove('show');
+            startMenu.style.display = 'none';
+            
+            // Hide all submenus
+            document.querySelectorAll('.start-menu-submenu').forEach(sub => {
+                sub.classList.remove('show');
+            });
+            
+            // Remove active class from all menu items
+            document.querySelectorAll('.start-menu-item').forEach(item => {
+            	item.addEventListener('click', function(e) {
+            		const submenu = this.nextElementSibling;
+            		if (submenu && submenu.classList.contains('start-menu-submenu')) {
+            			submenu.classList.toggle('show');
+            			this.classList.toggle('active');
+            			bringToFront(submenu);
+            		} else {
+            			// If the item doesn't have a submenu, perform its action
+            			// For example, if it's a direct link to a program
+            			const action = this.getAttribute('data-action');
+            			if (action) {
+            				// Execute the action, e.g., open a window
+            				toggleWindow(action);
+            			}
+            
+            			// Hide the start menu after action
+            			const startMenu = document.getElementById('startMenu');
+            			startMenu.classList.remove('show');
+            			startMenu.style.display = 'none';
+            		}
+            	});
+            }); 
+
+            // Hide all active popups
+            activePopups.forEach(popup => {
+                popup.classList.remove('show');
+                popup.style.display = 'none';
+            });
+        }
+    });
+
+    // Prevent clicks inside popups from triggering the global click handler
+    document.querySelectorAll('.popup-window').forEach(popup => {
+        popup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    // Prevent clicks inside Start Menu from triggering the global click handler
+    const startMenu = document.getElementById('startMenu');
+    if (startMenu) {
+        startMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // Prevent clicks on system tray icons from propagating
+    document.querySelectorAll('.system-tray .tray-icon').forEach(icon => {
+        icon.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
 
 // Close Start Menu when clicking outside
 document.addEventListener('click', function(event) {
@@ -130,6 +410,10 @@ function toggleWindow(windowId) {
     }
 }
 
+function isMobilePortrait() {
+    return window.innerWidth <= 800 && window.matchMedia("(orientation: portrait)").matches;
+}
+
 function openWindow(windowId) {
     const windowElement = document.getElementById(windowId);
     const taskbarInstances = document.getElementById("taskbarInstances");
@@ -140,9 +424,14 @@ function openWindow(windowId) {
     windowElement.style.display = "flex";
     bringToFront(windowElement);
 
-    // Maximize windows when opened
-    if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
-        maximizeWindow(windowId, true); // Always maximize when opening
+    // Check if the device is mobile portrait
+    if (isMobilePortrait()) {
+        maximizeWindow(windowId, true); // Always maximize when opening on mobile portrait
+    } else {
+        // Optionally, maximize certain windows by default
+        if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
+            maximizeWindow(windowId, true); // Always maximize when opening
+        }
     }
 
     // Adjust iframe scale
@@ -359,17 +648,25 @@ function openMediaPlayer() {
 }
 
 function handleOrientationChange() {
-    const mediaPlayer = document.getElementById('mediaPlayer');
-    if (mediaPlayer.style.display === 'flex') {
-        if (isPortrait()) {
-            maximizeMediaPlayer();
+    const openWindows = document.querySelectorAll('.window.show, .media-player.show, .popup-window.show');
+    openWindows.forEach(win => {
+        if (isMobilePortrait()) {
+            maximizeWindow(win.id, true);
+            // Disable resizing
+            const resizeHandles = win.querySelectorAll('.resize-handle');
+            resizeHandles.forEach(handle => {
+                handle.style.display = 'none';
+            });
         } else {
-            const mediaPlayer = document.getElementById('mediaPlayer');
-            mediaPlayer.classList.remove('maximized');
-            centerWindow('mediaPlayer');
-            adjustMediaPlayerScale();
+            // Re-enable resizing if needed
+            const resizeHandles = win.querySelectorAll('.resize-handle');
+            resizeHandles.forEach(handle => {
+                handle.style.display = 'block';
+            });
+            // Optionally, restore window size or keep maximized
+            // For this example, we'll keep them maximized unless manually resized
         }
-    }
+    });
 }
 
 window.addEventListener('orientationchange', handleOrientationChange);
@@ -1501,128 +1798,23 @@ soundTray.addEventListener('click', () => {
     }
 });
 
-function openWifiWindow() {
-    const windowId = 'wifiWindow';
-    const existingWindow = document.getElementById(windowId);
-    if (existingWindow) {
-        existingWindow.remove();
-        return;
+    function openWifiWindow() {
+        const windowId = 'wifiWindow';
+        togglePopup(windowId);
     }
 
-    // Create window element
-    const windowElement = document.createElement('div');
-    windowElement.id = windowId;
-    windowElement.classList.add('popup-window');
-
-    // Create window content
-    const windowContent = document.createElement('div');
-    windowContent.classList.add('window-content');
-
-    // Create Wi-Fi connections list
-    const wifiList = document.createElement('ul');
-    wifiList.classList.add('wifi-list');
-
-    // Fake Wi-Fi connections with humorous names
-    const fakeWifis = [
-        { name: "FBI Surveillance Van", locked: true },
-        { name: "Pretty Fly for a Wi-Fi", locked: true },
-        { name: "Wi-Fi not Available", locked: true },
-        { name: "Mom Click Here for Internet", locked: true },
-        { name: "TellMyWiFiLoveHer", locked: true },
-        { name: "CleverWifiName123", locked: true }
-    ];
-
-    fakeWifis.forEach(wifi => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('wifi-item');
-
-        const wifiName = document.createElement('span');
-        wifiName.textContent = wifi.name;
-
-        const wifiStatus = document.createElement('span');
-        wifiStatus.classList.add('wifi-status');
-        wifiStatus.innerHTML = wifi.locked ? '🔒' : '🔓';
-
-        listItem.appendChild(wifiName);
-        listItem.appendChild(wifiStatus);
-        wifiList.appendChild(listItem);
-    });
-
-    // Append the Wi-Fi list to window content
-    windowContent.appendChild(wifiList);
-
-    // Append content to window
-    windowElement.appendChild(windowContent);
-
-    // Append window to desktop
-    document.querySelector('.desktop').appendChild(windowElement);
-
-    // Position the popup window
-    positionPopupWindow(windowElement, 'networkTray');
-
-    // Close the popup when clicking outside
-    closePopupOnClickOutside(windowElement, 'networkTray');
-}
+    // Updated openBatteryWindow
+    function openBatteryWindow() {
+        const windowId = 'batteryWindow';
+        togglePopup(windowId);
+    }
 
 const networkTray = document.getElementById('networkTray');
 networkTray.addEventListener('click', () => {
     openWifiWindow();
 });
 
-function openBatteryWindow() {
-    const windowId = 'batteryWindow';
-    const existingWindow = document.getElementById(windowId);
-    if (existingWindow) {
-        existingWindow.remove();
-        return;
-    }
 
-    // Create window element
-    const windowElement = document.createElement('div');
-    windowElement.id = windowId;
-    windowElement.classList.add('popup-window');
-
-    // Create window content
-    const windowContent = document.createElement('div');
-    windowContent.classList.add('window-content');
-
-    // Create power options list
-    const powerList = document.createElement('ul');
-    powerList.classList.add('power-list');
-
-    // Funny Power Options
-    const funnyOptions = [
-        { name: "Never Wake Up" },
-        { name: "Carbon-footprint Exterminator" },
-        { name: "Restart, but with Unicorns" },
-        { name: "Crash and Roll" }
-    ];
-
-    funnyOptions.forEach(option => {
-        const listItem = document.createElement('li');
-        listItem.classList.add('power-item');
-        listItem.textContent = option.name;
-        listItem.addEventListener('click', () => {
-            alert(`${option.name} selected! Just kidding...`);
-        });
-        powerList.appendChild(listItem);
-    });
-
-    // Append the power list to window content
-    windowContent.appendChild(powerList);
-
-    // Append content to window
-    windowElement.appendChild(windowContent);
-
-    // Append window to desktop
-    document.querySelector('.desktop').appendChild(windowElement);
-
-    // Position the popup window
-    positionPopupWindow(windowElement, 'batteryTray');
-
-    // Close the popup when clicking outside
-    closePopupOnClickOutside(windowElement, 'batteryTray');
-}
 
 function positionPopupWindow(popupWindow, trayIconId) {
     const trayIcon = document.getElementById(trayIconId);

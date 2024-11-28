@@ -21,7 +21,7 @@
             </div>
             <div class="desktop-icon" data-window="mediaPlayer" style="top: 220px; left: 20px;">
                 <img src="images/media_player.png" alt="Media Player Icon">
-                <span>Media Player</span>
+                <span>CoinAMP Player</span>
             </div>
             <div class="desktop-icon" data-window="apacheToob" style="top: 320px; left: 20px;">
                 <img src="youtube/apache-toob.png" alt="A-Toob">
@@ -57,15 +57,138 @@
     </div>
 
     <!-- Start Menu -->
-    <div id="startMenu" class="start-menu">
-        <ul>
-            <li onclick="toggleWindow('apacheWindow')">Apache</li>
-            <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
-            <li onclick="toggleMediaPlayer()">Media Player</li>
-            <li onclick="toggleWindow('apacheToob')">A-Toob</li>
-            <!-- Add more shortcuts as needed -->
-        </ul>
-    </div>
+	<div id="startMenu" class="start-menu">
+		<div class="start-menu-header">
+			<img src="icons/start_menu_logo.png" alt="Start Menu Logo" class="start-menu-logo">
+			<span class="start-menu-title">Start</span>
+		</div>
+		<div class="start-menu-content">
+			<div class="start-menu-section">
+				<div class="start-menu-item">
+					<img src="icons/programs_icon.png" alt="Programs" class="menu-icon">
+					<span>Programs</span>
+				</div>
+				<div class="start-menu-submenu">
+					<ul>
+						<li onclick="toggleWindow('apacheWindow')">Apache</li>
+						<li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
+						<li onclick="toggleMediaPlayer()">CoinAMP Player</li>
+						<li onclick="toggleWindow('apacheToob')">A-Toob</li>
+						<!-- Add more program items here -->
+					</ul>
+				</div>
+			</div>
+			<!-- Documents Section -->
+			<div class="start-menu-section">
+				<div class="start-menu-item" onclick="togglePopup('documentsPopup')">
+					<img src="icons/documents_icon.png" alt="Documents" class="menu-icon">
+					<span>Documents</span>
+				</div>
+			</div>
+			<!-- Settings Section -->
+			<div class="start-menu-section">
+				<div class="start-menu-item" onclick="togglePopup('settingsPopup')">
+					<img src="icons/settings_icon.png" alt="Settings" class="menu-icon">
+					<span>Settings</span>
+				</div>
+			</div>
+			<!-- Find Section -->
+			<div class="start-menu-section">
+				<div class="start-menu-item" onclick="togglePopup('findPopup')">
+					<img src="icons/find_icon.png" alt="Find" class="menu-icon">
+					<span>Find</span>
+				</div>
+			</div>
+			<!-- Help Section -->
+			<div class="start-menu-section">
+				<div class="start-menu-item" onclick="togglePopup('helpPopup')">
+					<img src="icons/help_icon.png" alt="Help" class="menu-icon">
+					<span>Help</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Documents Popup -->
+	<div id="documentsPopup" class="window popup-window" data-original-width="400" data-original-height="300">
+		<div class="window-header">
+			<span class="window-title">Documents</span>
+			<div class="window-buttons">
+				<button class="minimize" onclick="minimizeWindow('documentsPopup')">_</button>
+				<button class="maximize" onclick="maximizeWindow('documentsPopup', !document.getElementById('documentsPopup').classList.contains('maximized'))">□</button>
+				<button class="close" onclick="closeWindow('documentsPopup')">X</button>
+			</div>
+		</div>
+		<div class="window-content">
+			<p>🗂️ Your secret documents are safely hidden!</p>
+			<button onclick="showSecretMessage()">Reveal Secret</button>
+			<p id="secretMessage" style="display: none; color: red; font-weight: bold;">You found the secret! 🎉</p>
+		</div>
+		<div class="resize-handle resize-handle-bottom-right"></div>
+	</div>
+
+	<!-- Settings Popup -->
+	<div id="settingsPopup" class="window popup-window" data-original-width="400" data-original-height="300">
+		<div class="window-header">
+			<span class="window-title">Settings</span>
+			<div class="window-buttons">
+				<button class="minimize" onclick="minimizeWindow('settingsPopup')">_</button>
+				<button class="maximize" onclick="maximizeWindow('settingsPopup', !document.getElementById('settingsPopup').classList.contains('maximized'))">□</button>
+				<button class="close" onclick="closeWindow('settingsPopup')">X</button>
+			</div>
+		</div>
+		<div class="window-content">
+			<p>🔧 Adjust your settings:</p>
+			<ul>
+				<li><button onclick="enableUnicornMode()">Enable Unicorn Mode 🦄</button></li>
+				<li><button onclick="setBackgroundToDancingCats()">Set Background to Dancing Cats 🐱💃</button></li>
+				<li><button onclick="activateDanceParty()">Activate Dance Party 🎉</button></li>
+			</ul>
+		</div>
+		<div class="resize-handle resize-handle-bottom-right"></div>
+	</div>
+
+	<!-- Find Popup -->
+	<div id="findPopup" class="window popup-window" data-original-width="400" data-original-height="300">
+		<div class="window-header">
+			<span class="window-title">Find</span>
+			<div class="window-buttons">
+				<button class="minimize" onclick="minimizeWindow('findPopup')">_</button>
+				<button class="maximize" onclick="maximizeWindow('findPopup', !document.getElementById('findPopup').classList.contains('maximized'))">□</button>
+				<button class="close" onclick="closeWindow('findPopup')">X</button>
+			</div>
+		</div>
+		<div class="window-content">
+			<p>🔍 What are you looking for today?</p>
+			<input type="text" id="findInput" placeholder="Type something funny..." style="width: 100%; padding: 5px;">
+			<button onclick="searchFunny()">Search</button>
+			<p id="searchResult" style="margin-top: 10px;"></p>
+		</div>
+		<div class="resize-handle resize-handle-bottom-right"></div>
+	</div>
+
+	<!-- Help Popup -->
+	<div id="helpPopup" class="window popup-window" data-original-width="400" data-original-height="300">
+		<div class="window-header">
+			<span class="window-title">Help</span>
+			<div class="window-buttons">
+				<button class="minimize" onclick="minimizeWindow('helpPopup')">_</button>
+				<button class="maximize" onclick="maximizeWindow('helpPopup', !document.getElementById('helpPopup').classList.contains('maximized'))">□</button>
+				<button class="close" onclick="closeWindow('helpPopup')">X</button>
+			</div>
+		</div>
+		<div class="window-content">
+			<p>❓ Need some help?</p>
+			<ul>
+				<li><button onclick="tellJoke()">Tell me a joke</button></li>
+				<li><button onclick="showFunnyTip()">Show me a funny tip 📝</button></li>
+				<li><button onclick="dance()">Go away.</button></li>
+			</ul>
+		</div>
+		<div class="resize-handle resize-handle-bottom-right"></div>
+	</div>
+
+
 
         <!-- Apache Window -->
         <div id="apacheWindow" class="window" data-original-width="825" data-original-height="410">
@@ -112,7 +235,7 @@
             <div class="media-player-header">
                 <span class="media-player-title"></span>
                 <div class="media-player-buttons">
-                    <button class="minimize" onclick="minimizeMediaPlayer()">_</button>
+                    <button class="minimize" onclick="minimizeMediaPlayer()">—</button>
                     <button class="maximize" onclick="maximizeMediaPlayer()">□</button>
                     <button class="close" onclick="closeMediaPlayer()">X</button>
                 </div>
