@@ -354,24 +354,17 @@ body, html {
     color: #000;
 }
 
-/* Optional: Arrow Indicators for Sections with Submenus */
-.start-menu-section .start-menu-item::after {
-    content: '►';
-    margin-left: auto;
-    font-size: 12px;
-    color: #000080;
-    transition: transform 0.2s;
-}
 
-.start-menu-section .start-menu-item.active::after {
-    transform: rotate(90deg);
-}
 
 .start-menu-submenu {
     display: none;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .start-menu-submenu.show {
+    opacity: 1;
+    visibility: visible;
     display: block;
     animation: slideDown 0.3s forwards;
 }

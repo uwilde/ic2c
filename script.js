@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
     // Initialize sliders
     const volumeSlider = document.getElementById('volume-slider');
     const panSlider = document.getElementById('pan-slider');
