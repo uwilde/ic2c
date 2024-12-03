@@ -24,6 +24,8 @@ let coinSpawnTimer = 0;
 let platformSpawnTimer = 0;
 let powerUpSpawnTimer = 0;
 
+let gameState = 'playing';
+
 let imagesLoaded = 0;
 
 function checkImagesLoaded() {
@@ -531,22 +533,71 @@ function collision(rect1, rect2) {
 }
 
 function gameOver() {
-    cancelAnimationFrame(animationId);
+    gameState = 'gameover';
     gameOverSound.play();
 
+    // Save high score if necessary
     if (localStorage.getItem('highScore') === null || horse.score > localStorage.getItem('highScore')) {
         localStorage.setItem('highScore', horse.score);
-        ctx.fillText('New High Score!', canvas.width / 2, canvas.height / 2 + 100);
     }
+}
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#fff';
-    ctx.font = '50px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
-    ctx.font = '30px Arial';
-    ctx.fillText('Final Score: ' + horse.score, canvas.width / 2, canvas.height / 2 + 50);
+canvas.addEventListener('click', function(event) {
+    if (gameState === 'gameover') {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Check if the click is within the Restart button's area
+        if (x >= canvas.width / 2 - 75 && x <= canvas.width / 2 + 75 &&
+            y >= canvas.height / 2 + 30 && y <= canvas.height / 2 + 80) {
+            resetGame();
+        }
+    }
+});
+
+function resetGame() {
+    gameState = 'playing';
+
+    horse = {
+        x: 50,
+        y: 300,
+        width: 64,
+        height: 64,
+        stomping: false,
+        stompCount: 0,
+        score: 0,
+        speed: 200,
+        isJumping: false,
+        velocityY: 0,
+        gravity: 980,
+        onGround: true,
+        trampleAngle: 0,
+        lives: 3,
+        invincible: false,
+        invincibleTimer: 0,
+        jumpHoldTime: 0,
+        maxJumpHoldTime: 0.3,
+    };
+
+    logs = [];
+    enemies = [];
+    coins = [];
+    platforms = [];
+    powerUps = [];
+    keys = {};
+
+    gameSpeed = 200;
+    frame = 0;
+    level = 1;
+    isPaused = false;
+
+    bgLayer1X = 0;
+    bgLayer2X = 0;
+    bgLayer3X = 0;
+
+    lastTime = performance.now();
+    animationId = requestAnimationFrame(gameLoop);
 }
 
 let lastTime = 0;
@@ -555,63 +606,87 @@ function gameLoop(timestamp) {
     const deltaTime = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp;
 
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Update spawn timers
-    logSpawnTimer += deltaTime;
-    enemySpawnTimer += deltaTime;
-    coinSpawnTimer += deltaTime;
-    platformSpawnTimer += deltaTime;
-    powerUpSpawnTimer += deltaTime;
 
-    // Spawn objects based on time intervals
-    if (logSpawnTimer >= 2.5) {
-        createLog();
-        logSpawnTimer = 0;
-    }
-    if (enemySpawnTimer >= 3.1) {
-        createEnemy();
-        enemySpawnTimer = 0;
-    }
-    if (coinSpawnTimer >= 1.5) {
-        createCoin();
-        coinSpawnTimer = 0;
-    }
-    if (platformSpawnTimer >= 3.3) {
-        createPlatform();
-        platformSpawnTimer = 0;
-    }
-    if (powerUpSpawnTimer >= 8.3) {
-        createPowerUp();
-        powerUpSpawnTimer = 0;
-    }
+    if (gameState === 'playing') {
+        // Update spawn timers
+        logSpawnTimer += deltaTime;
+        enemySpawnTimer += deltaTime;
+        coinSpawnTimer += deltaTime;
+        platformSpawnTimer += deltaTime;
+        powerUpSpawnTimer += deltaTime;
 
-    // **Add the update functions**
-    updateHorse(deltaTime);
-    updateLogs(deltaTime);
-    updateEnemies(deltaTime);
-    updateCoins(deltaTime);
-    updatePlatforms(deltaTime);
-    updatePowerUps(deltaTime);
+        // Spawn objects based on time intervals
+        if (logSpawnTimer >= 2.5) {
+            createLog();
+            logSpawnTimer = 0;
+        }
+	if (enemySpawnTimer >= 3.1) {
+					createEnemy();
+					enemySpawnTimer = 0;
+	}
+	if (coinSpawnTimer >= 1.5) {
+					createCoin();
+					coinSpawnTimer = 0;
+	}
+	if (platformSpawnTimer >= 3.3) {
+					createPlatform();
+					platformSpawnTimer = 0;
+	}
+	if (powerUpSpawnTimer >= 8.3) {
+					createPowerUp();
+					powerUpSpawnTimer = 0;
+	}
 
-    // **Add the draw functions**
-    drawBackground(deltaTime);
-    drawPlatforms();
-    drawCoins();
-    drawPowerUps();
-    drawLogs();
-    drawEnemies();
-    drawHorse();
-    drawScore();
+	// **Add the update functions**
+	updateHorse(deltaTime);
+	updateLogs(deltaTime);
+	updateEnemies(deltaTime);
+	updateCoins(deltaTime);
+	updatePlatforms(deltaTime);
+	updatePowerUps(deltaTime);
 
-    // Adjust game speed based on score and level
-    if (horse.score >= level * 100) {
-        level++;
-        gameSpeed += 0.5;
+	// **Add the draw functions**
+	drawBackground(deltaTime);
+	drawPlatforms();
+	drawCoins();
+	drawPowerUps();
+	drawLogs();
+	drawEnemies();
+	drawHorse();
+	drawScore();
+
+        if (horse.score >= level * 100) {
+            level++;
+            gameSpeed += 0.5;
+        }
+    } else if (gameState === 'gameover') {
+        // Draw the game over screen
+        drawBackground(deltaTime); // Optionally, draw the background
+        drawGameOverScreen();
     }
 
     animationId = requestAnimationFrame(gameLoop);
 }
+
+function drawGameOverScreen() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '50px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 50);
+    ctx.font = '30px Arial';
+    ctx.fillText('Final Score: ' + horse.score, canvas.width / 2, canvas.height / 2);
+
+    // Draw Restart Button
+    ctx.fillStyle = '#000';
+    ctx.fillRect(canvas.width / 2 - 75, canvas.height / 2 + 30, 150, 50);
+    ctx.fillStyle = '#fff';
+    ctx.font = '30px Arial';
+    ctx.fillText('Restart', canvas.width / 2, canvas.height / 2 + 65);
+}
+
 
 leftButton.addEventListener('pointerdown', function(e) {
     e.preventDefault();
