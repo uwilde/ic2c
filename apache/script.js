@@ -545,8 +545,17 @@ function gameOver() {
 canvas.addEventListener('click', function(event) {
     if (gameState === 'gameover') {
         const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+
+        // Calculate the scale between the canvas's internal dimensions and its actual display size
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        // Adjust the mouse coordinates to the canvas's coordinate system
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        // Debug: Log the click coordinates
+        // console.log(`Click at (${x}, ${y})`);
 
         // Check if the click is within the Restart button's area
         if (x >= canvas.width / 2 - 75 && x <= canvas.width / 2 + 75 &&
@@ -555,6 +564,7 @@ canvas.addEventListener('click', function(event) {
         }
     }
 });
+
 
 function resetGame() {
     gameState = 'playing';
