@@ -895,153 +895,118 @@ function stopDrag() {
 }
 
 // Resizable Windows
-document.querySelectorAll('.resize-handle').forEach(handle => {
-    handle.addEventListener('mousedown', initResize, false);
-    handle.addEventListener('touchstart', initResizeTouch, { passive: false });
+const resizeHandles = document.querySelectorAll('.resize-handle');
+resizeHandles.forEach(handle => {
+    handle.addEventListener('pointerdown', initResizePointer, { passive: false });
 });
 
 let currentResizeWindow = null;
 let originalWidth = 0;
 let originalHeight = 0;
-let originalX = 0;
-let originalY = 0;
 let originalMouseX = 0;
 let originalMouseY = 0;
+let activeResizePointerId = null;
+let activeResizeHandle = null;
 
-function initResize(e) {
+function initResizePointer(e) {
     e.preventDefault();
-    currentResizeWindow = e.target.parentElement;
-    originalWidth = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('width').replace('px', ''));
-    originalHeight = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('height').replace('px', ''));
-    originalX = currentResizeWindow.getBoundingClientRect().left;
-    originalY = currentResizeWindow.getBoundingClientRect().top;
+    const handleElement = e.currentTarget;
+    currentResizeWindow = handleElement ? handleElement.parentElement : null;
+    if (!currentResizeWindow) {
+        return;
+    }
+
+    activeResizePointerId = e.pointerId;
+    activeResizeHandle = handleElement;
+
+    if (activeResizeHandle.setPointerCapture) {
+        // Capture the pointer so resizing continues even if the cursor
+        // leaves the browser window or overlaps other UI elements.
+        try {
+            activeResizeHandle.setPointerCapture(activeResizePointerId);
+        } catch (err) {
+            // Ignore errors from unsupported pointer capture.
+        }
+    }
+
+    const computedStyle = getComputedStyle(currentResizeWindow, null);
+    originalWidth = parseFloat(computedStyle.getPropertyValue('width').replace('px', ''));
+    originalHeight = parseFloat(computedStyle.getPropertyValue('height').replace('px', ''));
     originalMouseX = e.clientX;
     originalMouseY = e.clientY;
 
-    window.addEventListener('mousemove', Resize, false);
-    window.addEventListener('mouseup', stopResize, false);
+    window.addEventListener('pointermove', resizePointer, { passive: false });
+    window.addEventListener('pointerup', stopResizePointer);
+    window.addEventListener('pointercancel', stopResizePointer);
 }
 
-function initResizeTouch(e) {
+function resizePointer(e) {
+    if (!currentResizeWindow || e.pointerId !== activeResizePointerId) {
+        return;
+    }
+
+    if (currentResizeWindow.classList.contains('maximized')) {
+        return;
+    }
+
+    if (currentResizeWindow.id === 'mediaPlayer') {
+        let newWidth = originalWidth + (e.clientX - originalMouseX);
+        const aspectRatio = originalWidth / originalHeight;
+        let newHeight = newWidth / aspectRatio;
+
+        const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+        const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+        newWidth = Math.max(300, Math.min(newWidth, maxWidth));
+        newHeight = Math.max(200, Math.min(newHeight, maxHeight));
+
+        currentResizeWindow.style.width = `${newWidth}px`;
+        currentResizeWindow.style.height = `${newHeight}px`;
+
+        adjustMediaPlayerScale();
+
+    } else {
+        const width = originalWidth + (e.clientX - originalMouseX);
+        const height = originalHeight + (e.clientY - originalMouseY);
+
+        const minWidth = 300;
+        const minHeight = 200;
+        const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
+        const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+
+        currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
+        currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
+
+        adjustIframeScale(currentResizeWindow.id);
+    }
+
     e.preventDefault();
-    if (e.touches.length !== 1) return;
-
-    const touch = e.touches[0];
-    currentResizeWindow = e.target.parentElement;
-    originalWidth = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('width').replace('px', ''));
-    originalHeight = parseFloat(getComputedStyle(currentResizeWindow, null).getPropertyValue('height').replace('px', ''));
-    originalX = currentResizeWindow.getBoundingClientRect().left;
-    originalY = currentResizeWindow.getBoundingClientRect().top;
-    originalMouseX = touch.clientX;
-    originalMouseY = touch.clientY;
-
-    window.addEventListener('touchmove', ResizeTouch, { passive: false });
-    window.addEventListener('touchend', stopResizeTouch, false);
 }
 
-function Resize(e) {
+function stopResizePointer(e) {
+    if (e.pointerId !== activeResizePointerId) {
+        return;
+    }
+
+    window.removeEventListener('pointermove', resizePointer);
+    window.removeEventListener('pointerup', stopResizePointer);
+    window.removeEventListener('pointercancel', stopResizePointer);
+
+    if (activeResizeHandle && activeResizeHandle.releasePointerCapture) {
+        try {
+            activeResizeHandle.releasePointerCapture(activeResizePointerId);
+        } catch (err) {
+            // Ignore errors from unsupported pointer capture.
+        }
+    }
+
     if (currentResizeWindow) {
-        // Only proceed if not maximized
-        if (currentResizeWindow.classList.contains('maximized')) return;
-
-        if (currentResizeWindow.id === 'mediaPlayer') {
-            // Resize the media player while maintaining aspect ratio
-            let newWidth = originalWidth + (e.clientX - originalMouseX);
-            const aspectRatio = originalWidth / originalHeight;
-            let newHeight = newWidth / aspectRatio;
-
-            // Ensure new dimensions do not exceed window boundaries
-            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
-
-            newWidth = Math.max(300, Math.min(newWidth, maxWidth));
-            newHeight = Math.max(200, Math.min(newHeight, maxHeight));
-
-            currentResizeWindow.style.width = `${newWidth}px`;
-            currentResizeWindow.style.height = `${newHeight}px`;
-
-            // Do not re-center the media player
-            // Adjust media player scale
-            adjustMediaPlayerScale();
-
-        } else {
-            // Resize other windows normally
-            const width = originalWidth + (e.clientX - originalMouseX);
-            const height = originalHeight + (e.clientY - originalMouseY);
-
-            // Set minimum and maximum sizes
-            const minWidth = 300;
-            const minHeight = 200;
-            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
-
-            currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
-            currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
-
-            // Adjust iframe scale
-            adjustIframeScale(currentResizeWindow.id);
-        }
+        constrainWindow(currentResizeWindow);
     }
-}
-function ResizeTouch(e) {
-    if (currentResizeWindow && e.touches.length === 1) {
-        // Only proceed if not maximized
-        if (currentResizeWindow.classList.contains('maximized')) return;
 
-        const touch = e.touches[0];
-
-        if (currentResizeWindow.id === 'mediaPlayer') {
-            // Resize the media player while maintaining aspect ratio
-            let newWidth = originalWidth + (touch.clientX - originalMouseX);
-            const aspectRatio = originalWidth / originalHeight;
-            let newHeight = newWidth / aspectRatio;
-
-            // Ensure new dimensions do not exceed window boundaries
-            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
-
-            newWidth = Math.max(300, Math.min(newWidth, maxWidth));
-            newHeight = Math.max(200, Math.min(newHeight, maxHeight));
-
-            currentResizeWindow.style.width = `${newWidth}px`;
-            currentResizeWindow.style.height = `${newHeight}px`;
-
-            // Do not re-center the media player
-            // Adjust media player scale
-            adjustMediaPlayerScale();
-
-        } else {
-            // Resize other windows normally
-            const width = originalWidth + (touch.clientX - originalMouseX);
-            const height = originalHeight + (touch.clientY - originalMouseY);
-
-            // Set minimum and maximum sizes
-            const minWidth = 300;
-            const minHeight = 200;
-            const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-            const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
-
-            currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
-            currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
-
-            // Adjust iframe scale
-            adjustIframeScale(currentResizeWindow.id);
-        }
-
-        // Prevent scrolling
-        e.preventDefault();
-    }
-}
-function stopResize() {
-    window.removeEventListener('mousemove', Resize, false);
-    window.removeEventListener('mouseup', stopResize, false);
     currentResizeWindow = null;
-}
-
-function stopResizeTouch() {
-    window.removeEventListener('touchmove', ResizeTouch, { passive: false });
-    window.removeEventListener('touchend', stopResizeTouch, false);
-    currentResizeWindow = null;
+    activeResizePointerId = null;
+    activeResizeHandle = null;
 }
 
 // Ensure windows do not go beyond the taskbar upon resizing
@@ -1059,17 +1024,7 @@ function constrainWindow(windowElement) {
     }
 }
 
-// Call constrainWindow after resizing ends
-window.addEventListener('mouseup', function() {
-    if (currentResizeWindow) {
-        constrainWindow(currentResizeWindow);
-    }
-});
-window.addEventListener('touchend', function() {
-    if (currentResizeWindow) {
-        constrainWindow(currentResizeWindow);
-    }
-}, { passive: false });
+
 
 /* Media Player Script */
 
