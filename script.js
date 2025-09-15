@@ -1597,8 +1597,21 @@ function makeDesktopIconDraggable(icon, desktopElement, taskbarElement) {
     icon.dataset.dragging = 'false';
     icon.dataset.dragJustEnded = 'false';
 
+    function addPointerListeners() {
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+        document.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function removePointerListeners() {
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('pointercancel', onPointerUp);
+    }
+
     icon.addEventListener('pointerdown', event => {
         if (event.pointerType === 'mouse' && event.button !== 0) return;
+        if (pointerId !== null) return;
 
         pointerId = event.pointerId;
         startPointerX = event.clientX;
@@ -1614,11 +1627,14 @@ function makeDesktopIconDraggable(icon, desktopElement, taskbarElement) {
         icon.dataset.dragJustEnded = 'false';
 
         if (icon.setPointerCapture) {
-            icon.setPointerCapture(pointerId);
+            try {
+                icon.setPointerCapture(pointerId);
+            } catch (err) {
+                // Ignore errors from browsers that do not fully support pointer capture
+            }
         }
-        icon.addEventListener('pointermove', onPointerMove);
-        icon.addEventListener('pointerup', onPointerUp);
-        icon.addEventListener('pointercancel', onPointerUp);
+
+        addPointerListeners();
     });
 
     function onPointerMove(event) {
@@ -1661,9 +1677,7 @@ function makeDesktopIconDraggable(icon, desktopElement, taskbarElement) {
         if (icon.hasPointerCapture && icon.hasPointerCapture(pointerId) && icon.releasePointerCapture) {
             icon.releasePointerCapture(pointerId);
         }
-        icon.removeEventListener('pointermove', onPointerMove);
-        icon.removeEventListener('pointerup', onPointerUp);
-        icon.removeEventListener('pointercancel', onPointerUp);
+        removePointerListeners();
 
         if (isDraggingIcon) {
             isDraggingIcon = false;
@@ -1684,8 +1698,13 @@ function makeDesktopIconDraggable(icon, desktopElement, taskbarElement) {
         pointerId = null;
     }
 
+    icon.addEventListener('dragstart', event => {
+        event.preventDefault();
+    });
+
     clampIconWithinDesktop(icon, desktopElement, taskbarElement);
 }
+
 
 function clampIconWithinDesktop(icon, desktopElement, taskbarElement) {
     if (!desktopElement) return;
