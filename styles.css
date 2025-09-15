@@ -1727,26 +1727,42 @@ body, html {
         font-size: 24px;
     }
 
-    .media-player-wrapper {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
+.media-player-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
 
-    body, html {
-        font-size: 18px;
-    }
+body, html {
+    font-size: 18px;
+}
 
-    .desktop {
-        background-size: cover; /* Switch back to cover for better coverage */
-        background-position: center;
-    }
+.desktop {
+    background-size: cover; /* Switch back to cover for better coverage */
+    background-position: center;
+}
 
+}
+
+/* Desktop icon drag state styling */
+.desktop-icon {
+    cursor: grab;
+    touch-action: none;
+}
+
+.desktop-icon.dragging {
+    cursor: grabbing;
+    transition: none;
+}
+
+.desktop-icon.dragging img,
+.desktop-icon.dragging span {
+    pointer-events: none;
 }
 
 @media (orientation: portrait) {
     .desktop {
-        background-image: url('images/background_port.png'); 
+        background-image: url('images/background_port.png');
         background-size: cover;
         background-position: center;
         transition: background 0.5s ease;

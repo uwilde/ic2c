@@ -1525,139 +1525,189 @@ function drawVisualizer(canvas, canvasCtx) {
     }
 }
 
-document.querySelectorAll('.desktop-icon').forEach(icon => {
-    icon.addEventListener('click', handleIconClick);
+const desktopElement = document.querySelector('.desktop');
+const taskbarElement = document.querySelector('.taskbar');
+const ICON_DRAG_THRESHOLD = 5;
 
-    icon.addEventListener('mousedown', function(e) {
-        // Only left mouse button
-        if (e.button !== 0) return;
+if (desktopElement) {
+    const desktopIcons = document.querySelectorAll('.desktop-icon');
 
-        let iconElement = this;
-        let startX = e.pageX;
-        let startY = e.pageY;
-        let shiftX = e.clientX - iconElement.getBoundingClientRect().left;
-        let shiftY = e.clientY - iconElement.getBoundingClientRect().top;
-        let isDragging = false;
-        const dragThreshold = 5; // Pixels
+    desktopIcons.forEach(icon => {
+        makeDesktopIconDraggable(icon, desktopElement, taskbarElement);
 
-        function onMouseMove(event) {
-            let moveX = event.pageX - startX;
-            let moveY = event.pageY - startY;
-            let distance = Math.sqrt(moveX * moveX + moveY * moveY);
-
-            if (!isDragging && distance > dragThreshold) {
-                isDragging = true;
-                // Begin dragging
-                iconElement.style.position = 'absolute';
-                iconElement.style.zIndex = 1000;
+        icon.addEventListener('click', function(event) {
+            if (icon.dataset.dragJustEnded === 'true') {
+                event.preventDefault();
+                event.stopPropagation();
+                icon.dataset.dragJustEnded = 'false';
+                return;
             }
 
-            if (isDragging) {
-                let pageX = event.pageX;
-                let pageY = event.pageY;
-                iconElement.style.left = pageX - shiftX + 'px';
-                iconElement.style.top = pageY - shiftY + 'px';
-                e.preventDefault(); // Prevent text selection
-            }
-        }
+            handleIconClick(event);
+        });
 
-        function onMouseUp(event) {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-
-            if (!isDragging) {
-                // This was a click, not a drag
-                // Optionally, handle the click here
-                // For example, select the icon or open it
-            } else {
-                // Optionally, snap the icon to a grid or perform other drop logic here
-            }
-        }
-
-        // Listen for mousemove and mouseup on the document
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-
-    // Handle touch events for dragging icons
-    icon.addEventListener('touchstart', function(e) {
-        if (e.touches.length !== 1) return;
-
-        const touch = e.touches[0];
-        let iconElement = this;
-        let startX = touch.pageX;
-        let startY = touch.pageY;
-        let shiftX = touch.clientX - iconElement.getBoundingClientRect().left;
-        let shiftY = touch.clientY - iconElement.getBoundingClientRect().top;
-        let isDragging = false;
-        const dragThreshold = 5; // Pixels
-
-        function onTouchMove(event) {
-            if (event.touches.length !== 1) return;
-            const moveTouch = event.touches[0];
-            let moveX = moveTouch.pageX - startX;
-            let moveY = moveTouch.pageY - startY;
-            let distance = Math.sqrt(moveX * moveX + moveY * moveY);
-
-            if (!isDragging && distance > dragThreshold) {
-                isDragging = true;
-                // Begin dragging
-                iconElement.style.position = 'absolute';
-                iconElement.style.zIndex = 1000;
-                e.preventDefault(); // Prevent scrolling
-            }
-
-            if (isDragging) {
-                let pageX = moveTouch.pageX;
-                let pageY = moveTouch.pageY;
-                iconElement.style.left = pageX - shiftX + 'px';
-                iconElement.style.top = pageY - shiftY + 'px';
-                e.preventDefault(); // Prevent scrolling
-            }
-        }
-
-        function onTouchEnd() {
-            document.removeEventListener('touchmove', onTouchMove);
-            document.removeEventListener('touchend', onTouchEnd);
-            if (isDragging) {
-                iconElement.style.zIndex = ''; // Reset z-index if necessary
-            } else {
-                // This was a tap, not a drag
-                // Optionally, handle the tap here
-            }
-        }
-
-        document.addEventListener('touchmove', onTouchMove, { passive: false });
-        document.addEventListener('touchend', onTouchEnd, { passive: false });
-    });
-
-    // Handle double-click and double-tap to open window
-    let lastTap = 0;
-    icon.addEventListener('dblclick', function() {
-        const windowId = this.getAttribute('data-window');
-        if (windowId === 'mediaPlayer') {
-            toggleMediaPlayer();
-        } else {
-            toggleWindow(windowId);
-        }
-    });
-
-    icon.addEventListener('touchend', function(e) {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        if (tapLength < 300 && tapLength > 0) {
-            // Double-tap detected
+        icon.addEventListener('dblclick', function() {
             const windowId = this.getAttribute('data-window');
             if (windowId === 'mediaPlayer') {
                 toggleMediaPlayer();
             } else {
                 toggleWindow(windowId);
             }
-            e.preventDefault();
-        }
-        lastTap = currentTime;
+        });
+
+        let lastTap = 0;
+        icon.addEventListener('touchend', function(e) {
+            if (icon.dataset.dragging === 'true' || icon.dataset.dragJustEnded === 'true') {
+                lastTap = 0;
+                return;
+            }
+
+            const currentTime = Date.now();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                const windowId = this.getAttribute('data-window');
+                if (windowId === 'mediaPlayer') {
+                    toggleMediaPlayer();
+                } else {
+                    toggleWindow(windowId);
+                }
+                e.preventDefault();
+                lastTap = 0;
+            } else {
+                lastTap = currentTime;
+            }
+        }, { passive: false });
     });
-});
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            clampIconWithinDesktop(icon, desktopElement, taskbarElement);
+        });
+    });
+}
+
+function makeDesktopIconDraggable(icon, desktopElement, taskbarElement) {
+    let pointerId = null;
+    let startPointerX = 0;
+    let startPointerY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let isDraggingIcon = false;
+
+    icon.dataset.dragging = 'false';
+    icon.dataset.dragJustEnded = 'false';
+
+    icon.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+        pointerId = event.pointerId;
+        startPointerX = event.clientX;
+        startPointerY = event.clientY;
+        startLeft = getNumericValue(icon.style.left, icon.offsetLeft);
+        startTop = getNumericValue(icon.style.top, icon.offsetTop);
+
+        icon.style.left = `${startLeft}px`;
+        icon.style.top = `${startTop}px`;
+
+        isDraggingIcon = false;
+        icon.dataset.dragging = 'false';
+        icon.dataset.dragJustEnded = 'false';
+
+        if (icon.setPointerCapture) {
+            icon.setPointerCapture(pointerId);
+        }
+        icon.addEventListener('pointermove', onPointerMove);
+        icon.addEventListener('pointerup', onPointerUp);
+        icon.addEventListener('pointercancel', onPointerUp);
+    });
+
+    function onPointerMove(event) {
+        if (event.pointerId !== pointerId) return;
+
+        const deltaX = event.clientX - startPointerX;
+        const deltaY = event.clientY - startPointerY;
+
+        if (!isDraggingIcon) {
+            if (Math.hypot(deltaX, deltaY) < ICON_DRAG_THRESHOLD) {
+                return;
+            }
+            isDraggingIcon = true;
+            icon.dataset.dragging = 'true';
+            icon.classList.add('dragging');
+            icon.style.position = 'absolute';
+            icon.style.zIndex = '1000';
+        }
+
+        const desktopRect = desktopElement.getBoundingClientRect();
+        const maxLeft = Math.max(0, desktopRect.width - icon.offsetWidth);
+        const taskbarHeight = taskbarElement ? taskbarElement.offsetHeight : 0;
+        const maxTop = Math.max(0, desktopRect.height - taskbarHeight - icon.offsetHeight);
+
+        let nextLeft = startLeft + deltaX;
+        let nextTop = startTop + deltaY;
+
+        nextLeft = Math.min(Math.max(0, nextLeft), maxLeft);
+        nextTop = Math.min(Math.max(0, nextTop), maxTop);
+
+        icon.style.left = `${nextLeft}px`;
+        icon.style.top = `${nextTop}px`;
+
+        event.preventDefault();
+    }
+
+    function onPointerUp(event) {
+        if (event.pointerId !== pointerId) return;
+
+        if (icon.hasPointerCapture && icon.hasPointerCapture(pointerId) && icon.releasePointerCapture) {
+            icon.releasePointerCapture(pointerId);
+        }
+        icon.removeEventListener('pointermove', onPointerMove);
+        icon.removeEventListener('pointerup', onPointerUp);
+        icon.removeEventListener('pointercancel', onPointerUp);
+
+        if (isDraggingIcon) {
+            isDraggingIcon = false;
+            icon.dataset.dragging = 'false';
+            icon.dataset.dragJustEnded = 'true';
+            icon.classList.remove('dragging');
+            icon.style.zIndex = '';
+            clampIconWithinDesktop(icon, desktopElement, taskbarElement);
+            event.preventDefault();
+            requestAnimationFrame(() => {
+                icon.dataset.dragJustEnded = 'false';
+            });
+        } else {
+            icon.dataset.dragging = 'false';
+            icon.dataset.dragJustEnded = 'false';
+        }
+
+        pointerId = null;
+    }
+
+    clampIconWithinDesktop(icon, desktopElement, taskbarElement);
+}
+
+function clampIconWithinDesktop(icon, desktopElement, taskbarElement) {
+    if (!desktopElement) return;
+
+    const taskbarHeight = taskbarElement ? taskbarElement.offsetHeight : 0;
+    const maxLeft = Math.max(0, desktopElement.clientWidth - icon.offsetWidth);
+    const maxTop = Math.max(0, desktopElement.clientHeight - taskbarHeight - icon.offsetHeight);
+
+    const currentLeft = getNumericValue(icon.style.left, icon.offsetLeft);
+    const currentTop = getNumericValue(icon.style.top, icon.offsetTop);
+
+    const clampedLeft = Math.min(Math.max(0, currentLeft), maxLeft);
+    const clampedTop = Math.min(Math.max(0, currentTop), maxTop);
+
+    icon.style.left = `${clampedLeft}px`;
+    icon.style.top = `${clampedTop}px`;
+}
+
+function getNumericValue(value, fallback) {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? fallback : parsed;
+}
 // Fullscreen Media Player
 function fullscreenMediaPlayer() {
     const screenElement = document.getElementById('screen');
