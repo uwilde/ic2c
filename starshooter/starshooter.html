@@ -1,46 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Space Shooter Game</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Galaga‑ish Starshooter</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <canvas id="gameCanvas" width="480" height="640"></canvas>
-    <div id="pauseMenu" class="menu hidden">
-        <button id="resumeButton">Resume</button>
-        <button id="controlsButton">Controls</button>
-        <div id="controlsInfo" class="hidden">
-            <p>**Controls**</p>
-            <ul>
-                <li>Move Left: **Left Arrow**</li>
-                <li>Move Right: **Right Arrow**</li>
-                <li>Shoot: **Spacebar**</li>
-                <li>Super Blaster: **Left Control**</li>
-                <li>Pause: **Escape**</li>
-            </ul>
+  <div class="frame">
+    <div class="viewport">
+      <canvas id="game" width="480" height="640"></canvas>
+
+      <!-- HUD -->
+      <div class="hud">
+        <div class="hud-left">
+          <span id="scoreLabel">SCORE</span>
+          <span id="score">000000</span>
         </div>
-    </div>
-    <div id="gameOverMenu" class="menu hidden">
-        <p>Game Over</p>
-        <button id="restartButton">Restart</button>
+        <div class="hud-center">
+          <span id="stageLabel">STAGE</span>
+          <span id="stage">1</span>
+        </div>
+        <div class="hud-right">
+          <span id="livesLabel">LIVES</span>
+          <span id="lives"></span>
+        </div>
+      </div>
+
+      <!-- Overlays -->
+      <div id="title" class="overlay show">
+        <h1>★ STARBLASTER ★</h1>
+        <p>Arrow keys to move · Space to fire · P to pause</p>
+        <ul class="help">
+          <li>← / → : Move</li>
+          <li>SPACE : Fire</li>
+          <li>P : Pause</li>
+        </ul>
+        <button id="startBtn" class="ui-btn">START</button>
+      </div>
+
+      <div id="paused" class="overlay">
+        <h2>PAUSED</h2>
+        <button id="resumeBtn" class="ui-btn">RESUME</button>
+      </div>
+
+      <div id="gameover" class="overlay">
+        <h2>GAME OVER</h2>
+        <p id="finalScore"></p>
+        <button id="restartBtn" class="ui-btn">RESTART</button>
+      </div>
     </div>
 
+    <!-- Mobile controls -->
     <div id="touchControls">
-        <div id="dPad">
-            <button id="leftButton">
-                <img src="icons/left.png" alt="Left">
-            </button>
-            <button id="rightButton">
-                <img src="icons/right.png" alt="Right">
-            </button>
-        </div>
-        <button id="touchPauseButton">Pause</button>
-        <div id="actionButtons">
-            <button id="shootButton">Shoot</button>
-            <button id="superBlasterButton">Super Blaster</button>
-        </div>
+      <div class="pad">
+        <button id="leftBtn" aria-label="left">◄</button>
+        <button id="rightBtn" aria-label="right">►</button>
+      </div>
+      <div class="pad">
+        <button id="fireBtn" aria-label="fire">FIRE</button>
+        <button id="pauseBtn" aria-label="pause">P</button>
+      </div>
     </div>
-    <script src="game.js"></script>
+  </div>
+
+  <script src="game.js" defer></script>
 </body>
 </html>
