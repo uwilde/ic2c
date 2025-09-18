@@ -159,3 +159,64 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+
+/* =========================
+   Global Link Router (SPA-lite)
+   Intercepts clicks on common nav links across all pages and routes to specific HTML files.
+   Works even when links have href="#" because we inspect the link's text.
+   ========================= */
+(function setupGlobalLinkRouter() {
+  if (window.__atoobRouterInstalled) return;
+  window.__atoobRouterInstalled = true;
+
+  function normalize(text) {
+    return (text || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  const routeMap = new Map([
+    ["login", "atoob_login.html"],
+    ["sign in", "atoob_login.html"],
+    ["sign up", "atoob_signup.html"],
+    ["signup", "atoob_signup.html"],
+    ["help", "atoob_help.html"],
+    ["help center", "atoob_help.html"],
+    ["history", "atoob_history.html"],
+    ["company info", "atoob_companyInfo.html"],
+    ["code of conduct", "atoob_404.html"],
+    ["my account", "atoob_account.html"],
+    ["account", "atoob_account.html"],
+    ["inbox", "atoob_inbox.html"]
+  ]);
+
+  function getRouteForAnchor(a) {
+    const txt = normalize(a.textContent);
+    if (routeMap.has(txt)) return routeMap.get(txt);
+
+    for (const [key, dest] of routeMap.entries()) {
+      if (txt.includes(key)) return dest;
+    }
+
+    const href = (a.getAttribute("href") || "").toLowerCase();
+    if (href) {
+      for (const [key, dest] of routeMap.entries()) {
+        const keyNoSpace = key.replace(/\s+/g, "");
+        if (href.includes(keyNoSpace) || href.includes(key)) return dest;
+      }
+    }
+    return null;
+  }
+
+  document.addEventListener("click", (ev) => {
+    const a = ev.target.closest && ev.target.closest("a");
+    if (!a) return;
+
+    const dest = getRouteForAnchor(a);
+    if (!dest) return;
+
+    if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1) return;
+
+    ev.preventDefault();
+    window.location.href = dest;
+  }, true);
+})();

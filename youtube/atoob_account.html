@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - My Account</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Center content styles */
+    .account-page { margin: 20px 0 60px; font-family: Arial, Helvetica, sans-serif; }
+    .account-title { font-size: 22px; margin: 0 0 10px; color:#111; }
+    .account-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: #f7f7f7;
+      border: 1px solid #cfcfcf;
+      border-radius: 3px;
+      padding: 12px;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 16px; color:#333; }
+    .avatar {
+      width: 120px; height: 120px;
+      border: 1px solid #9a9a9a;
+      background:
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,.4), transparent 60%),
+        linear-gradient(135deg, #c9c9c9, #9f9f9f);
+      border-radius: 2px;
+      display:flex; align-items:center; justify-content:center;
+      margin-right: 10px;
+      color:#fff; font-weight:bold; letter-spacing:.5px;
+      text-shadow: 0 1px 0 rgba(0,0,0,.3);
+    }
+    .profile-row { display:flex; gap: 10px; align-items:center; }
+    .profile-meta { font-size: 13px; color:#222; }
+    .profile-meta b { color:#111; }
+    .stat { font-size: 12px; color:#444; }
+    .edit-links a { color:#1342d0; font-size:12px; margin-right:8px; }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-grid { display:grid; grid-template-columns: 130px 1fr; gap: 8px 10px; align-items:center; }
+    .form-grid label { text-align:right; font-size:13px; color:#222; }
+    .form-grid input[type="text"],
+    .form-grid input[type="password"],
+    .form-grid textarea,
+    .form-grid select {
+      width: 100%; padding: 6px 7px;
+      border:1px solid #9a9a9a; background:#fff; border-radius:2px; font-size:13px; outline:none;
+    }
+    .form-grid textarea { min-height: 70px; resize: vertical; }
+    .btn {
+      padding: 6px 14px; border:1px solid #9a9a9a; border-radius:2px;
+      background: linear-gradient(#fefefe,#e6e6e6); cursor:pointer; font-size:13px;
+    }
+    .btn:hover { background: linear-gradient(#ffffff,#dcdcdc); }
+    .danger { border-color:#d7b2b2; background:#fff6f6; }
+    .danger h3 { color:#7a1c1c; }
+    .tiny { font-size:11px; color:#666; }
+
+    /* Toast / popup */
+    .toast {
+      position: fixed; z-index: 9999;
+      left: 50%; bottom: 24px; transform: translateX(-50%);
+      max-width: 520px; padding: 10px 12px;
+      border:1px solid #8d8d8d; background:#fff; border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2), inset 0 1px 0 #fff;
+      font-size: 13px; color:#111; opacity: 0;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+    .toast .x { position:absolute; right:8px; top:6px; cursor:pointer; color:#666; font-weight:bold; }
+    .toast .x:hover { color:#000; }
+
+    /* Full width center; hide site sidebar */
+    .main { display:block; }
+    .main-content { margin:0; }
+    .sidebar { display:none; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_account.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="main-content">
+      <section class="account-page" id="accountRoot">
+        <div class="account-title">My Account</div>
+
+        <div class="account-layout">
+          <!-- Left: Profile summary -->
+          <aside class="card">
+            <h3>Your Profile</h3>
+            <div class="profile-row">
+              <div class="avatar">AVATAR</div>
+              <div class="profile-meta">
+                <div><b>User:</b> @everrot1</div>
+                <div><b>Member Since:</b> 2007-ish (time is a flat GIF)</div>
+                <div class="stat"><b>Subscribers:</b> 12 (relatives who forgot how to unsubscribe)</div>
+                <div class="stat"><b>Uploads:</b> 3 (two are “test_final_FINAL.mp4”)</div>
+                <div class="edit-links">
+                  <a href="#" data-roast="true">Edit profile</a>
+                  <a href="#" data-roast="true">Change avatar</a>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right: Settings -->
+          <div class="settings-grid">
+            <div class="card">
+              <h3>Account Settings</h3>
+              <div class="form-grid">
+                <label for="display">Display Name:</label>
+                <input id="display" type="text" value="Apache Gremlin"/>
+                <label for="email">Email:</label>
+                <input id="email" type="text" value="gremlin@example.com"/>
+                <label for="password">Password:</label>
+                <input id="password" type="password" value="password123"/>
+                <label for="bio">Bio:</label>
+                <textarea id="bio">I post videos and questionable life choices.</textarea>
+                <label for="country">Country:</label>
+                <select id="country"><option>United States</option><option>Canada</option><option>Other</option></select>
+              </div>
+              <div style="margin-top:10px;">
+                <button class="btn" id="saveSettings">Save Changes</button>
+                <span class="tiny">Pro tip: spellcheck your swagger.</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Channel Status</h3>
+              <ul style="margin: 0 0 10px 18px; padding:0; font-size:13px; color:#222;">
+                <li><b>Account Standing:</b> “Mostly Fine” (like gas station sushi)</li>
+                <li><b>Copyright:</b> 1 warning for sampling elevator music aggressively</li>
+                <li><b>Community Notes:</b> “Bro types like a car horn.”</li>
+                <li><b>Ad Revenue:</b> $0.08 — don’t spend it all in one vending machine</li>
+              </ul>
+              <div class="edit-links">
+                <a href="#" data-roast="true">Appeal</a> ·
+                <a href="#" data-roast="true">Request review</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Privacy</h3>
+              <div class="form-grid">
+                <label for="history">Viewing History:</label>
+                <select id="history"><option>Keep (we saw nothing)</option><option>Auto-clear</option></select>
+                <label for="subs">Subscriptions:</label>
+                <select id="subs"><option>Public</option><option>Private</option></select>
+                <label for="msgs">Messages:</label>
+                <select id="msgs"><option>Friends only</option><option>Everyone</option><option>No one (introvert mode)</option></select>
+              </div>
+              <div style="margin-top:10px;">
+                <button class="btn" data-roast="true">Save Privacy</button>
+              </div>
+            </div>
+
+            <div class="card danger">
+              <h3>Danger Zone</h3>
+              <p style="font-size:13px; color:#222; margin:0 0 8px;">
+                Proceed with caution. Like microwaving a burrito still in the foil.
+              </p>
+              <button class="btn" id="resetPwd">Reset Password</button>
+              <button class="btn" id="deleteChan">Delete Channel</button>
+              <div class="tiny" style="margin-top:8px;">
+                Clicking these buttons may trigger regret. Regret is non-refundable.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty on account page --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Inbox</a> |
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const roasts = [
+        "Saved. You spelled confidence with two N’s and zero self-awareness.",
+        "Settings updated. Your password still smells like hot‑dog water.",
+        "Nice edit. Bio reads like a Craigslist ad for a haunted blender.",
+        "Request received. We filed it under \\\"bold choices\\\".",
+        "Calm down, turbo. We’re computers, not therapists.",
+        "Appeal noted. Our legal team (one raccoon) will review."
+      ];
+
+      function toast(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        const x = document.createElement('span');
+        x.className = 'x';
+        x.textContent = '×';
+        x.onclick = () => t.remove();
+        t.appendChild(x);
+        document.body.appendChild(t);
+        requestAnimationFrame(() => t.classList.add('show'));
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 150); }, 2600);
+      }
+
+      function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+      // Save buttons
+      document.getElementById('saveSettings').addEventListener('click', () => toast(pick(roasts)));
+      document.getElementById('accountRoot').addEventListener('click', function(e){
+        const a = e.target.closest('[data-roast]');
+        if (a) { e.preventDefault(); toast(pick(roasts)); }
+      });
+
+      // Danger Zone actions
+      document.getElementById('resetPwd').addEventListener('click', () => {
+        toast("We emailed a reset link to your spam folder. You’re welcome.");
+      });
+      document.getElementById('deleteChan').addEventListener('click', () => {
+        if (confirm("Delete your channel? This action is dramatic and mostly symbolic.")) {
+          toast("Channel deleted. Just kidding. Reflect on your choices.");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
