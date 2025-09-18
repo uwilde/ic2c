@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - Company Info</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Page center content */
+    .company-page { margin: 20px 0 60px; font-family: Arial, Helvetica, sans-serif; }
+    .company-layout {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 28px;
+    }
+    .company-page h1 { margin: 0 0 10px; font-size: 28px; color:#111; }
+    .company-page h2 { margin: 18px 0 8px; font-size: 22px; color:#111; }
+    .company-page p { line-height:1.6; margin: 0 0 10px; color:#222; }
+    .company-page ul { margin: 8px 0 0 22px; }
+    .company-page li { margin: 6px 0; }
+    .company-page a { color:#1342d0; text-decoration: underline; }
+
+    /* Right nav list */
+    .side-nav {
+      border: 1px solid #c8d0e4;
+      border-radius: 3px;
+      overflow: hidden;
+      background: #f6f8ff;
+    }
+    .side-nav a {
+      display:block; padding:10px 12px;
+      border-top: 1px dotted #bfc6de;
+      color:#1342d0; text-decoration: underline;
+    }
+    .side-nav a:first-child { border-top: none; }
+    .side-nav .active { background:#dfe6ff; font-weight:bold; }
+    .side-nav a:hover { background:#eef2ff; }
+
+    /* Use full width and hide sidebar */
+    .main { display:block; }
+    .main-content { margin:0; }
+    .sidebar { display:none; }
+
+    /* Popups */
+    .rando-pop {
+      position: fixed; z-index: 9999;
+      max-width: 320px; padding: 12px 14px;
+      border:1px solid #8d8d8d; background:#fff; border-radius:8px;
+      box-shadow: 0 10px 34px rgba(0,0,0,.25), inset 0 1px 0 #fff;
+      font-size: 13px; color:#222;
+      transform: translate(-50%, -50%) rotate(var(--rot,0deg));
+      opacity: 0; transition: opacity .15s ease, transform .15s ease;
+    }
+    .rando-pop.show { opacity:1; }
+    .rando-pop .x { position:absolute; top:6px; right:8px; cursor:pointer; color:#666; font-weight:bold; }
+    .rando-pop .x:hover { color:#000; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_company.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#" data-prank="true">Sign Up</a> |
+        <a href="#" data-prank="true">History</a> |
+        <a href="#" data-prank="true">My Account</a> |
+        <a href="#" data-prank="true">Help</a> |
+        <a href="#" data-prank="true">Login</a> |
+        <a href="#" data-prank="true">Site</a>
+      </div>
+    </div>
+    <div class="tabs">
+      <a href="#" class="tab active" data-prank="true">Videos</a>
+      <a href="#" class="tab" data-prank="true">Categories</a>
+      <a href="#" class="tab" data-prank="true">Channels</a>
+      <a href="#" class="tab" data-prank="true">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button" data-prank="true">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="main-content">
+      <section class="company-page" id="companyRoot">
+        <div class="company-layout">
+          <article>
+            <h1>About ApacheToob</h1>
+            <p>
+              <a href="#" data-prank="true">Founded</a> in February 2005 (give or take a temporal anomaly),
+              ApacheToob is a consumer media company for people to watch and share original videos worldwide
+              through a Web experience and a faintly romantically-ambiguous vibe. As more people capture
+              special moments on video, ApacheToob is empowering them to become the broadcasters of tomorrow,
+              and occasionally today if schedules align.
+            </p>
+
+            <p>
+              Everyone can watch videos on ApacheToob—both on ApacheToob.com and across the Internet.
+              People can see first‑hand accounts of current events, find videos about their hobbies and interests,
+              and discover the quirky and unusual. Some viewers report a strong desire to perform a consensual
+              shoulder‑bump with the creators; we consider this a feature, not a bug.
+            </p>
+
+            <h2>What is ApacheToob?</h2>
+            <p>
+              ApacheToob is a place for people to engage in new ways with video by sharing, commenting on, and viewing videos.
+              We originally started as a personal video sharing service, and have grown into an entertainment destination
+              with people watching more than 70 million videos on the site daily, sometimes while making meaningful eye contact
+              with their monitor. If your monitor winks back, please <a href="#" data-prank="true">contact support</a>.
+            </p>
+
+            <p>With ApacheToob, people can:</p>
+            <ul>
+              <li>Upload, tag and share videos worldwide, preferably while maintaining a platonically charged smolder.</li>
+              <li>Browse millions of original videos uploaded by community members who moisturize and mind their business.</li>
+              <li>Find, join and create video groups to connect with people who have similar interests and excellent posture.</li>
+              <li>Customize the experience by subscribing to member videos, saving favorites, and creating playlists that
+                  suggest “we’re all in this together, in a respectful, adult way.”</li>
+              <li>Integrate ApacheToob videos on websites using video embeds or APIs and whisper “synergy” to the nearest server rack.</li>
+              <li>Make videos public or private—users can elect to broadcast publicly or share privately with friends and family upon upload;
+                  capes optional, consent not optional.</li>
+            </ul>
+
+            <p>
+              ApacheToob is building a community highly motivated to watch and share videos. The service is free for everyone.
+              We always encourage our users to <a href="#" data-prank="true">contact us</a> with comments, thoughts, suggestions,
+              feedback or otherwise random ramblings. Make sure to check out our <a href="#" data-prank="true">Blog</a> to keep up
+              to date on all the latest ApacheToob developments, including our quarterly report on “romantically neutral engineering.”
+            </p>
+          </article>
+
+          <aside class="side-nav">
+            <a href="#" class="active" data-prank="true">About ApacheToob</a>
+            <a href="#" data-prank="true">Press Room</a>
+            <a href="#" data-prank="true">Advertising</a>
+            <a href="#" data-prank="true">Contact Us</a>
+            <a href="#" data-prank="true">Jobs at ApacheToob</a>
+            <a href="#" data-prank="true">Help Center</a>
+          </aside>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#" data-prank="true">Videos</a> |
+        <a href="#" data-prank="true">Favorites</a> |
+        <a href="#" data-prank="true">Playlists</a> |
+        <a href="#" data-prank="true">Inbox</a> |
+        <a href="#" data-prank="true">Subscriptions</a> |
+        <a href="#" data-prank="true">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#" data-prank="true">Help Center</a> |
+        <a href="#" data-prank="true">Video Toolbox</a> |
+        <a href="#" data-prank="true">Developer APIs</a> |
+        <a href="#" data-prank="true">Safety Tips</a> |
+        <a href="#" data-prank="true">Copyright Notices</a> |
+        <a href="#" data-prank="true">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#" data-prank="true">Company Info</a> |
+        <a href="#" data-prank="true">TestTube</a> |
+        <a href="#" data-prank="true">Terms of Use</a> |
+        <a href="#" data-prank="true">Privacy Policy</a> |
+        <a href="#" data-prank="true">Press</a> |
+        <a href="#" data-prank="true">Contact</a> |
+        <a href="#" data-prank="true">Blog</a> |
+        <a href="#" data-prank="true">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#" data-prank="true">Give Feedback</a></p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // A mix of cheeky, mildly offensive, but non-targeted quips
+      const phrases = [
+        "Nope.",
+        "Eff off, bub.",
+        "Go touch grass.",
+        "Denied, champ.",
+        "You wish.",
+        "Beat it, nerd.",
+        "Buzz off.",
+        "Try again never.",
+        "Not today, Satan.",
+        "Absolutely not.",
+        "Access refused by vibes.",
+        "Please stop clicking that.",
+        "Go outside. We’ll wait."
+      ];
+      function rand(min, max) { return Math.random() * (max - min) + min; }
+      function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+      function makePopup(msg) {
+        const p = document.createElement('div');
+        p.className = 'rando-pop';
+        p.textContent = msg;
+        const x = document.createElement('span');
+        x.className = 'x';
+        x.textContent = '×';
+        x.onclick = () => p.remove();
+        p.appendChild(x);
+
+        const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        p.style.left = rand(vw * .15, vw * .85) + 'px';
+        p.style.top = rand(vh * .15, vh * .85) + 'px';
+        p.style.setProperty('--rot', (rand(-5,5)).toFixed(2) + 'deg');
+
+        document.body.appendChild(p);
+        requestAnimationFrame(() => p.classList.add('show'));
+
+        setTimeout(() => { p.classList.remove('show'); setTimeout(() => p.remove(), 160); }, 2200 + Math.random()*900);
+      }
+      document.getElementById('companyRoot').addEventListener('click', function(e) {
+        const target = e.target.closest('[data-prank]');
+        if (!target) return;
+        e.preventDefault();
+        const count = Math.floor(rand(1,4));
+        for (let i=0;i<count;i++) setTimeout(() => makePopup(choice(phrases)), i*120);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -76,6 +76,7 @@ a {
     justify-content: space-between;
     align-items: center;
     padding: 50px 5px;
+    padding-top: 0;
 }
 
 .footer {

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - Viewing History</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Center content: 2007 YouTube-ish Viewing History */
+    .history-page { margin: 20px 0 60px; font-family: Arial, Helvetica, sans-serif; }
+    .history-page h2 { margin: 0 0 6px; font-size: 20px; color:#111; }
+    .history-desc { color:#333; font-size: 13px; margin-bottom: 12px; }
+    .history-tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .history-tab {
+      padding: 6px 10px; border:1px solid #bcbcbc; border-radius: 14px;
+      background: linear-gradient(#fefefe, #e7e7e7); font-size: 12px; cursor: default;
+    }
+    .history-tab.active { background: linear-gradient(#f6f6f6,#dcdcdc); font-weight:bold; }
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      max-width: 980px;
+    }
+    .video-card {
+      background: #f7f7f7;
+      border: 1px solid #cfcfcf;
+      border-radius: 2px;
+      padding: 8px;
+    }
+    .thumb {
+      width: 160px; height: 120px;
+      border: 1px solid #9a9a9a;
+      background:
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,.4), transparent 60%),
+        linear-gradient(135deg, #c9c9c9, #9f9f9f);
+      position: relative;
+      margin: 0 auto 6px;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:bold; letter-spacing:1px;
+      text-shadow: 0 1px 0 rgba(0,0,0,.3);
+    }
+    .thumb::after {
+      /* simple play triangle */
+      content: '';
+      position:absolute; width:0; height:0;
+      border-left: 20px solid rgba(255,255,255,.9);
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+      left: calc(50% - 6px); top: calc(50% - 12px);
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,.3));
+    }
+    .meta-top { font-size: 11px; color:#444; display:flex; justify-content:space-between; margin-bottom:2px; }
+    .vid-title { display:block; color:#1342d0; font-size:13px; line-height:1.2; margin: 4px 0; }
+    .vid-by, .vid-views { font-size: 11px; color:#444; }
+    .stars { color:#cc0000; font-size: 12px; margin-top:2px; }
+    .clearbar { text-align:right; margin-top: 8px; }
+    .clearbar a { color:#1342d0; font-size:12px; }
+    /* Use full width and hide sidebar for this page */
+    .main { display:block; }
+    .main-content { margin:0; }
+    .sidebar { display:none; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_history.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content (Viewing History) -->
+  <div class="main">
+    <div class="main-content">
+      <section class="history-page">
+        <h2>Viewing History</h2>
+        <div class="history-desc">
+          These are your recently watched videos. We respect your privacy and do not share this information with anyone.
+          You can clear your history by clicking <em>Clear Viewing History</em> at the bottom. (We’ll pretend not to notice.)
+        </div>
+
+        <div class="history-tabs">
+          <div class="history-tab active">Viewing History</div>
+          <div class="history-tab">Quicklist</div>
+        </div>
+
+        <div class="history-grid">
+          <!-- Cards -->
+          <!-- We'll hardcode a sampling; you can duplicate/remove as needed -->
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>02:19</span><span>3 weeks ago</span></div>
+            <a class="vid-title" href="#">Fairy goblin licks totem pole</a>
+            <div class="vid-by">From: <a href="#">everrot1</a></div>
+            <div class="vid-views">Views: 10,701</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:36</span><span>1 month ago</span></div>
+            <a class="vid-title" href="#">How to pick up girls like an APLHA</a>
+            <div class="vid-by">From: <a href="#">v4lumnities</a></div>
+            <div class="vid-views">Views: 33,486</div>
+            <div class="stars">★★☆☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:28</span><span>6 months ago</span></div>
+            <a class="vid-title" href="#">If you werent a furry, you'd be nothing</a>
+            <div class="vid-by">From: <a href="#">DGCRZ3</a></div>
+            <div class="vid-views">Views: 946,108</div>
+            <div class="stars">★★★★★</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:09</span><span>5 months ago</span></div>
+            <a class="vid-title" href="#">Do you like same sex intimate interactions?</a>
+            <div class="vid-by">From: <a href="#">MYMASONSBGO</a></div>
+            <div class="vid-views">Views: 2,405</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:45</span><span>3 weeks ago</span></div>
+            <a class="vid-title" href="#">Pet Play</a>
+            <div class="vid-by">From: <a href="#">jeasi</a></div>
+            <div class="vid-views">Views: 142,270</div>
+            <div class="stars">★★★★☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:18</span><span>6 months ago</span></div>
+            <a class="vid-title" href="#">Chimichanga sings the national anthem from prison</a>
+            <div class="vid-by">From: <a href="#">Beni102</a></div>
+            <div class="vid-views">Views: 716</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:59</span><span>4 months ago</span></div>
+            <a class="vid-title" href="#">Goblins explain tax write‑offs</a>
+            <div class="vid-by">From: <a href="#">DeepFriedG</a></div>
+            <div class="vid-views">Views: 1,052,108</div>
+            <div class="stars">★★★★★</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:44</span><span>3 weeks ago</span></div>
+            <a class="vid-title" href="#">Rocky: The Lost Sequel (He Opens a Deli)</a>
+            <div class="vid-by">From: <a href="#">gnawsticion</a></div>
+            <div class="vid-views">Views: 59,531</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:58</span><span>2 weeks ago</span></div>
+            <a class="vid-title" href="#">Christmas Tree Jump Response (From Jail)</a>
+            <div class="vid-by">From: <a href="#">ZTAwEnnkey</a></div>
+            <div class="vid-views">Views: 37,478</div>
+            <div class="stars">★★★★☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:08</span><span>2 weeks ago</span></div>
+            <a class="vid-title" href="#">Snails react to drum & bass</a>
+            <div class="vid-by">From: <a href="#">Beni102</a></div>
+            <div class="vid-views">Views: 716</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>02:14</span><span>7 months ago</span></div>
+            <a class="vid-title" href="#">Vic Thrill and The Saturn Missile — Hi On Waffle</a>
+            <div class="vid-by">From: <a href="#">saadity</a></div>
+            <div class="vid-views">Views: 24,675</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:45</span><span>3 months ago</span></div>
+            <a class="vid-title" href="#">“Impossible” is Nothing: We Microwave Ice</a>
+            <div class="vid-by">From: <a href="#">axiomtentcal</a></div>
+            <div class="vid-views">Views: 322,054</div>
+            <div class="stars">★★★★☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>01:04</span><span>1 month ago</span></div>
+            <a class="vid-title" href="#">MC Hammer: U can't touch this (with Chopsticks)</a>
+            <div class="vid-by">From: <a href="#">SameCatlestone</a></div>
+            <div class="vid-views">Views: 17,136</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>07:10</span><span>6 days ago</span></div>
+            <a class="vid-title" href="#">Orange You Glad? (We Painted the Moon)</a>
+            <div class="vid-by">From: <a href="#">handnave</a></div>
+            <div class="vid-views">Views: 5,316</div>
+            <div class="stars">★★★☆☆</div>
+          </div>
+
+          <div class="video-card">
+            <div class="thumb">PLACEHOLDER</div>
+            <div class="meta-top"><span>00:18</span><span>1 month ago</span></div>
+            <a class="vid-title" href="#">Christmas Tree Jump (Director’s Worse Cut)</a>
+            <div class="vid-by">From: <a href="#">atomdog</a></div>
+            <div class="vid-views">Views: 11,276</div>
+            <div class="stars">★★☆☆☆</div>
+          </div>
+        </div>
+
+        <div class="clearbar">
+          <a href="#" id="clearHistory">Clear Viewing History</a>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty for history page --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Friendly fake "clear" confirmation
+    document.getElementById('clearHistory').addEventListener('click', function(e){
+      e.preventDefault();
+      alert('History cleared. (We both know it wasn\\'t.)');
+    });
+  </script>
+</body>
+</html>

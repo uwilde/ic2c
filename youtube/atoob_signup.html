@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - Sign Up</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 2007 YouTube-esque signup styling just for the center content */
+    .signup-page {
+      margin: 20px 0 40px 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .signup-heading {
+      color: #333;
+      font-weight: bold;
+      margin: 0 0 8px 0;
+      padding: 8px 10px 10px;
+      border: 1px solid #c6c6c6;
+      background: linear-gradient(#fefefe,#f7f7f7);
+      border-bottom: none;
+      border-radius: 2px 2px 0 0;
+    }
+    .signup-wrap {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 22px;
+    }
+
+    /* Left: Sign-up panel */
+    .signup-panel {
+      border: 1px solid #c6c6c6;
+      background: #fff;
+      border-radius: 0 0 2px 2px;
+      padding: 14px;
+    }
+    .signup-panel p small { color:#444; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px 10px;
+      align-items: center;
+      max-width: 640px;
+    }
+    .form-grid label {
+      font-size: 13px;
+      color: #222;
+      text-align: right;
+      padding-right: 6px;
+    }
+    .form-grid input[type="text"],
+    .form-grid input[type="password"],
+    .form-grid select {
+      width: 100%;
+      padding: 6px 7px;
+      border: 1px solid #9a9a9a;
+      border-radius: 2px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .inline-note {
+      font-size: 11px; color:#666; margin-left: 6px;
+    }
+    .gender-wrap {
+      display: flex; gap: 12px; align-items:center;
+      font-size: 13px; color:#222;
+    }
+    .dob-wrap { display:flex; gap:6px; }
+    .dob-wrap select { width: 32%; }
+    .captcha-row { display:flex; gap:10px; align-items:center; }
+    .captcha-img {
+      width: 180px; height: 48px;
+      border: 1px solid #9a9a9a;
+      display:flex; align-items:center; justify-content:center;
+      letter-spacing: 3px;
+      font: bold 22px/1 "Trebuchet MS", Arial, sans-serif;
+      background:
+        repeating-linear-gradient( 45deg, #ffea8a 0, #ffea8a 8px, #ffd56a 8px, #ffd56a 16px );
+      color:#2b3a66;
+      text-shadow: 0 1px 0 #fff;
+    }
+    .captcha-help { font-size:12px; }
+    .promo-ad {
+      width: 210px; height: 90px;
+      border: 1px solid #c8d7f1;
+      background: #eaf2ff;
+      border-radius: 3px;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      font-weight:bold;
+      color:#1c3d7a;
+      margin-left:auto;
+    }
+    .checkline { margin: 14px 0 8px; font-size: 13px; color:#222; }
+    .checkline input { transform: translateY(1px); }
+    .agreements { font-size: 12px; color:#333; }
+    .agreements a { color:#1342d0; }
+    .signup-actions { margin-top:12px; }
+    .btn {
+      padding: 6px 16px;
+      border: 1px solid #9a9a9a;
+      border-radius: 2px;
+      background: linear-gradient(#fefefe, #e6e6e6);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:hover { background: linear-gradient(#ffffff,#dcdcdc); }
+
+    /* Right: Login + What is ApacheToob */
+    .side-col .panel {
+      background: #f6f6f6;
+      border: 1px solid #dcdcdc;
+      border-radius: 3px;
+      padding: 12px 12px 14px;
+      margin-bottom: 16px;
+    }
+    .side-col .panel h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color:#333;
+    }
+    .side-col label {
+      display:inline-block; width:90px; color:#333; font-size:13px; margin:6px 0;
+    }
+    .side-col input[type="text"],
+    .side-col input[type="password"] {
+      width: 180px; padding: 6px 7px; border:1px solid #9a9a9a; border-radius: 2px; background:#fff; font-size:13px;
+    }
+    .side-col .btn { margin-top: 8px; }
+    .side-col .helper { font-size:12px; margin-top:6px; }
+    .side-col ul { margin: 8px 0 0 18px; }
+    .side-col li { margin: 3px 0; }
+
+    /* Make the main area full-width for this page and hide sidebar */
+    .main { display: block; }
+    .main-content { margin: 0; }
+    .sidebar { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_signup.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content (Fake 2007 YouTube-style SIGNUP) -->
+  <div class="main">
+    <div class="main-content">
+      <section class="signup-page">
+        <div class="signup-heading">Join ApacheToob
+          <div style="font-weight: normal; font-size:12px; color:#444; margin-top:4px;">
+            It's free and easy. Just fill out the account info below. <small>(All fields required)</small>
+          </div>
+        </div>
+
+        <div class="signup-wrap">
+          <!-- Left column: form -->
+          <div>
+            <div class="signup-panel">
+              <div class="form-grid">
+                <label for="email">Email Address:</label>
+                <div style="display:flex; gap:10px; align-items:center;">
+                  <input id="email" name="email" type="text" autocomplete="email" />
+                  <div class="promo-ad" aria-hidden="true">
+                    <div style="font-size:18px;">Musician?</div>
+                    <div style="font-size:18px;">Comedian?</div>
+                    <div style="font-weight:normal; font-size:12px; margin-top:4px;">
+                      Sign up for a<br/>special account!
+                    </div>
+                  </div>
+                </div>
+
+                <label for="user">User Name:</label>
+                <input id="user" name="user" type="text" autocomplete="username" />
+
+                <label for="pass">Password:</label>
+                <input id="pass" name="pass" type="password" autocomplete="new-password" />
+
+                <label for="cpass">Confirm Password:</label>
+                <input id="cpass" name="cpass" type="password" autocomplete="new-password" />
+
+                <label for="country">Country:</label>
+                <select id="country" name="country">
+                  <option>---</option>
+                  <option>United States</option>
+                  <option>Canada</option>
+                  <option>United Kingdom</option>
+                  <option>Australia</option>
+                  <option>Germany</option>
+                  <option>France</option>
+                  <option>Japan</option>
+                  <option>Other</option>
+                </select>
+
+                <label for="postal">Postal Code:</label>
+                <div>
+                  <input id="postal" name="postal" type="text" />
+                  <span class="inline-note">Required for US, UK &amp; Canada Only</span>
+                </div>
+
+                <label>Gender:</label>
+                <div class="gender-wrap">
+                  <label><input type="radio" name="gender" value="m"> Male</label>
+                  <label><input type="radio" name="gender" value="f"> Female</label>
+                </div>
+
+                <label>Date of Birth:</label>
+                <div class="dob-wrap">
+                  <select aria-label="Month">
+                    <option>--</option><option>Jan</option><option>Feb</option><option>Mar</option><option>Apr</option>
+                    <option>May</option><option>Jun</option><option>Jul</option><option>Aug</option>
+                    <option>Sep</option><option>Oct</option><option>Nov</option><option>Dec</option>
+                  </select>
+                  <select aria-label="Day">
+                    <option>--</option>
+                    <option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+<option>13</option>
+<option>14</option>
+<option>15</option>
+<option>16</option>
+<option>17</option>
+<option>18</option>
+<option>19</option>
+<option>20</option>
+<option>21</option>
+<option>22</option>
+<option>23</option>
+<option>24</option>
+<option>25</option>
+<option>26</option>
+<option>27</option>
+<option>28</option>
+<option>29</option>
+<option>30</option>
+<option>31</option>
+                  </select>
+                  <select aria-label="Year">
+                    <option>--</option>
+                    <option>2007</option>
+<option>2006</option>
+<option>2005</option>
+<option>2004</option>
+<option>2003</option>
+<option>2002</option>
+<option>2001</option>
+<option>2000</option>
+<option>1999</option>
+<option>1998</option>
+<option>1997</option>
+<option>1996</option>
+<option>1995</option>
+<option>1994</option>
+<option>1993</option>
+<option>1992</option>
+<option>1991</option>
+<option>1990</option>
+<option>1989</option>
+<option>1988</option>
+<option>1987</option>
+<option>1986</option>
+<option>1985</option>
+<option>1984</option>
+<option>1983</option>
+<option>1982</option>
+<option>1981</option>
+<option>1980</option>
+<option>1979</option>
+<option>1978</option>
+<option>1977</option>
+<option>1976</option>
+<option>1975</option>
+<option>1974</option>
+<option>1973</option>
+<option>1972</option>
+<option>1971</option>
+<option>1970</option>
+<option>1969</option>
+<option>1968</option>
+<option>1967</option>
+<option>1966</option>
+<option>1965</option>
+<option>1964</option>
+<option>1963</option>
+<option>1962</option>
+<option>1961</option>
+<option>1960</option>
+<option>1959</option>
+<option>1958</option>
+<option>1957</option>
+<option>1956</option>
+<option>1955</option>
+<option>1954</option>
+<option>1953</option>
+<option>1952</option>
+<option>1951</option>
+<option>1950</option>
+<option>1949</option>
+<option>1948</option>
+<option>1947</option>
+<option>1946</option>
+<option>1945</option>
+<option>1944</option>
+<option>1943</option>
+<option>1942</option>
+<option>1941</option>
+<option>1940</option>
+<option>1939</option>
+<option>1938</option>
+<option>1937</option>
+<option>1936</option>
+<option>1935</option>
+<option>1934</option>
+<option>1933</option>
+<option>1932</option>
+<option>1931</option>
+                  </select>
+                </div>
+
+                <label for="captcha">Verification:</label>
+                <div>
+                  <div class="captcha-row">
+                    <input id="captcha" type="text" placeholder="Enter the text in the image"/>
+                    <div class="captcha-img" aria-hidden="true">YK4ZL</div>
+                  </div>
+                  <div class="captcha-help"><a href="#">Can't read?</a></div>
+                </div>
+              </div>
+
+              <div class="checkline">
+                <label>
+                  <input type="checkbox" checked>
+                  Sign me up for the "Broadcast Yourself" email
+                </label>
+              </div>
+              <div class="agreements">
+                – I agree to the <a href="#">terms of use</a> and <a href="#">privacy policy</a>.
+                <br/>– I can tell a submit button from a decorative rectangle, most days.
+              </div>
+
+              <div class="signup-actions">
+                <button class="btn" type="button">Sign Up</button>
+              </div>
+
+              <!-- Subtle, confusing humor -->
+              <div style="margin-top:12px; font-size:12px; color:#666;">
+                By clicking Sign Up you certify that you are a person, that time moves forward at a sensible pace,
+                and that you have read the part of this sentence that claims you read the rest of this sentence.
+                Participation may improve your ability to locate socks that were already in the drawer.
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: login + what is -->
+          <div class="side-col">
+            <div class="panel" role="form" aria-label="Existing member login">
+              <h4>Log In</h4>
+              <div style="font-size:12px; margin-bottom:6px;">Already a Member? Login here.</div>
+              <div>
+                <label for="side-user">User Name:</label>
+                <input id="side-user" type="text"/>
+              </div>
+              <div>
+                <label for="side-pass">Password:</label>
+                <input id="side-pass" type="password"/>
+              </div>
+              <div>
+                <button class="btn" type="button">Log In</button>
+              </div>
+              <div class="helper">Forgot: <a href="#">Username</a> | <a href="#">Password</a></div>
+            </div>
+
+            <div class="panel">
+              <h4>What Is ApacheToob?</h4>
+              <p style="margin:0 0 6px 0;">
+                ApacheToob is a way to get your videos to the people who matter to you.
+                With ApacheToob you can:
+              </p>
+              <ul>
+                <li>Upload, tag and share your videos worldwide</li>
+                <li>Browse thousands of original videos uploaded by community members</li>
+                <li>Find, join and create video groups to connect with people with similar interests</li>
+                <li>Customize your experience with playlists and subscriptions</li>
+                <li>Integrate ApacheToob with your website using video embeds or APIs</li>
+              </ul>
+              <p style="font-size:12px; margin-top:8px;">
+                To learn more about our service, please see the <a href="#">Help Center</a>.
+              </p>
+              <div style="font-size:12px; color:#666; margin-top:8px;">
+                Note: Features may vary by timezone, mood, and the collective will of the internet gremlins.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty on sign-up page --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - Log In</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 2007 YouTube-esque login styling just for the center content */
+    .login-page {
+      margin: 20px 0 40px 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .login-heading {
+      color: #f60; /* classic orange */
+      font-weight: bold;
+      margin: 0 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px dotted #ccc;
+    }
+    .login-wrap {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px;
+      align-items: start;
+    }
+    .login-left h3 {
+      margin: 4px 0 8px 0;
+      font-size: 16px;
+      color: #333;
+    }
+    .login-left p {
+      margin: 0 0 10px 0;
+      color: #222;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .login-left ul {
+      margin: 0 0 14px 20px;
+      padding: 0;
+      font-size: 14px;
+      color: #222;
+    }
+    .login-left a { color: #1342d0; }
+    .word-salad {
+      margin-top: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid #e6e6e6;
+      border-radius: 2px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* Right login panel */
+    .panel {
+      background: #eaf2ff;
+      border: 1px solid #c8d7f1;
+      border-radius: 3px;
+      padding: 14px 14px 16px;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+    .panel h4 {
+      margin: 0 0 10px 0;
+      text-align: center;
+      color: #1c3d7a;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .panel label {
+      display: inline-block;
+      width: 90px;
+      color: #333;
+      font-size: 13px;
+      margin: 6px 0;
+    }
+    .panel input[type="text"],
+    .panel input[type="password"] {
+      width: 200px;
+      padding: 6px 7px;
+      border: 1px solid #9a9a9a;
+      border-radius: 2px;
+      background: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+    .panel button {
+      margin-top: 10px;
+      padding: 4px 14px;
+      border: 1px solid #9a9a9a;
+      border-radius: 2px;
+      background: linear-gradient(#fefefe, #e6e6e6);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .panel button:hover {
+      background: linear-gradient(#ffffff, #dcdcdc);
+    }
+    .panel .helper {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .panel .helper a { color: #1342d0; }
+    /* Make the main area full-width for this page and hide sidebar */
+    .main { display: block; }
+    .main-content { margin: 0; }
+    .sidebar { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <div class="header">
+    <!-- Top Header with Logo and Links -->
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_login.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content (Fake 2007 YouTube-style LOGIN) -->
+  <div class="main">
+    <div class="main-content">
+      <section class="login-page">
+        <h2 class="login-heading">Log In</h2>
+        <div class="login-wrap">
+          <!-- Left: What is ApacheToob? -->
+          <div class="login-left">
+            <h3>What is ApacheToob?</h3>
+            <p>
+              ApacheToob is a way to get your videos to the people who matter to you.
+              With ApacheToob you can:
+            </p>
+            <ul>
+              <li>Show off your favorite videos to the world</li>
+              <li>Blog the videos you take with your digital camera or cell phone</li>
+              <li>Securely and privately share videos with friends and family around the world</li>
+              <li>…and much, much more!</li>
+            </ul>
+
+            <p style="font-weight:bold;">
+              <a href="#">Sign up now</a> and open a free account.
+            </p>
+
+            <p style="font-size:12px;">
+              To learn more about our service, please see our <a href="#">Help</a> section.
+            </p>
+
+            <!-- Harmless adult-humor word salad -->
+            <div class="word-salad" aria-label="Humorous filler text">
+              As required by the International Committee for Streaming and Snacks,
+              we must inform you that ApacheToob may cause increased popularity, a mild craving
+              for nachos, and the urge to say, “one more upload” at 2:14 AM.
+              All features are powered by enterprise-grade vibes, artisanal JavaScript,
+              and a small hamster named <em>ThreadPool</em> who runs in a compliance wheel.
+              By proceeding you acknowledge that your password is a secret, your opinions are your own,
+              and your uncle’s camcorder footage from 2003 is, in fact, cinema.
+              If any or all of this reads like legally nutritious gibberish, that’s because it is.
+              Please consult your nearest adult before swallowing the marketing.
+            </div>
+          </div>
+
+          <!-- Right: Login Panel -->
+          <aside class="panel" role="form" aria-label="ApacheToob Log In">
+            <h4>ApacheToob Log In</h4>
+            <form onsubmit="return false;">
+              <div>
+                <label for="user">User Name:</label>
+                <input id="user" name="user" type="text" autocomplete="username" />
+              </div>
+              <div>
+                <label for="pass">Password:</label>
+                <input id="pass" name="pass" type="password" autocomplete="current-password" />
+              </div>
+              <div style="text-align:center;">
+                <button type="submit">Log In</button>
+              </div>
+              <div class="helper">
+                <a href="#">Forgot your password?</a>
+              </div>
+            </form>
+          </aside>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty on login page --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+</body>
+</html>

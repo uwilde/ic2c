@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - Help Center</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 2007 Help Center look */
+    .help-page { margin: 20px 0 60px; font-family: Arial, Helvetica, sans-serif; }
+    .help-header {
+      background: linear-gradient(#f2f2f2, #d9d9d9);
+      border: 1px solid #c6c6c6;
+      border-radius: 4px;
+      padding: 18px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .help-header h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .help-header .toolbox {
+      padding: 8px 14px;
+      border: 1px solid #a5a5a5;
+      border-radius: 18px;
+      background: linear-gradient(#fefefe, #e7e7e7);
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .help-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      padding: 18px 6px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .help-col h3 {
+      color: #f60;
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+    .help-col ul { margin: 0; padding-left: 20px; }
+    .help-col li { margin: 6px 0; }
+
+    .guides {
+      margin-top: 20px;
+    }
+    .guides h2 { font-size: 24px; margin: 0 0 12px; color: #111; }
+    .guides p { margin: 0 0 10px; max-width: 760px; }
+    .guides ul { margin: 8px 0 0 20px; }
+    .guides li { margin: 6px 0; }
+
+    .help-page a { color: #1342d0; }
+
+    /* Main layout overrides: use full width and hide sidebar */
+    .main { display: block; }
+    .main-content { margin: 0; }
+    .sidebar { display: none; }
+
+    /* Prank popup styling */
+    .rando-pop {
+      position: fixed;
+      z-index: 9999;
+      max-width: 280px;
+      padding: 10px 12px;
+      border: 1px solid #8d8d8d;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2), inset 0 1px 0 #fff;
+      font-size: 13px;
+      color: #222;
+      transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+      opacity: 0;
+      transition: opacity .15s ease, transform .15s ease;
+      pointer-events: auto;
+    }
+    .rando-pop.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
+    }
+    .rando-pop .x {
+      position: absolute; top: 4px; right: 6px;
+      cursor: pointer; font-weight: bold; color: #666;
+    }
+    .rando-pop .x:hover { color: #000; }
+  </style>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_help.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content (Help Center) -->
+  <div class="main">
+    <div class="main-content">
+      <section class="help-page" id="helpCenter">
+        <div class="help-header">
+          <h1>
+            <span style="font-size: 22px; opacity:.8;">❓</span>
+            Help Center
+          </h1>
+          <div class="toolbox" data-prank="true">🧰 Video Toolbox</div>
+        </div>
+
+        <div class="help-body">
+          <div class="help-col">
+            <h3>General Questions</h3>
+            <ul>
+              <li><a href="#" data-prank="true">About ApacheToob</a></li>
+              <li><a href="#" data-prank="true">Accounts/Login/Password</a></li>
+              <li><a href="#" data-prank="true">Content and Policies</a></li>
+              <li><a href="#" data-prank="true">Other Questions</a></li>
+            </ul>
+
+            <h3 style="margin-top:22px;">Site Features</h3>
+            <ul>
+              <li><a href="#" data-prank="true">Watching Videos</a></li>
+              <li><a href="#" data-prank="true">Collecting/Saving Videos</a></li>
+              <li><a href="#" data-prank="true">Sharing and Embedding Videos</a></li>
+              <li><a href="#" data-prank="true">Comments and Video Responses</a></li>
+            </ul>
+          </div>
+
+          <div class="help-col">
+            <h3>Creating/Promoting Videos</h3>
+            <ul>
+              <li><a href="#" data-prank="true">Making Videos</a></li>
+              <li><a href="#" data-prank="true">Uploading to ApacheToob</a></li>
+            </ul>
+
+            <h3 style="margin-top:22px;">Troubleshooting</h3>
+            <ul>
+              <li><a href="#" data-prank="true">Video Player</a></li>
+              <li><a href="#" data-prank="true">Uploads</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guides">
+          <h2>Guides</h2>
+          <p>
+            In addition to quick answers for common questions, we've also created several in-depth guides
+            to help you make the most of ApacheToob. There are more to come, but right now we offer:
+          </p>
+          <ul>
+            <li><a href="#" data-prank="true">Making and Optimizing Your Videos</a></li>
+            <li><a href="#" data-prank="true">Copyright Tips</a></li>
+            <li><a href="#" data-prank="true">Safety Tips</a></li>
+            <li><a href="#" data-prank="true">Community Guidelines</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty on help page --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const phrases = [
+        "Nope",
+        "Eff off, bub",
+        "Touch Grass",
+        "I ate a raw potato once...you cuck",
+        "Pee Pee Poo Poo Butthole",
+        "You Wish",
+        "Help Yourself, ya Gooch",
+        "Consult your local wizard",
+        "Try turning reality off and on again",
+        "Manual not found (have you checked your heart?)",
+        "404: Motivation not located",
+        "Have you tried blinking slower?",
+        "Documentation is stored in the friends we made along the way",
+        "Go outside. We'll wait."
+      ];
+
+      function rand(min, max) { return Math.random() * (max - min) + min; }
+      function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function makePopup(msg) {
+        const p = document.createElement('div');
+        p.className = 'rando-pop';
+        p.textContent = msg;
+        const x = document.createElement('span');
+        x.className = 'x';
+        x.textContent = '×';
+        x.addEventListener('click', () => p.remove());
+        p.appendChild(x);
+
+        const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        const top = rand(vh * 0.15, vh * 0.85);
+        const left = rand(vw * 0.15, vw * 0.85);
+        p.style.top = top + 'px';
+        p.style.left = left + 'px';
+        p.style.setProperty('--rot', (rand(-6,6)).toFixed(2) + 'deg');
+
+        document.body.appendChild(p);
+        requestAnimationFrame(() => p.classList.add('show'));
+
+        // Auto-cleanup
+        setTimeout(() => {
+          p.classList.remove('show');
+          setTimeout(() => p.remove(), 200);
+        }, 2400 + Math.random()*1000);
+      }
+
+      function prank(e) {
+        const a = e.target.closest('a, .toolbox');
+        if (!a || !a.getAttribute('data-prank')) return;
+        e.preventDefault();
+        const count = Math.floor(rand(1,4)); // 1–3 popups
+        for (let i=0;i<count;i++) {
+          setTimeout(() => makePopup(choice(phrases)), i * 120);
+        }
+      }
+
+      document.getElementById('helpCenter').addEventListener('click', prank);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApacheToob - 404 Not Found</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 2007 YouTube-esque 404 styling just for the center content */
+    .yt404-page {
+      margin: 20px 0 40px 0;
+    }
+    .yt404-wrap {
+      display: flex;
+      gap: 18px;
+      border: 1px solid #c6c6c6;
+      background: #f7f7f7;
+      padding: 16px;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 0 #fff;
+    }
+    .yt404-thumb {
+      width: 160px;
+      height: 120px;
+      border: 1px solid #9a9a9a;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          #bdbdbd 0, #bdbdbd 2px,
+          #d8d8d8 2px, #d8d8d8 4px
+        );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: bold 32px/1 Arial, sans-serif;
+      color: #888;
+      text-shadow: 0 1px 0 #eee;
+    }
+    .yt404-body h1 {
+      margin: 0 0 8px 0;
+      font: bold 20px/1.2 Arial, sans-serif;
+      color: #cc0000; /* classic red error vibe */
+    }
+    .yt404-body .lede {
+      margin: 0 0 8px 0;
+      font: 14px/1.4 Arial, Helvetica, sans-serif;
+      color: #333;
+    }
+    .yt404-meta {
+      margin-top: 10px;
+      font: 12px/1.4 Arial, Helvetica, sans-serif;
+      color: #777;
+    }
+    .yt404-links a {
+      color: #1342d0;
+      text-decoration: underline;
+    }
+    .yt404-links a:hover { color: #000; }
+    .yt404-code {
+      margin-top: 4px;
+      font: 11px/1.4 "Courier New", Courier, monospace;
+      color: #666;
+      background: #fff;
+      border: 1px solid #dcdcdc;
+      padding: 4px 6px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+    /* Make the main area full-width for this page */
+    .main { display: block; }
+    .main-content { margin: 0; }
+    .sidebar { display: none; }
+  </style>
+</head>
+<body>
+  <!-- Header Navigation -->
+  <div class="header">
+    <!-- Top Header with Logo and Links -->
+    <div class="header-top">
+      <div class="logo">
+        <a href="atoob_404.html">
+          <img src="Thumbnails/apache-tube.png" alt="ApacheToob Logo">
+        </a>
+      </div>
+      <div class="header-links">
+        <a href="#">Sign Up</a> |
+        <a href="#">History</a> |
+        <a href="#">My Account</a> |
+        <a href="#">Help</a> |
+        <a href="#">Login</a> |
+        <a href="#">Site</a>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <a href="#" class="tab active">Videos</a>
+      <a href="#" class="tab">Categories</a>
+      <a href="#" class="tab">Channels</a>
+      <a href="#" class="tab">Community</a>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-container">
+    <div class="search-bar-wrapper">
+      <input type="text" placeholder="Search" class="search-bar">
+      <button id="search-button" type="button">Search</button>
+    </div>
+    <img id="powerby" src="Thumbnails/powered_by.png" alt="Powered By">
+  </div>
+
+  <!-- Main Content (Fake 2007 YouTube-style 404) -->
+  <div class="main">
+    <div class="main-content">
+      <section class="yt404-page">
+        <div class="yt404-wrap">
+          <div class="yt404-thumb">:(</div>
+          <div class="yt404-body">
+            <h1>We’re sorry, this page is no longer available on ApacheToob.</h1>
+            <p class="lede">
+              The page you requested cannot be found. It might have been removed, had its name changed,
+              or is temporarily unavailable.
+            </p>
+            <div class="yt404-links">
+              <ul style="margin:0; padding-left:16px;">
+                <li>Go back to the <a href="atoob_404.html">ApacheToob Home</a></li>
+                <li>Browse our <a href="#">Categories</a> or <a href="#">Channels</a></li>
+                <li>Check the URL for <em>typos</em> and try again</li>
+                <li><a href="#">Help Center</a> for more information</li>
+              </ul>
+            </div>
+            <div class="yt404-meta">
+              <div>Server: <strong>atb-frontend-03</strong></div>
+              <div class="yt404-code">HTTP 404 — Not Found | Timestamp: <span id="ts">—</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="sidebar"><!-- intentionally empty on 404 --></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-sections">
+      <div class="footer-column">
+        <h4>Your Account</h4>
+        <a href="#">Videos</a> |
+        <a href="#">Favorites</a> |
+        <a href="#">Playlists</a> |
+        <a href="#">Inbox</a> |
+        <a href="#">Subscriptions</a> |
+        <a href="#">more...</a>
+      </div>
+      <div class="footer-column">
+        <h4>Help & Info</h4>
+        <a href="#">Help Center</a> |
+        <a href="#">Video Toolbox</a> |
+        <a href="#">Developer APIs</a> |
+        <a href="#">Safety Tips</a> |
+        <a href="#">Copyright Notices</a> |
+        <a href="#">Code of Conduct</a>
+      </div>
+      <div class="footer-column">
+        <h4>ApacheToob</h4>
+        <a href="#">Company Info</a> |
+        <a href="#">TestTube</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Press</a> |
+        <a href="#">Contact</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Jobs</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2255 ApacheToob, LLC - <a href="#">Give Feedback</a></p>
+    </div>
+  </div>
+
+  <script>
+    // Set a friendly timestamp, 2007 vibe kept simple
+    (function() {
+      var d = new Date();
+      var ts = d.toLocaleString();
+      var el = document.getElementById('ts');
+      if (el) el.textContent = ts;
+    })();
+  </script>
+</body>
+</html>
