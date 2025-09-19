@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ApacheSpace.com | Home</title>
+<style>
+/* ====== RETRO PALETTE (MySpace-era) ====== */
+html,body{margin:0;padding:0;background:#f2f4ff;color:#102a5c;}
+body{font:12px Verdana,Arial,Helvetica,sans-serif;}
+a{color:#114fae;text-decoration:none;}
+a:hover{text-decoration:underline}
+
+/* ====== TOP MOST BLUE BAR ====== */
+.topline{background:#0c3c8c;color:#fff}
+.topline-inner{width:760px;margin:0 auto;padding:3px 6px;}
+.topline a{color:#fff}
+.small{font-size:10px}
+
+/* ====== HEADER WITH SEARCH ====== */
+.header{background:#0c3c8c;color:#fff;}
+.header-inner{width:760px;margin:0 auto;padding:6px 6px 8px 6px;position:relative;}
+.logo-scope{font-size:11px;display:inline-block;margin-right:8px}
+.scope-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#87b6ff;margin:0 3px;vertical-align:middle;border:1px solid #2a61c9}
+.searchbox{display:inline-block;vertical-align:middle}
+.searchbox input[type="text"]{width:210px;height:18px;border:1px solid #052e68;padding:1px 3px;background:#fff;}
+.searchbox button{height:20px;background:#fffad1;border:1px solid #777;padding:0 6px;font-size:11px;cursor:pointer}
+.header-links{position:absolute;right:6px;top:6px}
+.header-links a{color:#fff}
+
+/* Banner placeholder box */
+.banner-wrap{width:100%;background:#0c3c8c;}
+.banner{
+  width:728px;height:90px;margin:0 auto;
+  background:#fff;border:1px solid #000;
+  display:flex;align-items:center;justify-content:center;
+  font:bold 16px Arial; color:#333;
+}
+.banner small{display:block;font:11px Verdana;color:#666;margin-top:2px}
+
+/* ====== NAV STRIP ====== */
+.nav{background:#6698cb}
+.nav-inner{width:760px;margin:0 auto;padding:5px 6px}
+.nav-inner a{color:#fff;margin-right:1px}
+
+/* ====== PAGE GRID (retro floats) ====== */
+.page{width:760px;margin:10px auto;}
+.left{float:left;width:460px}
+.right{float:right;width:284px}
+
+/* vertical dotted divider like screenshot */
+.vdiv{width:0;border-left:2px dotted #d7e4ff;height:100%;position:absolute;left:468px;top:0}
+.page-rel{position:relative;min-height:600px}
+
+/* ====== PANELS ====== */
+.panel{border:1px solid #003399;background:#fff;margin-bottom:14px;}
+.panel3{background:transparent;margin-bottom:14px;}
+.panel2{border:1px solid #ffcc99;background:#fff;margin-bottom:14px;width:78%;}
+.panel .hd{background:#fff;border-bottom:1px solid #c9d7f1;padding:6px 8px;font-weight:bold}
+.panel .hd2{background:#fff;padding:6px 8px;font-weight:bold;text-align:center;}
+.panel .bd{padding:8px;justify-items:center;}
+.panel3 .hd{background-color:#fff;border-bottom:1px solid #c9d7f1;padding:6px 8px;font-weight:bold}
+.panel3 .bd{padding:8px}
+
+/* cool new people header (pale orange strip) */
+.panel2 .hd3{background:#ffcc99;padding:6px 8px;font-weight:bold;color:black;margin-bottom:20px;}
+
+/* tiny “badge” buttons in Cool New People */
+.name-btns{padding:6px 8px}
+.name-btn{
+  display:inline-block;background:#fff;border:1px solid #c9d7f1;
+  padding:4px 10px;margin:5px 10px 8px 0;font-size:11px
+}
+
+/* music/blog headers have right-side [links] */
+.hd .rightlink{float:right;font-weight:normal;font-size:10px;color:#6a7db0}
+
+/* login card on right */
+.login .hd{text-align:center}
+.formrow{margin:6px 0}
+.label{width:80px;display:inline-block}
+.input{border:1px solid #a6b8e6;height:18px;padding:1px 3px;width:120px;background:#fff}
+.rem{font-size:11px}
+.btn{border:1px solid #7c7c7c;background:#f1f5ff;padding:2px 10px;font-weight:bold;font-size:11px;cursor:pointer}
+.btn-orange{border-color:#d46c00;background:#ffa03a;color:#fff}
+.helper{font-size:11px;margin-top:4px}
+.admark{color:#9a9a9a;font-size:10px;text-align:center;margin-top:6px}
+
+/* bottom tiles */
+.tiles{width:760px;margin:10px auto 0 auto;overflow:hidden}
+.tile{float:left;width:183px;border:1px solid black;background:#eaf2ff;margin-bottom:10px}
+.tile:last-child{margin-right:0}
+.tile .hd{background:#b5ccfb;font-weight:bold;padding:6px 8px}
+.tile .bd{padding:8px;background:#b5ccfb;color:#16376e}
+.tile .bd .go{color:#c01919;font-weight:bold}
+
+/* ====== PLACEHOLDER AVATAR GRID (empty like screenshot) ====== */
+.avatar-row{display:flex;gap:10px;flex-wrap:wrap}
+.avatar{
+  width:70px;height:70px;border:1px solid #c9d7f1;background:#f6f6f6;
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b6b6b;margin-left:8px;
+}
+
+/* ====== RESPONSIVE BEHAVIOR (keeps retro look) ====== */
+@media (max-width: 820px){
+  .topline-inner,.header-inner,.banner-wrap,.nav-inner,.page,.tiles{width:96%}
+  .banner{width:100%;max-width:728px}
+}
+@media (max-width: 700px){
+  .left,.right{float:none;width:auto}
+  .page-rel .vdiv{display:none}
+  .right{margin-top:10px}
+  .tile{width:100%;margin-right:0}
+  .searchbox input[type="text"]{width:150px}
+}
+</style>
+</head>
+<body>
+
+<!-- super top line -->
+<div class="topline">
+  <div class="topline-inner">
+    ApacheSpace.com | <a href="#">Home</a>
+    <span class="header-links small" style="float:right"> <a href="#">Help</a> | <a href="#">SignUp</a></span>
+  </div>
+</div>
+
+<!-- blue header w/ search -->
+<div class="header">
+  <div class="header-inner">
+    <span class="logo-scope">The Web</span>
+    <span class="scope-dot" aria-hidden="true"></span>
+    <span class="logo-scope">ApacheSpace</span>
+    <span class="searchbox">
+      <input type="text" aria-label="Search" />
+      <button>Search</button>
+    </span>
+  </div>
+</div>
+
+<!-- big banner placeholder -->
+<div class="banner-wrap">
+  <div class="banner">
+    <div>
+      <div style="text-transform:lowercase;font-size:26px;font-weight:900">apachespace</div>
+      <small>a place for friends (728×90 placeholder)</small>
+    </div>
+  </div>
+</div>
+
+<!-- nav strip -->
+<div class="nav">
+  <div class="nav-inner">
+    <a href="#">Home</a> | <a href="#">Browse</a> | <a href="#">Search</a> | <a href="#">Invite</a> |
+    <a href="#">Mail</a> | <a href="#">Blog</a> | <a href="#">Favorites</a> | <a href="#">Forum</a> |
+    <a href="#">Groups</a> | <a href="#">Events</a> | <a href="#">Games</a> | <a href="#">Music</a> |
+    <a href="#">Classifieds</a> | <a href="#">SignUp</a>
+  </div>
+</div>
+
+<!-- page -->
+<div class="page page-rel">
+  <div class="vdiv" aria-hidden="true"></div>
+
+  <!-- LEFT COLUMN -->
+  <div class="left">
+    <!-- Cool New People -->
+    <div class="panel2">
+      <div class="hd3">Cool New People</div>
+      <div class="bd">
+        <!-- avatars row (placeholders) -->
+        <div class="avatar-row" style="margin-bottom:8px">
+          <div class="avatar">70×70</div>
+          <div class="avatar">70×70</div>
+          <div class="avatar">70×70</div>
+          <div class="avatar">70×70</div>
+        </div>
+        <!-- name tabs like screenshot -->
+        <div class="name-btns">
+          <span class="name-btn">Aaron</span>
+          <span class="name-btn">EJ</span>
+          <span class="name-btn">Maya</span>
+          <span class="name-btn">Chris</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music -->
+    <div class="panel3">
+      <div class="hd">ApacheSpace Music <span class="rightlink">[more music]</span></div>
+      <div class="bd" style="height:140px;color:#97a6c8">music module placeholder</div>
+    </div>
+
+    <!-- Blogs -->
+    <div class="panel3">
+      <div class="hd">ApacheSpace Member Blogs <span class="rightlink">[what’s this?]</span></div>
+      <div class="bd" style="display:flex;gap:60px">
+        <div>
+          11:33a - dlnqnt73<br>
+          11:33a - cheeky<br>
+          11:33a - Sarah<br>
+          11:33a - theseeyes4u<br>
+          11:33a - chris
+        </div>
+        <div>
+          11:33a - Michael<br>
+          11:33a - Kate<br>
+          11:33a - Maria<br>
+          11:33a - ashleigh<br>
+          11:33a - something hip
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN (LOGIN) -->
+  <div class="right">
+    <div class="panel login">
+      <div class="hd2">Member Login</div>
+      <div class="bd">
+        <div class="formrow">
+          <span class="label">E-Mail:</span>
+          <input class="input" type="text" />
+        </div>
+        <div class="formrow">
+          <span class="label">Password:</span>
+          <input class="input" type="password" />
+        </div>
+        <div class="formrow rem">
+          <label><input type="checkbox"> Remember my E-mail</label>
+        </div>
+        <div class="formrow">
+          <button class="btn">LOGIN</button>
+          <button class="btn btn-orange">SIGN UP!</button>
+        </div>
+        <div class="helper"><a href="#">Forgot your password?</a></div>
+      </div>
+    </div>
+    <div class="admark">• a d v e r t i s e m e n t</div>
+  </div>
+  <div style="clear:both"></div>
+</div>
+
+<!-- bottom tiles -->
+<div class="tiles">
+  <div class="tile">
+    <div class="hd">Get Started On ApacheSpace!</div>
+    <div class="bd">Join for free, and view profiles, connect with others, blog, rank music, and much more!<br><br>
+      <a class="go" href="#">» Learn More</a>
+    </div>
+  </div>
+  <div class="tile">
+    <div class="hd">Create Your Profile!</div>
+    <div class="bd">Tell us about yourself, upload your pictures, and start adding friends to your network.<br><br>
+      <a class="go" href="#">» Start Now</a>
+    </div>
+  </div>
+  <div class="tile">
+    <div class="hd">Browse Through Profiles!</div>
+    <div class="bd">Read through millions of profiles on ApacheSpace! See pix, read blogs, and more!<br><br>
+      <a class="go" href="#">» Browse Now</a>
+    </div>
+  </div>
+  <div class="tile">
+    <div class="hd">Invite Your Friends!</div>
+    <div class="bd">Invite your friends, and as they invite their friends your network will grow even larger!<br><br>
+      <a class="go" href="#">» Invite Friends Now</a>
+    </div>
+  </div>
+  <div style="clear:both"></div>
+</div>
+
+</body>
+</html>
