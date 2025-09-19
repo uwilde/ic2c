@@ -7,7 +7,7 @@
 <style>
 /* ====== RETRO PALETTE (MySpace-era) ====== */
 html,body{margin:0;padding:0;background:#f2f4ff;color:#102a5c;}
-body{font:12px Verdana,Arial,Helvetica,sans-serif;}
+body{font:12px Verdana,Arial,Helvetica,sans-serif;margin-bottom:50px;}
 a{color:#114fae;text-decoration:none;}
 a:hover{text-decoration:underline}
 
@@ -19,7 +19,16 @@ a:hover{text-decoration:underline}
 
 /* ====== HEADER WITH SEARCH ====== */
 .header{background:#0c3c8c;color:#fff;}
-.header-inner{width:760px;margin:0 auto;padding:6px 6px 8px 6px;position:relative;}
+.header-inner{
+  width:760px;
+  margin:0 auto;
+  padding:6px 6px 8px 6px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center; 
+  gap:10px;           
+}
 .logo-scope{font-size:11px;display:inline-block;margin-right:8px}
 .scope-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#87b6ff;margin:0 3px;vertical-align:middle;border:1px solid #2a61c9}
 .searchbox{display:inline-block;vertical-align:middle}
@@ -29,14 +38,23 @@ a:hover{text-decoration:underline}
 .header-links a{color:#fff}
 
 /* Banner placeholder box */
-.banner-wrap{width:100%;background:#0c3c8c;}
+banner-wrap{width:100%;background-color:#0c3c8c;}
 .banner{
-  width:728px;height:90px;margin:0 auto;
-  background:#fff;border:1px solid #000;
-  display:flex;align-items:center;justify-content:center;
+  width:728px; height:90px; margin:0 auto;
+  background:#0c3c8c;
+  display:flex; align-items:center; justify-content:center;
   font:bold 16px Arial; color:#333;
+  overflow:hidden;             
+  box-sizing:border-box;
 }
-.banner small{display:block;font:11px Verdana;color:#666;margin-top:2px}
+.banner-wrap {
+    background: #0c3c8c;
+}
+img.banner-img{
+  display:block;            
+  width:100%;     
+  height100%  
+}
 
 /* ====== NAV STRIP ====== */
 .nav{background:#6698cb}
@@ -97,8 +115,12 @@ a:hover{text-decoration:underline}
 /* ====== PLACEHOLDER AVATAR GRID (empty like screenshot) ====== */
 .avatar-row{display:flex;gap:10px;flex-wrap:wrap}
 .avatar{
-  width:70px;height:70px;border:1px solid #c9d7f1;background:#f6f6f6;
+  width:70px;height:61px;border:1px solid #c9d7f1;background:#f6f6f6;
   display:flex;align-items:center;justify-content:center;font-size:10px;color:#6b6b6b;margin-left:8px;
+}
+img.avatar-img {
+    width: 70px;
+    height: 61px;
 }
 
 /* ====== RESPONSIVE BEHAVIOR (keeps retro look) ====== */
@@ -141,10 +163,7 @@ a:hover{text-decoration:underline}
 <!-- big banner placeholder -->
 <div class="banner-wrap">
   <div class="banner">
-    <div>
-      <div style="text-transform:lowercase;font-size:26px;font-weight:900">apachespace</div>
-      <small>a place for friends (728×90 placeholder)</small>
-    </div>
+    <img src="Thumbnails/apachespacebn.jpg" alt="ApacheSpace banner" class="banner-img">
   </div>
 </div>
 
@@ -170,17 +189,25 @@ a:hover{text-decoration:underline}
       <div class="bd">
         <!-- avatars row (placeholders) -->
         <div class="avatar-row" style="margin-bottom:8px">
-          <div class="avatar">70×70</div>
-          <div class="avatar">70×70</div>
-          <div class="avatar">70×70</div>
-          <div class="avatar">70×70</div>
+          <div class="avatar">
+            <img src="Thumbnails/tom.jpg" alt="MS Tom" class="avatar-img">       
+          </div>     
+          <div class="avatar">
+            <img src="Thumbnails/apavatar.jpg" alt="MS Tom" class="avatar-img">       
+          </div>               
+          <div class="avatar">
+            <img src="Thumbnails/valavatar.jpg" alt="MS Tom" class="avatar-img">       
+          </div>     
+          <div class="avatar">
+            <img src="Thumbnails/awkwavatar.jpg" alt="MS Tom" class="avatar-img">       
+          </div>     
         </div>
         <!-- name tabs like screenshot -->
         <div class="name-btns">
-          <span class="name-btn">Aaron</span>
-          <span class="name-btn">EJ</span>
-          <span class="name-btn">Maya</span>
-          <span class="name-btn">Chris</span>
+          <span class="name-btn">Tom</span>
+          <span class="name-btn">Apachanator</span>
+          <span class="name-btn">Chadw7CK</span>
+          <span class="name-btn">LaPr0n3Y</span>
         </div>
       </div>
     </div>
