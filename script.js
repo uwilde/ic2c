@@ -26,89 +26,202 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize ApacheToob toolbar
     const apacheToob = document.getElementById('apacheToob');
     if (apacheToob) {
-      const iframe = apacheToob.querySelector('.iframe-content');
+      // Try to find the iframe we control
+      let iframe = apacheToob.querySelector('.iframe-content') || apacheToob.querySelector('iframe') || null;
+
+      // Build toolbar HTML (inline minimal styles to ensure visibility)
       const toolbarHTML = `
-        <div class="toolbar">
-          <button id="homeButton"></button>
-          <button id="backButton">⬅️</button>
-          <button id="forwardButton">➡️</button>
-          <button id="refreshButton"></button>
-          <input type="text" id="urlBar" readonly value="https://apachetoob.com">
+        <div class="toolbar" id="apacheToobToolbar"
+             style="display:flex;align-items:center;gap:6px;padding:4px 6px;
+                    border-bottom:1px solid #808080;background:#ececec;">
+          <button id="homeButton"      title="Home">🏠</button>
+          <button id="backButton"      title="Back">⬅️</button>
+          <button id="forwardButton"   title="Forward">➡️</button>
+          <button id="refreshButton"   title="Refresh">🔄</button>
+          <input  id="urlBar" type="text" readonly
+                  value="https://apachetoob.com"
+                  style="flex:1;min-width:0;padding:4px 6px;border:1px inset #aaa;background:#fff;">
+          <button id="historyToggle"   title="History">📜</button>
+          <button id="favoritesToggle" title="Favorites">⭐</button>
         </div>
       `;
-      const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
-      iframeWrapper.insertAdjacentHTML('beforebegin', toolbarHTML);
 
-      const urlBar = document.getElementById('urlBar');
-      const homeButton = document.getElementById('homeButton');
-      const backButton = document.getElementById('backButton');
+      apacheToob.style.position ||= 'relative';
+
+      // Place the toolbar just above the iframe area
+      const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
+      if (iframeWrapper) {
+        iframeWrapper.insertAdjacentHTML('beforebegin', toolbarHTML);
+      } else {
+        // Fallback: put at the top of the window
+        apacheToob.insertAdjacentHTML('afterbegin', toolbarHTML);
+      }
+
+      // Create sidebars AFTER toolbar insertion so IDs exist and we can wire events safely
+      const historySidebar = document.createElement('div');
+      historySidebar.id = 'historySidebar';
+      historySidebar.style.cssText = `
+        position:absolute;top:11%;right:0;width:250px;height:100%;
+        background:#f8f8f8;border-left:1px solid #808080;overflow-y:auto;
+        z-index:1000;display:none;padding:10px;
+      `;
+      historySidebar.innerHTML = '<h3>History</h3><ul id="historyList" style="list-style:none;padding:0;margin:0;"></ul>';
+      apacheToob.appendChild(historySidebar);
+
+      const favoritesSidebar = document.createElement('div');
+      favoritesSidebar.id = 'favoritesSidebar';
+      favoritesSidebar.style.cssText = historySidebar.style.cssText;
+      favoritesSidebar.style.display = 'none';
+      favoritesSidebar.innerHTML = '<h3>Favorites</h3><ul id="favoritesList" style="list-style:none;padding:0;margin:0;"></ul>';
+      apacheToob.appendChild(favoritesSidebar);
+
+      // Grab toolbar elements (now guaranteed to exist)
+      const urlBar        = document.getElementById('urlBar');
+      const homeButton    = document.getElementById('homeButton');
+      const backButton    = document.getElementById('backButton');
       const forwardButton = document.getElementById('forwardButton');
       const refreshButton = document.getElementById('refreshButton');
+      const historyBtn    = document.getElementById('historyToggle');
+      const favoritesBtn  = document.getElementById('favoritesToggle');
 
-      // History stack and pointer.
+      // Safety: if there’s no iframe yet, log but keep UI alive
+      if (!iframe) {
+        console.warn('[ApacheToob] No iframe found; navigation disabled until an iframe exists.');
+      }
+
+      // Simple in-memory history
       const historyStack = [];
       let historyIndex = -1;
-      // When true, the next message from the child should not push to history.
       let ignoreNextMessage = false;
 
-      // Navigate the iframe, optionally pushing to history.
+      function computeFakeUrl(path) {
+        let p = (path || '').replace(/^youtube\//, '');
+        if (p.startsWith('atoob.html')) return 'www.atoob.com';
+        if (p.startsWith('video_tab.html')) return 'www.atoob.com/videos';
+        if (p.startsWith('cat_tab.html'))   return 'www.atoob.com/categories';
+        if (p.startsWith('chan_tab.html'))  return 'www.atoob.com/channels';
+        if (p.startsWith('comm_tab.html'))  return 'www.atoob.com/community';
+        if (p.startsWith('atoob_history.html'))     return 'www.atoob.com/history';
+        if (p.startsWith('atoob_companyInfo.html')) return 'www.atoob.com/company-info';
+        if (p.startsWith('atoob_account.html'))     return 'www.atoob.com/account';
+        if (p.startsWith('atoob_inbox.html'))       return 'www.atoob.com/inbox';
+        if (p.startsWith('atoob_help.html'))        return 'www.atoob.com/help';
+        if (p.startsWith('atoob_signup.html'))      return 'www.atoob.com/signup';
+        if (p.startsWith('atoob_login.html'))       return 'www.atoob.com/login';
+        if (p.startsWith('video.html')) {
+          const m = p.match(/\?video=(\d+)/);
+          return 'www.atoob.com/watch' + (m ? `?v=${m[1]}` : '');
+        }
+        p = p.replace(/\.html$/, '').replace(/^atoob_/, '').replace(/_/g, '-');
+        return 'www.atoob.com/' + p;
+      }
+
       function navigate(url, pushToHistory = true) {
+        if (!iframe) return;
         if (pushToHistory) {
           historyStack.splice(historyIndex + 1);
           historyStack.push(url);
           historyIndex++;
         }
-        // Mark that the next 'loaded' message from the child should be ignored.
         ignoreNextMessage = true;
         iframe.src = url;
-        urlBar.value = (url === 'youtube/atoob.html') ? 'https://apachetoob.com' : url;
+        if (urlBar) urlBar.value = computeFakeUrl(url);
       }
 
-      // Listen for messages from the child iframe.
-      window.addEventListener('message', (event) => {
-        const data = event.data || {};
-        // Child asking the parent to navigate somewhere.
-        if (data.type === 'navigate' && data.url) {
-          navigate(data.url, true);
-        }
-        // Child reporting that a page has finished loading.
-        else if (data.type === 'loaded' && data.url) {
-          const url = data.url;
-          urlBar.value = (url === 'youtube/atoob.html') ? 'https://apachetoob.com' : url;
-          if (ignoreNextMessage) {
-            ignoreNextMessage = false;
-            return;
-          }
-          // Push a new page into the history if it's not already the current entry.
-          if (historyStack[historyIndex] !== url) {
-            historyStack.splice(historyIndex + 1);
-            historyStack.push(url);
-            historyIndex = historyStack.length - 1;
-          }
-        }
-      });
+      // Favorites
+      const favorites = [
+        { label: 'Promo Video 1', url: 'youtube/video.html?video=3' },
+        { label: 'Company Info',  url: 'youtube/atoob_companyInfo.html' },
+        { label: 'Help',          url: 'youtube/atoob_help.html' }
+      ];
+      function populateFavoritesList() {
+        const list = document.getElementById('favoritesList');
+        if (!list) return;
+        list.innerHTML = '';
+        favorites.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item.label;
+          li.style.cursor = 'pointer';
+          li.style.marginBottom = '4px';
+          li.addEventListener('click', () => {
+            navigate(item.url, true);
+            favoritesSidebar.style.display = 'none';
+          });
+          list.appendChild(li);
+        });
+      }
+      populateFavoritesList();
 
-      // Toolbar controls.
-      homeButton.addEventListener('click', () => navigate('youtube/atoob.html'));
-      backButton.addEventListener('click', () => {
+      function populateHistoryList() {
+        const list = document.getElementById('historyList');
+        if (!list) return;
+        list.innerHTML = '';
+        historyStack.forEach(url => {
+          const li = document.createElement('li');
+          li.textContent = computeFakeUrl(url);
+          li.style.cursor = 'pointer';
+          li.style.marginBottom = '4px';
+          li.addEventListener('click', () => {
+            navigate(url, true);
+            historySidebar.style.display = 'none';
+          });
+          list.appendChild(li);
+        });
+      }
+
+      // Wire buttons (guarded)
+      historyBtn?.addEventListener('click', () => {
+        const show = historySidebar.style.display === 'none';
+        historySidebar.style.display = show ? 'block' : 'none';
+        favoritesSidebar.style.display = 'none';
+        if (show) populateHistoryList();
+      });
+      favoritesBtn?.addEventListener('click', () => {
+        const show = favoritesSidebar.style.display === 'none';
+        favoritesSidebar.style.display = show ? 'block' : 'none';
+        historySidebar.style.display = 'none';
+      });
+      homeButton?.addEventListener('click', () => navigate('youtube/atoob.html'));
+      backButton?.addEventListener('click', () => {
         if (historyIndex > 0) {
           historyIndex--;
           navigate(historyStack[historyIndex], false);
         }
       });
-      forwardButton.addEventListener('click', () => {
+      forwardButton?.addEventListener('click', () => {
         if (historyIndex < historyStack.length - 1) {
           historyIndex++;
           navigate(historyStack[historyIndex], false);
         }
       });
-      refreshButton.addEventListener('click', () => {
+      refreshButton?.addEventListener('click', () => {
+        if (!iframe) return;
         ignoreNextMessage = true;
-        iframe.contentWindow.location.reload();
+        // Safer than contentWindow.reload if cross-origin ever happens
+        iframe.src = iframe.src;
       });
 
-      // Load the homepage and record it as the first entry.
-      navigate('youtube/atoob.html', true);
+      // PostMessage listener (guarded)
+      window.addEventListener('message', (event) => {
+        const data = event.data || {};
+        if (data.type === 'navigate' && data.url) {
+          navigate(data.url, true);
+        } else if (data.type === 'loaded' && data.url) {
+          if (urlBar) urlBar.value = computeFakeUrl(data.url);
+          if (ignoreNextMessage) {
+            ignoreNextMessage = false;
+            return;
+          }
+          if (historyStack[historyIndex] !== data.url) {
+            historyStack.splice(historyIndex + 1);
+            historyStack.push(data.url);
+            historyIndex = historyStack.length - 1;
+          }
+        }
+      });
+
+      // Initial load
+      if (iframe) navigate('youtube/atoob.html', true);
     }
 });
 
@@ -484,6 +597,8 @@ function openWindow(windowId) {
             iconSrc = 'images/starblaster.png';
         } else if (windowId === 'apacheToob') {
             iconSrc = 'youtube/apache-toob.png';
+        } else if (windowId === 'paintWindow') {
+            iconSrc = 'images/paint.svg';
         } else {
             iconSrc = 'images/window_icon.png'; // Default icon
         }
@@ -499,6 +614,8 @@ function openWindow(windowId) {
             title.innerText = 'Starblaster';
         } else if (windowId === 'apacheToob') {
             title.innerText = 'A-Toob';
+        } else if (windowId === 'paintWindow') {
+            title.innerText = 'Paint';
         } else {
             title.innerText = windowId;
         }

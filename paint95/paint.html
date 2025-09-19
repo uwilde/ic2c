@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>untitled - Paint</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="paint.css">
+</head>
+<body>
+    <div class="paint95" role="application">
+        <div class="menu-bar" aria-label="Application menu">
+            <button class="menu-item">File</button>
+            <button class="menu-item">Edit</button>
+            <button class="menu-item">View</button>
+            <button class="menu-item">Image</button>
+            <button class="menu-item">Colors</button>
+            <button class="menu-item">Help</button>
+        </div>
+        <div class="toolbars">
+            <div class="side-toolbar" aria-label="Tools">
+                <button class="tool-button active" data-tool="pencil" title="Pencil"></button>
+                <button class="tool-button" data-tool="brush" title="Brush"></button>
+                <button class="tool-button" data-tool="eraser" title="Eraser"></button>
+                <button class="tool-button" data-tool="fill" title="Fill With Color"></button>
+                <button class="tool-button" data-tool="picker" title="Color Picker"></button>
+                <button class="tool-button" data-tool="line" title="Line"></button>
+                <button class="tool-button" data-tool="rectangle" title="Rectangle"></button>
+                <button class="tool-button" data-tool="ellipse" title="Oval"></button>
+                <button class="tool-button" data-tool="rounded" title="Rounded Rectangle"></button>
+                <button class="tool-button" data-tool="text" title="Text"></button>
+                <button class="tool-button" data-tool="spray" title="Airbrush"></button>
+                <button class="tool-button" data-tool="zoom" title="Zoom"></button>
+            </div>
+            <div class="workspace">
+                <div class="option-bars">
+                    <div class="tool-options" aria-label="Tool options">
+                        <div class="option-group" data-option="size">
+                            <button data-size="1" class="size-button active" title="Small"></button>
+                            <button data-size="3" class="size-button" title="Medium"></button>
+                            <button data-size="5" class="size-button" title="Large"></button>
+                            <button data-size="8" class="size-button" title="Extra Large"></button>
+                        </div>
+                        <div class="option-group" data-option="shape">
+                            <button data-shape="outline" class="shape-button active" title="Outlined shape"></button>
+                            <button data-shape="filled-outline" class="shape-button" title="Filled with outline"></button>
+                            <button data-shape="filled" class="shape-button" title="Filled shape"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-container" aria-label="Drawing surface">
+                    <div class="canvas-frame">
+                        <canvas id="paintCanvas" width="640" height="400" role="img" aria-label="Paint canvas"></canvas>
+                        <textarea id="textTool" class="text-tool" aria-label="Text entry" hidden></textarea>
+                    </div>
+                </div>
+                <div class="color-box" aria-label="Color selection">
+                    <div class="color-preview">
+                        <div class="color-primary" title="Primary color"></div>
+                        <div class="color-secondary" title="Secondary color"></div>
+                    </div>
+                    <div class="color-palette" role="listbox" aria-label="Color palette"></div>
+                </div>
+            </div>
+        </div>
+        <div class="status-bar" role="status">
+            For Help, click Help Topics on the Help Menu.
+        </div>
+    </div>
+    <script src="paint.js"></script>
+</body>
+</html>
