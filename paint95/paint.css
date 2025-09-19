@@ -13,9 +13,8 @@ body {
 }
 
 .paint95 {
-    width: 760px;
-    max-width: calc(100vw - 32px);
-    max-height: calc(100vh - 32px);
+    min-width: calc(100vw - 3px);
+    min-height: calc(100vh - 3px);
     background: #c0c0c0;
     border: 2px solid #808080;
     box-shadow: inset -2px -2px #404040, inset 2px 2px #ffffff;
