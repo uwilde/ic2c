@@ -305,14 +305,8 @@ function handleZoom(button){
 }
 function setZoom(level){ zoomLevel = Math.max(1, Math.min(16, level)); applyZoom(); }
 function applyZoom(){
-  // keep the canvas’ layout size fixed; scale the pixels visually
-  canvas.style.transformOrigin = 'top left';
-  canvas.style.transform = `scale(${zoomLevel})`;
-
-  // keep the intrinsic bitmap crisp
-  canvas.style.imageRendering = 'pixelated';
-
-  // keep text tool aligned while zoomed
+  canvas.style.width = `${canvas.width * zoomLevel}px`;
+  canvas.style.height = `${canvas.height * zoomLevel}px`;
   if (!textArea.hidden && textArea.dataset.anchorX){
     positionTextArea(parseInt(textArea.dataset.anchorX,10), parseInt(textArea.dataset.anchorY,10));
   }
@@ -480,6 +474,7 @@ buildMenus();
 
 // ====== Menu Actions ======
 function saveAsJPG(){
+  // Commit any active text first
   if (!textArea.hidden) commitText();
   const a = document.createElement('a');
   a.href = canvas.toDataURL('image/jpeg', 0.92);

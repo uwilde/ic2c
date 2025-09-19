@@ -7,7 +7,8 @@ body {
 #gameCanvas {
     display: block;
     margin: 0 auto;
-    background-color: #87CEEB;
+    background-color: #87CEEB; /* Sky blue background */
+    border: 2px solid #fff;
     max-width: 80vw;
     height: auto;
 }

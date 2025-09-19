@@ -8,20 +8,16 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  overflow:hidden;
 }
 
 /* App frame */
 .paint95 {
-  width: 100vw;
-  height: 100vh;
+  min-width: calc(100vw - 3px);
+  min-height: calc(100vh - 3px);
   background: #c0c0c0;
   border: 2px solid #808080;
   box-shadow: inset -2px -2px #404040, inset 2px 2px #ffffff;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;  /* allow shrink in narrow iframes */
-  min-height: 0; /* allow shrink in short iframes */
+  display: flex; flex-direction: column;
 }
 
 /* ====== Menu bar ====== */
@@ -78,7 +74,7 @@ body {
 .tool-button[data-tool="spray"]::before { background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16"%3E%3Ccircle cx="6" cy="10" r="1" fill="%23000"/%3E%3Ccircle cx="8" cy="8" r="1" fill="%23000"/%3E%3Ccircle cx="4" cy="8" r="1" fill="%23000"/%3E%3Ccircle cx="8" cy="12" r="1" fill="%23000"/%3E%3Ccircle cx="10" cy="10" r="1" fill="%23000"/%3E%3C/svg%3E'); }
 .tool-button[data-tool="zoom"]::before { background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16"%3E%3Cpath fill="%23000" d="M6 1a5 5 0 013.873 8.146l3.49 3.49-1.414 1.414-3.49-3.49A5 5 0 116 1zm0 2a3 3 0 100 6 3 3 0 000-6z"/%3E%3C/svg%3E'); }
 
-.workspace{ flex:1; display:flex; flex-direction:column; background:#c0c0c0;min-height: 0; }
+.workspace{ flex:1; display:flex; flex-direction:column; background:#c0c0c0; }
 .option-bars{ padding:4px 8px; border-bottom:1px solid #808080; box-shadow: inset 0 -1px #ffffff; }
 .tool-options{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
 .option-group{ display:flex; gap:4px; padding:4px; background:#c0c0c0; border:1px solid #808080; box-shadow: inset -1px -1px #404040, inset 1px 1px #fff; }
@@ -96,9 +92,9 @@ body {
 .shape-button[data-shape="filled-outline"]::before{ background:#0002; }
 .size-button.active,.shape-button.active{ border:1px solid #000080; box-shadow: inset 1px 1px #000080, inset -1px -1px #fff; }
 
-.canvas-container{ flex:1; padding:12px; overflow:auto; background:#808080;min-height: 0; }
+.canvas-container{ flex:1; padding:12px; overflow:auto; background:#808080; }
 .canvas-frame{ position:relative; background:repeating-conic-gradient(#fff 0deg 90deg, #dcdcdc 90deg 180deg); background-size:16px 16px;
-  padding:10px; box-shadow: inset -2px -2px #404040, inset 2px 2px #fff; width:max-content;overflow: auto; }
+  padding:10px; box-shadow: inset -2px -2px #404040, inset 2px 2px #fff; width:max-content; }
 #paintCanvas{ display:block; image-rendering:pixelated; background:#fff; box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; cursor:crosshair; }
 
 .text-tool{

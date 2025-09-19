@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Favorites
       const favorites = [
-        { label: 'Promo Video 1', url: 'youtube/video.html?video=3' },
+        { label: 'ApacheSpace', url: 'youtube/apachespace.html' },
         { label: 'Company Info',  url: 'youtube/atoob_companyInfo.html' },
         { label: 'Help',          url: 'youtube/atoob_help.html' }
       ];

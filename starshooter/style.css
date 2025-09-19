@@ -15,6 +15,8 @@ body {
   background: radial-gradient(60% 60% at 50% 35%, #101628 0%, #080b12 60%, black 100%);
   color: white;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow:hidden;
+  border:none;
 }
 
 /* Frame */
