@@ -26,61 +26,89 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize ApacheToob toolbar
     const apacheToob = document.getElementById('apacheToob');
     if (apacheToob) {
-        const iframe = apacheToob.querySelector('.iframe-content');
-        const toolbarHTML = `
-            <div class="toolbar">
-                <button id="homeButton">🏠</button>
-                <button id="backButton">⬅️</button>
-                <button id="forwardButton">➡️</button>
-                <button id="refreshButton">🔄</button>
-                <input type="text" id="urlBar" readonly value="https://apachetoob.com">
-            </div>
-        `;
-        const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
-        iframeWrapper.insertAdjacentHTML('beforebegin', toolbarHTML);
+      const iframe = apacheToob.querySelector('.iframe-content');
+      const toolbarHTML = `
+        <div class="toolbar">
+          <button id="homeButton"></button>
+          <button id="backButton">⬅️</button>
+          <button id="forwardButton">➡️</button>
+          <button id="refreshButton"></button>
+          <input type="text" id="urlBar" readonly value="https://apachetoob.com">
+        </div>
+      `;
+      const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
+      iframeWrapper.insertAdjacentHTML('beforebegin', toolbarHTML);
 
-        const urlBar = document.getElementById('urlBar');
-        const homeButton = document.getElementById('homeButton');
-        const backButton = document.getElementById('backButton');
-        const forwardButton = document.getElementById('forwardButton');
-        const refreshButton = document.getElementById('refreshButton');
+      const urlBar = document.getElementById('urlBar');
+      const homeButton = document.getElementById('homeButton');
+      const backButton = document.getElementById('backButton');
+      const forwardButton = document.getElementById('forwardButton');
+      const refreshButton = document.getElementById('refreshButton');
 
-        const historyStack = [];
-        let historyIndex = -1;
+      // History stack and pointer.
+      const historyStack = [];
+      let historyIndex = -1;
+      // When true, the next message from the child should not push to history.
+      let ignoreNextMessage = false;
 
-        function navigate(url, pushToHistory = true) {
-            if (pushToHistory) {
-                historyStack.splice(historyIndex + 1);
-                historyStack.push(url);
-                historyIndex++;
-            }
-            iframe.src = url;
-            urlBar.value = url === 'youtube/atoob.html' ? 'https://apachetoob.com' : url;
+      // Navigate the iframe, optionally pushing to history.
+      function navigate(url, pushToHistory = true) {
+        if (pushToHistory) {
+          historyStack.splice(historyIndex + 1);
+          historyStack.push(url);
+          historyIndex++;
         }
+        // Mark that the next 'loaded' message from the child should be ignored.
+        ignoreNextMessage = true;
+        iframe.src = url;
+        urlBar.value = (url === 'youtube/atoob.html') ? 'https://apachetoob.com' : url;
+      }
 
-        iframe.addEventListener('load', () => {
-            const currentURL = iframe.src;
-            urlBar.value = currentURL.includes('youtube/atoob.html') ? 'https://apachetoob.com' : currentURL;
-        });
+      // Listen for messages from the child iframe.
+      window.addEventListener('message', (event) => {
+        const data = event.data || {};
+        // Child asking the parent to navigate somewhere.
+        if (data.type === 'navigate' && data.url) {
+          navigate(data.url, true);
+        }
+        // Child reporting that a page has finished loading.
+        else if (data.type === 'loaded' && data.url) {
+          const url = data.url;
+          urlBar.value = (url === 'youtube/atoob.html') ? 'https://apachetoob.com' : url;
+          if (ignoreNextMessage) {
+            ignoreNextMessage = false;
+            return;
+          }
+          // Push a new page into the history if it's not already the current entry.
+          if (historyStack[historyIndex] !== url) {
+            historyStack.splice(historyIndex + 1);
+            historyStack.push(url);
+            historyIndex = historyStack.length - 1;
+          }
+        }
+      });
 
-        homeButton.addEventListener('click', () => navigate('youtube/atoob.html'));
-        backButton.addEventListener('click', () => {
-            if (historyIndex > 0) {
-                historyIndex--;
-                navigate(historyStack[historyIndex], false);
-            }
-        });
-        forwardButton.addEventListener('click', () => {
-            if (historyIndex < historyStack.length - 1) {
-                historyIndex++;
-                navigate(historyStack[historyIndex], false);
-            }
-        });
-        refreshButton.addEventListener('click', () => {
-            iframe.src = iframe.src;
-        });
+      // Toolbar controls.
+      homeButton.addEventListener('click', () => navigate('youtube/atoob.html'));
+      backButton.addEventListener('click', () => {
+        if (historyIndex > 0) {
+          historyIndex--;
+          navigate(historyStack[historyIndex], false);
+        }
+      });
+      forwardButton.addEventListener('click', () => {
+        if (historyIndex < historyStack.length - 1) {
+          historyIndex++;
+          navigate(historyStack[historyIndex], false);
+        }
+      });
+      refreshButton.addEventListener('click', () => {
+        ignoreNextMessage = true;
+        iframe.contentWindow.location.reload();
+      });
 
-        navigate('youtube/atoob.html', false);
+      // Load the homepage and record it as the first entry.
+      navigate('youtube/atoob.html', true);
     }
 });
 
@@ -949,13 +977,15 @@ function resizePointer(e) {
         return;
     }
 
+    const rect = currentResizeWindow.getBoundingClientRect();
+
     if (currentResizeWindow.id === 'mediaPlayer') {
         let newWidth = originalWidth + (e.clientX - originalMouseX);
         const aspectRatio = originalWidth / originalHeight;
         let newHeight = newWidth / aspectRatio;
 
-        const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-        const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
+        const maxWidth = window.innerWidth - rect.left;
+        const maxHeight = window.innerHeight - rect.top - 60; // Subtract taskbar height
 
         newWidth = Math.max(300, Math.min(newWidth, maxWidth));
         newHeight = Math.max(200, Math.min(newHeight, maxHeight));
@@ -966,16 +996,20 @@ function resizePointer(e) {
         adjustMediaPlayerScale();
 
     } else {
-        const width = originalWidth + (e.clientX - originalMouseX);
-        const height = originalHeight + (e.clientY - originalMouseY);
-
         const minWidth = 300;
         const minHeight = 200;
-        const maxWidth = window.innerWidth - currentResizeWindow.offsetLeft;
-        const maxHeight = window.innerHeight - currentResizeWindow.offsetTop - 60; // Subtract taskbar height
 
-        currentResizeWindow.style.width = Math.max(minWidth, Math.min(width, maxWidth)) + 'px';
-        currentResizeWindow.style.height = Math.max(minHeight, Math.min(height, maxHeight)) + 'px';
+        const maxWidth = window.innerWidth - rect.left;
+        const maxHeight = window.innerHeight - rect.top - 60; // Subtract taskbar height
+
+        let newWidth = e.clientX - rect.left;
+        let newHeight = e.clientY - rect.top;
+
+        newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+        newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+
+        currentResizeWindow.style.width = `${newWidth}px`;
+        currentResizeWindow.style.height = `${newHeight}px`;
 
         adjustIframeScale(currentResizeWindow.id);
     }

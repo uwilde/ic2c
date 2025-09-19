@@ -1,5 +1,14 @@
+
+
 // Handle Login Form Submission
 const loginForm = document.getElementById('login-form');
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.parent && window.parent !== window) {
+    const path = window.location.pathname.replace(/^\//, '');
+    window.parent.postMessage({ type: 'loaded', url: path }, '*');
+  }
+});
 
 if (loginForm) {
     loginForm.addEventListener('submit', (event) => {
@@ -154,7 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (pageUrl) {
                 // Redirect to the specified page
-                window.location.href = pageUrl;
+                const full = pageUrl.startsWith('youtube/') ? pageUrl : `youtube/${pageUrl}`;
+                if (window.parent && window.parent !== window) {
+                  window.parent.postMessage({ type: 'navigate', url: full }, '*');
+                } else {
+                  window.location.href = pageUrl; // fallback if opened directly
+                }
             }
         });
     });
@@ -217,6 +231,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button === 1) return;
 
     ev.preventDefault();
-    window.location.href = dest;
+    const full = dest.startsWith('youtube/') ? dest : `youtube/${dest}`;
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'navigate', url: full }, '*');
+    } else {
+      window.location.href = dest;
+    }
   }, true);
+
+  document.addEventListener('click', (ev) => {
+    const anchor = ev.target.closest('a');
+    if (!anchor) return;
+    const href = anchor.getAttribute('href') || '';
+    // Ignore external links, hash links, or javascript: links.
+    if (/^https?:/i.test(href) || href.startsWith('#') || href.startsWith('javascript')) return;
+
+    ev.preventDefault();
+    const full = href.startsWith('youtube/') ? href : `youtube/${href}`;
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'navigate', url: full }, '*');
+    } else {
+      window.location.href = href; // fallback if not in iframe
+    }
+  }, true);  
+  
 })();
