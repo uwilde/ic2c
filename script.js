@@ -238,7 +238,7 @@ const mediaPlayerState = {
 };
 
 function changeStartButtonImage(imagePath) {
-    document.getElementById("startButtonImage").src = "images/" + imagePath;
+    document.getElementById("startButtonImage").src = imagePath;
 }
 
 // Function to toggle Start Menu visibility
@@ -2070,6 +2070,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
