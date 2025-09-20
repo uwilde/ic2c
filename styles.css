@@ -1817,18 +1817,37 @@ body, html {
 
 }
 
-/* make the iframe always fill the window content area */
 #paintWindow .iframe-wrapper,
 #paintWindow .aspect-keeper,
 #paintWindow .aspect-keeper .aspect-box,
 #paintWindow .iframe-content {
   width: 100%;
   height: 100%;
+}
+
+#paintWindow .iframe-wrapper {
+  display: flex;
+}
+
+#paintWindow .aspect-keeper {
+  display: flex;
+  align-items: stretch;
+}
+
+#paintWindow .aspect-keeper .aspect-box {
+  aspect-ratio: auto;
+  display: flex;
+}
+
+#paintWindow .iframe-content {
   display: block;
+  position: static;
+  flex: 1;
 }
 
 /* optional: show a diagonal handle cursor on the paint resizer */
 #paintWindow .resize-handle-bottom-right {
   cursor: nwse-resize;
 }
+
 
