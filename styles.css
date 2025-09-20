@@ -1819,14 +1819,13 @@ body, html {
 
 #paintWindow .iframe-wrapper,
 #paintWindow .aspect-keeper,
-#paintWindow .aspect-keeper .aspect-box,
-#paintWindow .iframe-content {
+#paintWindow .aspect-keeper .aspect-box {
   width: 100%;
   height: 100%;
 }
 
 #paintWindow .iframe-wrapper {
-  display: flex;
+  position: relative;
 }
 
 #paintWindow .aspect-keeper {
@@ -1836,21 +1835,17 @@ body, html {
 
 #paintWindow .aspect-keeper .aspect-box {
   aspect-ratio: auto;
-  display: flex;
+  flex: 1;
+  position: relative;
 }
 
 #paintWindow .iframe-content {
-  display: block;
-  position: static;
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
 }
-
-/* optional: show a diagonal handle cursor on the paint resizer */
-#paintWindow .resize-handle-bottom-right {
-  cursor: nwse-resize;
-}
-    .window-content, .media-player-content {
-        width: 100%;
-    }
 
 
