@@ -1847,5 +1847,11 @@ body, html {
   height: 100%;
   transform: none;
 }
+#paintWindow .resize-handle-bottom-right {
+  cursor: nwse-resize;
+}
+    .window-content, .media-player-content {
+        width: 100%;
+    }
 
 
