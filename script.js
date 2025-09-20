@@ -46,7 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      apacheToob.style.position ||= 'relative';
+      const currentPosition = window.getComputedStyle(apacheToob).position;
+      if (currentPosition === 'static') {
+        apacheToob.style.position = 'relative';
+      }
 
       // Place the toolbar just above the iframe area
       const iframeWrapper = apacheToob.querySelector('.iframe-wrapper');
@@ -2067,6 +2070,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
