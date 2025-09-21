@@ -1877,7 +1877,7 @@ function adjustIframeScale(windowId) {
 
     if (!iframeWrapper || !iframeContent) return;
 
-    if (windowId === 'apacheToob' || windowId === 'paintWindow') {
+    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow') {
         // For apacheToob, make the iframe fill the wrapper without scaling
         iframeContent.style.width = '100%';
         iframeContent.style.height = '100%';
@@ -2070,6 +2070,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
