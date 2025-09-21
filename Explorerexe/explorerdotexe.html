@@ -104,6 +104,156 @@
     .address{width:48%}
     :root{ --pane-width: 200px; }
   }
+
+/* =========================
+   XP Explorer Adaptive Add-On
+   (append after your styles)
+   ========================= */
+
+/* 1) Make the window a size container for container queries */
+.window {
+  container-type: size;
+  container-name: xpwin;
+  height: 100dvh;                 /* robust inside iframes/mobile chrome */
+}
+
+/* 2) Scalable tokens (react to container, not page) */
+:root {
+  --pane-min: 160px;
+  --pane-max: 320px;
+}
+.window {
+  --gap: clamp(4px, 1.2cqw, 14px);
+  --pad: clamp(6px, 1.6cqw, 16px);
+  --btn-h: clamp(22px, 4cqw, 28px);
+  --pane-width: clamp(var(--pane-min), 22cqw, var(--pane-max));
+}
+
+/* 3) Core layout becomes grid (so we can reflow panes by ratio) */
+.content {
+  display: grid;
+  grid-template-columns: var(--pane-width) 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "left right";
+  gap: 0;
+  min-height: 0;
+}
+.leftpane  { grid-area: left;  width: auto; padding: var(--pad); }
+.rightpane { grid-area: right; min-width: 0; min-height: 0; }
+
+.toolbar {
+  padding: calc(var(--pad) * .6);
+  gap: clamp(4px, 1cqw, 10px);
+  flex-wrap: wrap;                /* wrap gracefully on narrow widths */
+}
+.xpbtn { min-height: var(--btn-h); }
+
+.address {
+  min-width: min(260px, 48cqw);
+  width: clamp(220px, 45cqw, 560px);
+}
+.addrbox {
+  padding: 3px 8px;
+  min-height: calc(var(--btn-h) - 4px);
+}
+
+/* 4) Right pane internals scale smoothly */
+.breadcrumbs {
+  padding: calc(var(--pad) * .7) var(--pad);
+  font-size: clamp(10px, 1.6cqw, 12px);
+  overflow: auto; white-space: nowrap;
+}
+
+.grid {
+  padding: var(--pad);
+  gap: clamp(8px, 2cqw, 16px);
+  grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 24cqw, 180px), 1fr));
+  align-content: start;
+}
+.tile {
+  padding: clamp(6px, 1.4cqw, 10px);
+  border-radius: 6px;
+}
+.thumb {
+  max-width: clamp(96px, 22cqw, 140px);
+  height: clamp(68px, 16cqw, 100px);
+}
+.label { font-size: clamp(10px, 1.5cqw, 12px); }
+
+/* 5) Ultra-wide screens: keep left pane fixed; plenty of room for grid */
+@media (min-aspect-ratio: 21/9) {
+  .content {
+    grid-template-columns: var(--pane-width) 1fr;
+  }
+  .rightpane { display: grid; grid-template-rows: auto 1fr; }
+}
+
+/* 6) Ultra-tall / narrow (phones, sidebars, tall iframes)
+      Move left pane above content as a horizontal ribbon */
+@media (max-aspect-ratio: 9/16) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+  }
+  .leftpane {
+    padding: calc(var(--pad) * .6);
+    border-right: none;
+    border-bottom: 1px solid var(--xp-border);
+    background: linear-gradient(#e3efff,#d7e7ff);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(max(140px, 28cqw), 1fr);
+    gap: clamp(6px, 2cqw, 12px);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .leftpane h4, .qs { margin: 0 8px 0 0; align-self: center; white-space: nowrap; }
+  .quicklink { white-space: nowrap; }
+}
+
+/* 7) Very small heights (letterbox iframes): compress chrome, let content scroll */
+@media (max-height: 520px) {
+  .toolbar { padding: 4px; }
+  .breadcrumbs { display: none; }        /* reclaim vertical space */
+  .leftpane { padding: 6px; }
+  .grid { padding: 8px; gap: 8px; }
+}
+
+/* 8) Very small widths: shrink pane and buttons, allow wrap */
+@media (max-width: 380px) {
+  .window { --pane-min: 120px; }
+  .address { min-width: 180px; width: auto; flex: 1; }
+  .addrlabel { display: none; }          /* optional: label off on tiny widths */
+}
+
+/* 9) Container-based refinements (works even when viewport lies in iframes) */
+@container xpwin (max-width: 720px) {
+  .address { order: 3; width: 100%; min-width: 0; }
+  .navgroup { order: 1; }
+  .toolbar { justify-content: space-between; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(clamp(110px, 40cqw, 160px), 1fr)); }
+}
+
+@container xpwin (max-height: 480px) {
+  .leftpane { max-height: 28cqh; overflow: auto; }
+}
+
+/* 10) Modal tightening on extremes */
+@media (max-width: 480px), (max-height: 480px) {
+  .modal { padding: 8px; }
+  .modal .close { top: 6px; right: 8px; padding: 3px 6px; }
+  .modal img { max-width: 96vw; max-height: 86vh; }
+  .modal iframe { width: min(96vw, 960px); height: min(72vh, 540px); }
+}
+
+/* 11) Nice-to-haves */
+.quicklink { padding: 6px 10px; }
+.leftpane::-webkit-scrollbar,
+.grid::-webkit-scrollbar { height: 8px; width: 8px; }
+  
 </style>
 </head>
 <body>
@@ -393,3 +543,4 @@ render(getHash());
 </script>
 </body>
 </html>
+
