@@ -361,3 +361,69 @@ html, body, .paint95 {
 .tool-options { row-gap: 6px; }
 .option-group { padding: 3px; }
 .menu-bar     { flex-wrap: wrap; row-gap: 2px; }
+
+/* === Toolbar overflow (+) styles === */
+.tool-button.more-button::before{
+  content:""; position:absolute; inset:6px;
+  background-image:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="16" height="16"%3E%3Crect x="2" y="2" width="12" height="12" fill="none" stroke="%23000" stroke-width="2"/%3E%3Cpath d="M8 4v8M4 8h8" stroke="%23000" stroke-width="2" /%3E%3C/svg%3E');
+  background-repeat:no-repeat; background-position:center; background-size:contain; image-rendering:pixelated;
+}
+
+/* Always keep tools comfortably clickable */
+:root {
+  /* raise the minimum touch target without breaking retro look */
+  --tool-size: clamp(28px, 3.2cqw, 34px);
+  --ui-pad: clamp(4px, 1.5cqw, 12px);
+}
+
+/* The toolbar is already a grid; ensure scrolling is hidden by default so we can detect overflow cleanly in JS */
+.side-toolbar {
+  overflow: hidden;   /* JS will toggle auto when zoomed canvas is active */
+}
+
+/* Retro popup menu (for + overflow) */
+.tools-overflow-menu{
+  position: absolute;
+  z-index: 9999;
+  min-width: 156px;
+  max-width: 220px;
+  max-height: 60cqh;
+  overflow: auto;
+  background:#c0c0c0;
+  border:1px solid #808080;
+  box-shadow: inset -1px -1px #404040, inset 1px 1px #fff;
+  padding: 3px;
+  display: none;
+}
+.tools-overflow-menu.open{ display:block; }
+
+.tools-overflow-item{
+  display:flex; align-items:center; gap:8px;
+  padding:3px 6px; font-size:12px; cursor:default;
+  border:1px solid transparent; background:#c0c0c0;
+}
+.tools-overflow-item:hover{
+  border:1px solid #000080; background:#000080; color:#fff;
+}
+.tools-overflow-swatch{
+  width: var(--tool-size); height: var(--tool-size);
+  border:1px solid #808080;
+  box-shadow: inset -1px -1px #404040, inset 1px 1px #fff;
+  position:relative;
+}
+.tools-overflow-swatch::before{
+  content:""; position:absolute; inset:6px; background-repeat:no-repeat; background-position:center; background-size:contain; image-rendering:pixelated;
+}
+
+/* Keep the + button visually last and stable */
+.more-button { order: 9999; }
+
+/* When the toolbar switches to horizontal mode (your @media max-aspect-ratio: 9/16), make sure overflow opens below */
+@media (max-aspect-ratio: 9/16){
+  .tools-overflow-menu { max-height: 40cqh; }
+}
+
+/* Slightly bump contrast for better visibility on tiny screens */
+@media (max-width: 360px){
+  .tool-button { box-shadow: inset -1px -1px #404040, inset 1px 1px #fff, 0 0 0 1px #0001; }
+}
