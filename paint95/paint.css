@@ -221,7 +221,7 @@ html, body, .paint95 {
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto 1fr auto; /* options | canvas | color box */
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "opts"
     "canvas"
