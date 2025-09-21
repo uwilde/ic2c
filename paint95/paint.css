@@ -167,3 +167,197 @@ body {
   image-rendering: pixelated;
   display: block;
 }
+
+/* =========================
+   ⬇️ Adaptive Add-On (append)
+   ========================= */
+
+/* 1) Treat the app as a size container so we can use container queries */
+.paint95 {
+  container-type: size;
+  container-name: app;
+}
+
+/* 2) Robust sizing tokens that auto-scale with viewport AND container */
+:root {
+  --ui-gap: clamp(2px, 1cqw, 8px);
+  --ui-pad: clamp(4px, 1.5cqw, 12px);
+  --tool-size: clamp(22px, 3cqw, 28px);
+  --side-toolbar-width: clamp(46px, 8cqw, 72px);
+  --palette-swatch: clamp(14px, 2.2cqw, 20px);
+}
+
+/* Respect dynamic viewport units when embedded in iframes on mobile */
+html, body, .paint95 {
+  height: 100dvh;
+}
+
+/* 3) Make the main work zone a grid that can flip between layouts */
+.toolbars {
+  display: grid;
+  grid-template-columns: var(--side-toolbar-width) 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "side workspace";
+  gap: 0;
+  min-height: 0;
+}
+
+/* Side tools column */
+.side-toolbar {
+  grid-area: side;
+  width: auto;
+  flex: 0 0 auto;
+  padding: var(--ui-pad);
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: var(--tool-size);
+  gap: clamp(2px, 0.8cqw, 6px);
+  overflow: auto;            /* scroll if too tight */
+}
+
+/* Workspace column */
+.workspace {
+  grid-area: workspace;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* options | canvas | color box */
+  grid-template-areas:
+    "opts"
+    "canvas"
+    "colors";
+}
+
+/* Sections in workspace */
+.option-bars   { grid-area: opts;    padding: var(--ui-pad) calc(var(--ui-pad) * 2); }
+.canvas-container { grid-area: canvas; padding: clamp(6px, 1.5cqw, 16px); }
+.color-box     { grid-area: colors;  padding: var(--ui-pad) calc(var(--ui-pad) * 2); gap: clamp(6px, 1.5cqw, 16px); }
+
+/* Palette scales down neatly on small widths */
+.color-palette {
+  grid-template-columns: repeat(14, minmax(var(--palette-swatch), 1fr));
+  gap: clamp(1px, 0.5cqw, 3px);
+}
+.color-swatch {
+  width: auto;
+  height: var(--palette-swatch);
+}
+
+/* Canvas frame “contain” behavior:
+   - never exceeds available width/height
+   - keeps aspect
+   - centers inside container
+*/
+.canvas-container {
+  display: grid;
+  place-items: center;
+}
+.canvas-frame {
+  width: min(100%, 100cqw - 2 * var(--ui-pad));
+  max-width: 1200px;
+  max-height: calc(100cqh - 2 * var(--ui-pad));
+  overflow: hidden;               /* prevent frame overflow when tiny */
+  margin: 0 auto;
+}
+#paintCanvas {
+  width: min(100%, 100cqw);       /* contain by width first */
+  height: auto;
+  max-height: calc(100cqh - 4rem);/* stop pushing UI offscreen */
+}
+
+/* 4) Orientation & aspect-ratio adaptations */
+
+/* A) Ultra-wide (cinematic) – put color box to the right of the canvas */
+@media (min-aspect-ratio: 21/9) {
+  .workspace {
+    grid-template-columns: 1fr minmax(220px, 26cqw);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "opts opts"
+      "canvas colors";
+    column-gap: clamp(8px, 2cqw, 24px);
+  }
+  .color-box {
+    align-self: stretch;
+    overflow: auto;               /* palette scrolls independently */
+  }
+}
+
+/* B) Ultra-tall / narrow (phones, chat sidebars, tall iframes)
+   - move side toolbar to top as a horizontal strip
+   - keep canvas below, colors at bottom
+*/
+@media (max-aspect-ratio: 9/16) {
+  .toolbars {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "side"
+      "workspace";
+  }
+  .side-toolbar {
+    grid-template-columns: repeat(auto-fit, minmax(var(--tool-size), 1fr));
+    grid-auto-rows: var(--tool-size);
+    width: 100%;
+    max-height: clamp(40px, 12cqh, 96px);
+    overflow-x: auto;             /* horizontal scroll if needed */
+    overflow-y: hidden;
+  }
+  .workspace {
+    grid-template-rows: auto 1fr auto;
+  }
+  .canvas-frame {
+    max-width: 100%;
+    max-height: calc(100cqh - 14rem); /* leave space for toolbars/colors */
+  }
+}
+
+/* C) Very low heights (e.g., letterbox iframes)
+   - compress paddings, shrink icons, make palette scrollable
+*/
+@media (max-height: 520px) {
+  :root {
+    --ui-pad: 6px;
+    --tool-size: 20px;
+  }
+  .option-bars { padding: 4px 8px; }
+  .color-box   { padding: 6px 8px; }
+  .color-palette { max-height: 120px; overflow: auto; }
+  .status-bar { display: none; } /* reclaim a bit of height */
+}
+
+/* D) Very small widths
+   - let palette wrap to fewer columns
+   - keep controls tappable
+*/
+@media (max-width: 360px) {
+  .menu-item { padding: 2px 6px; font-size: 11px; }
+  .option-bars .tool-options { gap: 8px; }
+  .color-palette {
+    grid-template-columns: repeat(8, minmax(var(--palette-swatch), 1fr));
+  }
+}
+
+/* 5) Container-based refinements (works even when iframes don’t report viewport nicely) */
+@container app (max-width: 700px) {
+  .option-bars .tool-options { flex-wrap: wrap; gap: 8px; }
+  .size-button, .shape-button { width: clamp(22px, 6cqw, 28px); height: clamp(18px, 5cqw, 24px); }
+}
+@container app (max-height: 480px) {
+  .canvas-container { padding: 6px; }
+  .canvas-frame { padding: 6px; }
+}
+
+/* 6) Prevent zoom pushing UI: the canvas scrolls instead */
+#paintCanvas.zoomed {
+  max-width: none;           /* allow transform scale without shrinking */
+  max-height: none;
+}
+.canvas-frame:has(#paintCanvas.zoomed) {
+  overflow: auto;            /* scrollbars live inside the frame */
+}
+
+/* 7) Nice-to-haves for tiny spaces */
+.tool-options { row-gap: 6px; }
+.option-group { padding: 3px; }
+.menu-bar     { flex-wrap: wrap; row-gap: 2px; }
