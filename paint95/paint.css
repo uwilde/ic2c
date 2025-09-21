@@ -45,7 +45,7 @@ body {
 /* Dropdowns */
 #menu-root{ position:relative; z-index: 4; }
 .menu-dropdown{
-  position:absolute; top:24px; min-width:180px;
+  position:absolute; top:0px; min-width:180px;
   background:#c0c0c0; border:1px solid #808080; box-shadow: inset -1px -1px #404040, inset 1px 1px #fff;
   padding:2px; display:none;
 }
@@ -68,7 +68,7 @@ body {
   background:#c0c0c0; border:1px solid #808080; box-shadow: inset -1px -1px #404040, inset 1px 1px #fff; cursor:default; position:relative;
 }
 .tool-button::before{
-  content:""; position:absolute; inset:6px; background-repeat:no-repeat; background-position:center; background-size:contain; image-rendering:pixelated;
+  content:""; position:absolute; inset:3px; background-repeat:no-repeat; background-position:center; background-size:contain; image-rendering:pixelated;
 }
 .tool-button.active{ border:1px solid #000080; box-shadow: inset 1px 1px #000080, inset -1px -1px #fff; }
 
@@ -208,7 +208,7 @@ html, body, .paint95 {
   grid-area: side;
   width: auto;
   flex: 0 0 auto;
-  padding: var(--ui-pad);
+  padding: 2px;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: var(--tool-size);
   gap: clamp(2px, 0.8cqw, 6px);
