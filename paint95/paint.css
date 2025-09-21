@@ -5,15 +5,16 @@ html, body {
 }
 body {
   margin: 0;
-  font-family: 'MS Sans Serif','Tahoma',sans-serif;
+  font-family: 'MS Sans Serif','Tahoma',sans-serif;
   background: #c0c0c0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100%;
-  padding: 8px;
+  /* fill the entire iframe from (0,0) */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* App frame */
