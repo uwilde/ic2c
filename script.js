@@ -664,10 +664,26 @@ function maximizeWindow(windowId, maximize = true) {
     if (maximize) {
         // Maximize the window
         windowElement.classList.add('maximized');
-        windowElement.style.top = '0';
-        windowElement.style.left = '0';
-        windowElement.style.width = '100%';
-        windowElement.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
+        if (windowId === 'paintWindow') {
+            const taskbarHeight = 40;
+            const maxPaintWidth = 1169;
+            const maxPaintHeight = 651;
+            const availableWidth = window.innerWidth;
+            const availableHeight = Math.max(window.innerHeight - taskbarHeight, 0);
+            const paintWidth = Math.min(maxPaintWidth, availableWidth);
+            const paintHeight = Math.min(maxPaintHeight, availableHeight);
+            const horizontalOffset = Math.max((availableWidth - paintWidth) / 2, 0);
+
+            windowElement.style.top = '0';
+            windowElement.style.left = `${horizontalOffset}px`;
+            windowElement.style.width = `${paintWidth}px`;
+            windowElement.style.height = `${paintHeight}px`;
+        } else {
+            windowElement.style.top = '0';
+            windowElement.style.left = '0';
+            windowElement.style.width = '100%';
+            windowElement.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
+        }
     } else {
         // Restore to a smaller, default size
         windowElement.classList.remove('maximized');
@@ -1911,7 +1927,11 @@ window.addEventListener('resize', () => {
         if (win.id === 'mediaPlayer') {
             adjustMediaPlayerScale();
         } else {
-            adjustIframeScale(win.id);
+            if (win.id === 'paintWindow' && win.classList.contains('maximized')) {
+                maximizeWindow('paintWindow', true);
+            } else {
+                adjustIframeScale(win.id);
+            }
         }
     });
 });
@@ -2070,6 +2090,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
