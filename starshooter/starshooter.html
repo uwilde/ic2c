@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Galaga‑ish Starshooter</title>
+  <!-- Allow the game to actually be “full size” on mobile -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+  <title>Galaga-ish Starshooter</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="frame">
     <div class="viewport">
       <canvas id="game" width="480" height="640"></canvas>
+
+      <!-- Invisible gesture layer for drag/tap/swipe -->
+      <div id="gestureLayer" aria-label="gesture layer"></div>
 
       <!-- HUD -->
       <div class="hud">
@@ -30,10 +34,10 @@
       <!-- Overlays -->
       <div id="title" class="overlay show">
         <h1>★ STARBLASTER ★</h1>
-        <p>Arrow keys to move · Space to fire · P to pause</p>
+        <p>Drag to move · Tap/hold right side to fire · P to pause</p>
         <ul class="help">
-          <li>← / → : Move</li>
-          <li>SPACE : Fire</li>
+          <li>← / → or drag: Move</li>
+          <li>SPACE or right-side hold: Fire</li>
           <li>P : Pause</li>
         </ul>
         <button id="startBtn" class="ui-btn">START</button>
@@ -51,7 +55,7 @@
       </div>
     </div>
 
-    <!-- Mobile controls -->
+    <!-- Mobile controls (optional; gestures also work) -->
     <div id="touchControls">
       <div class="pad">
         <button id="leftBtn" aria-label="left">◄</button>
