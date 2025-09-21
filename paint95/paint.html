@@ -72,5 +72,204 @@
         </div>
     </div>
     <script src="paint.js"></script>
+<script>
+(() => {
+  const side = document.querySelector('.side-toolbar');
+  if (!side) return;
+
+  // Ensure we have a + button; if not, create it.
+  let moreBtn = side.querySelector('.more-button[data-tool="more"]');
+  if (!moreBtn) {
+    moreBtn = document.createElement('button');
+    moreBtn.className = 'tool-button more-button';
+    moreBtn.dataset.tool = 'more';
+    moreBtn.title = 'More tools';
+    moreBtn.setAttribute('aria-haspopup', 'menu');
+    moreBtn.setAttribute('aria-expanded', 'false');
+    side.appendChild(moreBtn);
+  }
+
+  // Collect all tool buttons except the '+'
+  const allToolButtons = () =>
+    Array.from(side.querySelectorAll('.tool-button'))
+      .filter(b => b !== moreBtn);
+
+  // Build retro overflow menu
+  const overflowMenu = document.createElement('div');
+  overflowMenu.className = 'tools-overflow-menu';
+  overflowMenu.setAttribute('role', 'menu');
+  document.body.appendChild(overflowMenu);
+
+  function iconSvgFor(toolBtn){
+    // Extract inline SVG background used in ::before by reading data-tool and mirroring your CSS.
+    // We’ll mirror via a mapping (keep this in sync with your CSS data URIs if you change them).
+    const map = {
+      pencil:    'M1 12l3 3h2l8-8-3-3-8 8v2H1zm3 1v-1h1l7-7 1 1-7 7H4z',
+      brush:     null, // covered via CSS sprite look; we just show the swatch box
+      eraser:    null,
+      fill:      null,
+      picker:    null,
+      line:      null,
+      rectangle: null,
+      ellipse:   null,
+      rounded:   null,
+      text:      null,
+      spray:     null,
+      zoom:      null
+    };
+    return map[toolBtn.dataset.tool] || null;
+  }
+
+  // Build/refresh the menu contents from a list of tool buttons
+  function rebuildOverflowMenu(fromButtons){
+    overflowMenu.innerHTML = '';
+    fromButtons.forEach(btn => {
+      const item = document.createElement('div');
+      item.className = 'tools-overflow-item';
+      item.setAttribute('role','menuitem');
+      item.tabIndex = 0;
+
+      const swatch = document.createElement('div');
+      swatch.className = 'tools-overflow-swatch';
+
+      // Copy the same icon by cloning styles from the original button (simple and robust)
+      // We’ll read its computed background from the pseudo-element by duplicating dataset -> CSS hook.
+      // Instead of pseudo, we set an inline background-image that matches your CSS selector.
+      const iconUrl = getIconDataUrl(btn);
+      if (iconUrl) {
+        swatch.style.setProperty('--bg', `url("${iconUrl}")`);
+        swatch.style.position = 'relative';
+        swatch.style.setProperty('background', '#c0c0c0');
+        swatch.innerHTML = '<span style="position:absolute;inset:6px;display:block;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated; background-image: var(--bg);"></span>';
+      }
+
+      const label = document.createElement('span');
+      label.textContent = btn.title || btn.dataset.tool;
+
+      item.appendChild(swatch);
+      item.appendChild(label);
+
+      // Click selects this tool as if clicking the real button
+      item.addEventListener('click', () => {
+        btn.click();
+        closeMenu();
+      });
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); closeMenu(); }
+        if (e.key === 'Escape') { e.preventDefault(); closeMenu(); moreBtn.focus(); }
+      });
+
+      overflowMenu.appendChild(item);
+    });
+  }
+
+  // helper to pull the same data-URI your CSS uses (keeps visuals in sync)
+  function getIconDataUrl(btn){
+    const tool = btn.dataset.tool;
+    const styleEl = Array.from(document.styleSheets).find(Boolean);
+    // Cheap path: we just map to the same data URIs you already use
+    const table = {
+      pencil:   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M1 12l3 3h2l8-8-3-3-8 8v2H1zm3 1v-1h1l7-7 1 1-7 7H4z'/%3E%3C/svg%3E",
+      brush:    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M2 11c0 2 1 3 3 3s3-1 3-3c0-1-1-3-3-3-2 0-3 2-3 3zm9-9l3 3-6 6-3-3 6-6z'/%3E%3C/svg%3E",
+      eraser:   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M2 10l4 4h4l4-4-6-6-6 6zm6-5l5 5-3 3H7l-3-3 4-5z'/%3E%3C/svg%3E",
+      fill:     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M7 1L2 6l5 5 5-5L7 1zm0 3l2 2-2 2-2-2 2-2zm6 4c-1 0-2 2-2 3s1 3 2 3 2-2 2-3-1-3-2-3z'/%3E%3C/svg%3E",
+      picker:   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M10 1L3 8v3L0 14l2 2 3-3h3l7-7-5-5zm0 2l3 3-4 4H6L5 9V7l5-4z'/%3E%3C/svg%3E",
+      line:     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath stroke='%23000' stroke-width='2' d='M2 14L14 2'/%3E%3C/svg%3E",
+      rectangle:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='3' y='3' width='10' height='10' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E",
+      ellipse:  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cellipse cx='8' cy='8' rx='5' ry='4' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E",
+      rounded:  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='3' y='3' width='10' height='10' rx='3' ry='3' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E",
+      text:     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M3 3V1h10v2H9v12H7V3H3z'/%3E%3C/svg%3E",
+      spray:    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Ccircle cx='6' cy='10' r='1' fill='%23000'/%3E%3Ccircle cx='8' cy='8' r='1' fill='%23000'/%3E%3Ccircle cx='4' cy='8' r='1' fill='%23000'/%3E%3Ccircle cx='8' cy='12' r='1' fill='%23000'/%3E%3Ccircle cx='10' cy='10' r='1' fill='%23000'/%3E%3C/svg%3E",
+      zoom:     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath fill='%23000' d='M6 1a5 5 0 013.873 8.146l3.49 3.49-1.414 1.414-3.49-3.49A5 5 0 116 1zm0 2a3 3 0 100 6 3 3 0 000-6z'/%3E%3C/svg%3E"
+    };
+    return table[tool] || null;
+  }
+
+  // Open/close positioning
+  function openMenu() {
+    const rect = moreBtn.getBoundingClientRect();
+    overflowMenu.style.left = `${Math.round(rect.left)}px`;
+
+    // If toolbar is vertical (likely left side), open to the right; if horizontal, open below
+    const isHorizontal = side.clientHeight < moreBtn.clientHeight * 2; // heuristic good enough with your CSS
+    if (isHorizontal) {
+      overflowMenu.style.top = `${Math.round(rect.bottom)}px`;
+    } else {
+      overflowMenu.style.top = `${Math.round(rect.top)}px`;
+      overflowMenu.style.left = `${Math.round(rect.right) + 4}px`;
+    }
+
+    overflowMenu.classList.add('open');
+    moreBtn.setAttribute('aria-expanded','true');
+  }
+  function closeMenu() {
+    overflowMenu.classList.remove('open');
+    moreBtn.setAttribute('aria-expanded','false');
+  }
+
+  moreBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (overflowMenu.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+  document.addEventListener('click', (e) => {
+    if (!overflowMenu.contains(e.target) && e.target !== moreBtn) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+  // Core layout algorithm: keep adding/removing tools until the toolbar fits.
+  function relayout() {
+    closeMenu();
+
+    // 1) Move EVERYTHING (except +) back into the toolbar, in original order.
+    const tools = allToolButtons();
+    tools.forEach(btn => side.insertBefore(btn, moreBtn));
+
+    // 2) If everything fits with +, we’re done. Otherwise, move from the END into overflow until it fits.
+    if (fits(side)) {
+      rebuildOverflowMenu([]);               // no overflow
+      moreBtn.style.display = 'none';        // hide + if unused
+      return;
+    }
+
+    moreBtn.style.display = '';              // show +
+    const overflow = [];
+    // Move tools off the end (keep most important at the top)
+    for (let i = tools.length - 1; i >= 0; i--) {
+      const btn = tools[i];
+      if (btn === moreBtn) continue;
+      side.removeChild(btn);
+      overflow.unshift(btn);                 // keep original order in the menu
+      if (fits(side)) break;
+    }
+    rebuildOverflowMenu(overflow);
+  }
+
+  // Does the toolbar’s content fit without scrolling?
+  function fits(el){
+    // Temporarily allow auto scroll to measure overflow, then restore
+    const prevOverflowX = el.style.overflowX;
+    const prevOverflowY = el.style.overflowY;
+    el.style.overflowX = 'hidden';
+    el.style.overflowY = 'hidden';
+    const ok = el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight;
+    el.style.overflowX = prevOverflowX;
+    el.style.overflowY = prevOverflowY;
+    return ok;
+  }
+
+  // Recompute on any size change
+  const ro = new ResizeObserver(relayout);
+  ro.observe(side);
+  ro.observe(document.body);
+
+  window.addEventListener('resize', relayout);
+  // If your app toggles classes that change layout, call relayout() afterwards too.
+
+  // Initial pass
+  relayout();
+})();
+</script>
+
 </body>
 </html>
