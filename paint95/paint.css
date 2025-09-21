@@ -189,7 +189,7 @@ body {
 
 /* Respect dynamic viewport units when embedded in iframes on mobile */
 html, body, .paint95 {
-  height: 100dvh;
+  height: 90dvh;
 }
 
 /* 3) Make the main work zone a grid that can flip between layouts */
