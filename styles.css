@@ -632,14 +632,19 @@ body, html {
   max-width: 100%;
   display: block;
   background:#c0c0c0;
+  position: relative;
 }
 
 .aspect-keeper .aspect-box > .iframe-content {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: block;
   border: 0;
   background:#c0c0c0;
+  transform: none;
 }
 
 .window-content,
@@ -1853,5 +1858,6 @@ body, html {
     .window-content, .media-player-content {
         width: 100%;
     }
+
 
 
