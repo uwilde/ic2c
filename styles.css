@@ -1868,5 +1868,28 @@ body, html {
     transform: none;
     border: none;
 }
+html,
+body,
+#workspace,
+#canvas-container,
+#canvas-frame,
+#paintCanvas,
+#iframe-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Make sure any previous scale/translate transforms don’t offset the origin */
+#iframe-content,
+#workspace {
+  transform: none !important;
+  transform-origin: 0 0 !important;
+}
 
 
