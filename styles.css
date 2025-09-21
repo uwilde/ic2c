@@ -1822,52 +1822,7 @@ body, html {
 
 }
 
-#paintWindow .iframe-wrapper,
-#paintWindow .aspect-keeper,
-#paintWindow .aspect-keeper .aspect-box {
-  width: 100%;
-  height: 100%;
-}
 
-#paintWindow .iframe-wrapper {
-  position: relative;
-}
-
-#paintWindow .aspect-keeper {
-  display: flex;
-  align-items: stretch;
-}
-
-#paintWindow .aspect-keeper .aspect-box {
-  aspect-ratio: auto;
-  flex: 1;
-  position: relative;
-}
-
-#paintWindow .iframe-content {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transform: none;
-}
-#paintWindow .resize-handle-bottom-right {
-  cursor: nwse-resize;
-}
-    .window-content, .media-player-content {
-        width: 100%;
-    }
-
-#explorerWindow .iframe-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transform: none;
-    border: none;
-}
 html,
 body,
 #workspace,
@@ -1891,5 +1846,6 @@ body,
   transform: none !important;
   transform-origin: 0 0 !important;
 }
+
 
 
