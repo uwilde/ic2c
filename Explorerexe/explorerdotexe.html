@@ -19,7 +19,7 @@
 
   /* Fill 100% window (no title bar) */
   .window{
-    position:fixed; inset:0;
+    position:fixed; inset:0;          /* full bleed */
     border:1px solid var(--xp-border);
     background:#fff; display:flex; flex-direction:column;
   }
@@ -42,7 +42,9 @@
     font-weight:bold; color:#003; min-height:24px;
   }
   .xpbtn:active{background:linear-gradient(#dcdcdc,#fdfdfd)}
-  .xpbtn[disabled]{opacity:.45; filter:grayscale(100%); cursor:not-allowed;}
+  .xpbtn[disabled]{
+    opacity:.45; filter:grayscale(100%); cursor:not-allowed;
+  }
   .xpico{width:18px;height:18px;display:inline-block}
 
   .address{display:flex; align-items:center; gap:6px; margin-left:auto; width:55%}
@@ -102,120 +104,6 @@
     .address{width:48%}
     :root{ --pane-width: 200px; }
   }
-
-  /* =========================
-     XP Explorer Adaptive Add-On
-     ========================= */
-
-  /* 1) Make the window a size container for container queries */
-  .window {
-    container-type: size;
-    container-name: xpwin;
-    height: 100dvh;
-  }
-
-  /* 2) Scalable tokens */
-  :root { --pane-min: 160px; --pane-max: 320px; }
-  .window {
-    --gap: clamp(4px, 1.2cqw, 14px);
-    --pad: clamp(6px, 1.6cqw, 16px);
-    --btn-h: clamp(22px, 4cqw, 28px);
-    --pane-width: clamp(var(--pane-min), 22cqw, var(--pane-max));
-  }
-
-  /* 3) Core layout becomes grid */
-  .content {
-    display: grid;
-    grid-template-columns: var(--pane-width) 1fr;
-    grid-template-rows: 1fr;
-    grid-template-areas: "left right";
-    gap: 0;
-    min-height: 0;
-  }
-  .leftpane  { grid-area: left;  width: auto; padding: var(--pad); }
-  .rightpane { grid-area: right; min-width: 0; min-height: 0; }
-
-  .toolbar { padding: calc(var(--pad) * .6); gap: clamp(4px, 1cqw, 10px); flex-wrap: wrap; }
-  .xpbtn { min-height: var(--btn-h); }
-  .address { min-width: min(260px, 48cqw); width: clamp(220px, 45cqw, 560px); }
-  .addrbox { padding: 3px 8px; min-height: calc(var(--btn-h) - 4px); }
-
-  /* 4) Right pane internals scale smoothly */
-  .breadcrumbs { padding: calc(var(--pad) * .7) var(--pad); font-size: clamp(10px, 1.6cqw, 12px); overflow:auto; white-space:nowrap; }
-  .grid {
-    padding: var(--pad);
-    gap: clamp(8px, 2cqw, 16px);
-    grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 24cqw, 180px), 1fr));
-    align-content: start;
-  }
-  .tile { padding: clamp(6px, 1.4cqw, 10px); border-radius: 6px; }
-  .thumb { max-width: clamp(96px, 22cqw, 140px); height: clamp(68px, 16cqw, 100px); }
-  .label { font-size: clamp(10px, 1.5cqw, 12px); }
-
-  /* 5) Ultra-wide */
-  @media (min-aspect-ratio: 21/9) {
-    .content { grid-template-columns: var(--pane-width) 1fr; }
-    .rightpane { display: grid; grid-template-rows: auto 1fr; }
-  }
-
-  /* 6) Ultra-tall / narrow */
-  @media (max-aspect-ratio: 9/16) {
-    .content {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr;
-      grid-template-areas: "left" "right";
-    }
-    .leftpane {
-      padding: calc(var(--pad) * .6);
-      border-right: none; border-bottom: 1px solid var(--xp-border);
-      background: linear-gradient(#e3efff,#d7e7ff);
-      display: grid; grid-auto-flow: column;
-      grid-auto-columns: minmax(max(140px, 28cqw), 1fr);
-      gap: clamp(6px, 2cqw, 12px);
-      overflow-x: auto; overflow-y: hidden;
-    }
-    .leftpane h4, .qs { margin: 0 8px 0 0; align-self: center; white-space: nowrap; }
-    .quicklink { white-space: nowrap; }
-  }
-
-  /* 7) Short heights */
-  @media (max-height: 520px) {
-    .toolbar { padding: 4px; }
-    .breadcrumbs { display: none; }
-    .leftpane { padding: 6px; }
-    .grid { padding: 8px; gap: 8px; }
-  }
-
-  /* 8) Very small widths */
-  @media (max-width: 380px) {
-    .window { --pane-min: 120px; }
-    .address { min-width: 180px; width: auto; flex: 1; }
-    .addrlabel { display: none; }
-  }
-
-  /* 9) Container-based refinements */
-  @container xpwin (max-width: 720px) {
-    .address { order: 3; width: 100%; min-width: 0; }
-    .navgroup { order: 1; }
-    .toolbar { justify-content: space-between; }
-    .grid { grid-template-columns: repeat(auto-fill, minmax(clamp(110px, 40cqw, 160px), 1fr)); }
-  }
-  @container xpwin (max-height: 480px) {
-    .leftpane { max-height: 100%; overflow: auto; }
-  }
-
-  /* 10) Modal tightening */
-  @media (max-width: 480px), (max-height: 480px) {
-    .modal { padding: 8px; }
-    .modal .close { top: 6px; right: 8px; padding: 3px 6px; }
-    .modal img { max-width: 96vw; max-height: 86vh; }
-    .modal iframe { width: min(96vw, 960px); height: min(72vh, 540px); }
-  }
-
-  /* 11) Nice-to-haves */
-  .quicklink { padding: 6px 10px; }
-  .leftpane::-webkit-scrollbar,
-  .grid::-webkit-scrollbar { height: 8px; width: 8px; }
 </style>
 </head>
 <body>
@@ -226,6 +114,7 @@
         <!-- Back -->
         <button class="xpbtn" id="backBtn" title="Back">
           <span class="xpico" aria-hidden="true">
+            <!-- XP green left arrow -->
             <svg viewBox="0 0 24 24"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ce07a"/><stop offset="1" stop-color="#26a326"/></linearGradient></defs>
               <circle cx="12" cy="12" r="11" fill="url(#g)" stroke="#0c6e0c"/>
               <path d="M13 7l-5 5 5 5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -288,8 +177,8 @@
   </div>
 
 <script>
-/* ========= Config: where your pictures live ========= */
-const PICTURES_BASE = "pictures/";  // adjust to "../pictures/" if this HTML is in a subfolder
+/* ========= Where your pictures live + defaults ========= */
+const PICTURES_BASE = "pictures/"; // adjust to "../pictures/" if needed
 const DEFAULT_PICTURES = [
   "myrtle.png",
   "boner.png",
@@ -298,11 +187,10 @@ const DEFAULT_PICTURES = [
   "53945hg.png"
 ];
 
-/* ========= Utility to build a folder object from a list ========= */
+/* ========= Build a folder object from a filename list ========= */
 function pictureFolder(files, base = PICTURES_BASE) {
   const children = {};
   files.forEach(name => {
-    // skip weird entries
     if (!name || typeof name !== "string") return;
     children[name] = { type: "image", src: base + name, title: name.replace(/\.\w+$/, "") };
   });
@@ -310,19 +198,19 @@ function pictureFolder(files, base = PICTURES_BASE) {
 }
 
 /* ========= Try to load pictures/index.json (array of filenames) =========
-   Example pictures/index.json:
-   ["myrtle.png","boner.png","bigboner.png","entrado.png","53945hg.png","newpic1.jpg"]
+Example /pictures/index.json:
+["myrtle.png","boner.png","bigboner.png","entrado.png","53945hg.png","new1.jpg"]
 */
 async function loadPictureList() {
   const url = PICTURES_BASE + "index.json";
   const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("no index.json");
+  if (!res.ok) throw new Error("index.json not found");
   const data = await res.json();
-  if (!Array.isArray(data)) throw new Error("index.json must be an array of filenames");
+  if (!Array.isArray(data)) throw new Error("index.json must be an array");
   return data;
 }
 
-/* ========= FS skeleton (we'll fill Pictures dynamically) ========= */
+/* ================= In-memory filesystem (Pictures injected at boot) ================= */
 let FS = null;
 
 /* ===== Quick Links (left pane) ===== */
@@ -332,21 +220,19 @@ const QUICKLINKS = [
   { label:"💻 My PC", path:"/My PC" },
 ];
 
-/* ===== DOM refs ===== */
-const gridEl   = document.getElementById('grid');
-const addrBox  = document.getElementById('addressBox');
+/* ===== Router / Navigation ===== */
+const gridEl = document.getElementById('grid');
+const addrBox = document.getElementById('addressBox');
 const crumbsEl = document.getElementById('breadcrumbs');
-const modal    = document.getElementById('modal');
+const modal = document.getElementById('modal');
 const modalBox = document.getElementById('modalBox');
 
 const backBtn = document.getElementById('backBtn');
 const fwdBtn  = document.getElementById('fwdBtn');
 const upBtn   = document.getElementById('upBtn');
 
-const historyStack = [];
-let forwardStack = [];
+const historyStack = []; let forwardStack = [];
 
-/* ===== Navigation helpers ===== */
 function setHash(path){ location.hash = encodeURIComponent(path); }
 function getHash(){ return decodeURIComponent(location.hash.replace(/^#/, '') || "/Pictures"); }
 
@@ -406,14 +292,14 @@ function render(path){
       const b = document.createElement('div'); b.className='badge'; b.textContent='Link'; meta.appendChild(b);
     }else if(item.type==="image"){
       const img = new Image(); img.loading = "lazy"; img.decoding = "async";
-      img.src = item.thumb || item.src; thumb.appendChild(img);
+      img.src=item.thumb || item.src; thumb.appendChild(img);
     }else{
       thumb.textContent = "—";
     }
 
     const label = document.createElement('div'); label.className="label"; label.textContent = (item.title || name).replace(/\.yt$/,'');
-    li.appendChild(thumb); li.appendChild(label); li.appendChild(meta);
 
+    li.appendChild(thumb); li.appendChild(label); li.appendChild(meta);
     li.addEventListener('dblclick', () => openItem(path, name, item));
     li.addEventListener('keydown', e => { if(e.key==="Enter"){ openItem(path,name,item);} });
 
@@ -504,15 +390,14 @@ function linkSVG(){
   });
 })();
 
-/* ===== Boot: build FS, then render ===== */
+/* ===== Boot: build FS (with index.json fallback), then render ===== */
 (async function boot(){
   let pictureNames = DEFAULT_PICTURES;
   try {
-    // If you add /pictures/index.json, we’ll auto-use it
     const list = await loadPictureList();
     if (Array.isArray(list) && list.length) pictureNames = list;
-  } catch (_) {
-    // no index.json – fine, we’ll use DEFAULT_PICTURES
+  } catch (e) {
+    // No index.json or invalid — use defaults
   }
 
   const picturesFolder = pictureFolder(pictureNames, PICTURES_BASE);
@@ -525,8 +410,8 @@ function linkSVG(){
       "Videos": {
         type:"folder",
         children: {
-          "Surprise.yt":       {type:"youtube", url:"https://www.youtube.com/watch?v=dQw4w9WgXcQ", title:"Surprise Video"},
-          "Big Buck Bunny.yt": {type:"youtube", url:"https://youtu.be/aqz-KE-bpKQ",             title:"Demo"}
+          "Surprise.yt": {type:"youtube", url:"https://www.youtube.com/watch?v=dQw4w9WgXcQ", title:"Surprise Video"},
+          "Big Buck Bunny.yt": {type:"youtube", url:"https://youtu.be/aqz-KE-bpKQ", title:"Demo"}
         }
       },
       "My PC": {
@@ -534,13 +419,13 @@ function linkSVG(){
         children: {
           "Pictures (shortcut)": {type:"shortcut", to:"/Pictures"},
           "Videos (shortcut)":   {type:"shortcut", to:"/Videos"},
-          "ApacheSpace":         {type:"weblink",  href:"https://apachespace.com", title:"ApacheSpace"}
+          "ApacheSpace":         {type:"weblink", href:"https://apachespace.com", title:"ApacheSpace"}
         }
       }
     }
   };
 
-  // Start / hash routing
+  // Start / hash routing only after FS is ready
   window.addEventListener('hashchange', ()=> render(getHash()));
   render(getHash());
 })();
