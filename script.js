@@ -666,7 +666,7 @@ function maximizeWindow(windowId, maximize = true) {
         windowElement.classList.add('maximized');
         if (windowId === 'paintWindow') {
             const taskbarHeight = 40;
-            const maxPaintWidth = 1169;
+            const maxPaintWidth = 832;
             const maxPaintHeight = 651;
             const availableWidth = window.innerWidth;
             const availableHeight = Math.max(window.innerHeight - taskbarHeight, 0);
@@ -2090,6 +2090,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
