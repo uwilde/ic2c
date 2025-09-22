@@ -425,19 +425,28 @@ function createCoin() {
 }
 
 function createPlatform() {
+  // keep platforms comfortably above ground so HORSE2 never sits "on" the ground band
+  const minY = 140;                                 // was ~150
+  const maxY = Math.min(220, GROUND_Y - HORSE2_H - 16); // clamp away from ground
+  const y = Math.round(minY + Math.random() * (maxY - minY));
+
   // vary width so some platforms are nice and long
-  const w = Math.round(96 + Math.random() * 260); // 96–356 px
-  const p = { x: canvas.width, y: Math.random() * 150 + 150, width: w, height: 32 };
+  const w = Math.round(96 + Math.random() * 260);
+  const p = { x: canvas.width, y, width: w, height: 32 };
   platforms.push(p);
 
   // ~12% chance AND respect cooldown AND only 1 on screen
   if (
     Math.random() < 0.12 &&
     performance.now() >= horse2CooldownUntil &&
-    horse2s.length === 0
+    horse2s.length === 0 &&
+    p.y <= GROUND_Y - HORSE2_H - 12 &&      // hard guarantee above ground
+    noNearbyLogs(p, 120)                    // don't spawn on top of a recent LOG lane
   ) {
     const safeMargin = 28;
-    const offsetX = Math.round(safeMargin + Math.random() * Math.max(1, (w - HORSE2_W - safeMargin * 2)));
+    const offsetX = Math.round(
+      safeMargin + Math.random() * Math.max(1, (w - HORSE2_W - safeMargin * 2))
+    );
     horse2s.push({
       platform: p,
       offsetX,
@@ -450,6 +459,7 @@ function createPlatform() {
     horse2CooldownUntil = performance.now() + (12000 + Math.random() * 6000);
   }
 }
+
 
 
 
@@ -1231,6 +1241,18 @@ function drawRamboMeter() {
 
 
 /* ---------- Helpers ---------- */
+
+function noNearbyLogs(platform, pad = 120) {
+  // If any LOG is horizontally overlapping the platform lane right now,
+  // skip spawning HORSE2 to prevent the “log turned into horse2” illusion.
+  const left  = platform.x - pad;
+  const right = platform.x + platform.width + pad;
+  for (const l of logs) {
+    if (l.x + l.width > left && l.x < right) return false;
+  }
+  return true;
+}
+
 function rectsOverlap(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x &&
          a.y < b.y + b.height && a.y + a.height > b.y;
@@ -1582,8 +1604,8 @@ function gameLoop(ts) {
     drawCoins();
     drawGoldCoins();
     drawPowerUps();
-    drawHorse2s();
     drawLogs();
+    drawHorse2s();
     drawEnemies();
     drawBoss();
     drawHorse();
