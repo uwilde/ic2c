@@ -636,7 +636,8 @@ function resetStars(){ stars.length = 0; for(let i=0;i<120;i++) stars.push(new S
 function resetHUD(){
   scoreEl.textContent = String(score).padStart(6,'0');
   stageEl.textContent = String(stage);
-  livesEl.innerHTML   = Array.from({length:lives}).map(()=>' ').join('');
+  // hearts; use textContent to avoid layout thrash/HTML parsing
+  livesEl.textContent = '❤'.repeat(Math.max(0, lives));
 }
 function showOverlay(el){ el?.classList.add('show'); }
 function hideOverlay(el){ el?.classList.remove('show'); }
