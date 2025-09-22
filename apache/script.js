@@ -49,6 +49,7 @@ let bossSpawnTimer = 0;              // counts up; when past threshold, spawn a 
 let boss = null;                     // active boss or null
 let beamExposure = 0;
 let suckedByBeam = false; 
+let beamWasSucking = false;
 
 let gameState = 'playing';
 let imagesLoaded = 0;
@@ -841,8 +842,12 @@ function updateBoss(dt) {
 
 
 function tractorPull(dt) {
-  if (!boss || !boss.beamActive) { suckedByBeam = false; beamExposure = 0; return; }
-  if (!wasSucked) AudioKit.sfx.beam();
+  if (!boss || !boss.beamActive) {
+    suckedByBeam = false;
+    beamExposure = 0;
+    beamWasSucking = false; // reset edge-trigger when beam turns off
+    return;
+  }
 
   const beamTopX = boss.x + boss.w / 2;
   const beamTopY = boss.y + boss.h * 0.52;     // slightly under dome
@@ -875,6 +880,11 @@ function tractorPull(dt) {
     pointInBeam(pxR, pyBot) ||
     pointInBeam(pxC, pyTop);
 
+  // --- edge trigger for SFX (fix undefined wasSucked) ---
+  if (inBeam && !beamWasSucking) {
+    AudioKit.sfx.beam(); // play once, right when suction starts
+  }
+
   if (inBeam) {
     suckedByBeam = true;
 
@@ -894,15 +904,13 @@ function tractorPull(dt) {
 
     // keep inside screen
     horse.x = Math.max(0, Math.min(canvas.width - horse.width, horse.x));
-
-    // Optional: “linger damage” if you stay too long purely inside the beam
-    // (comment out if you only want damage on contact with saucer)
-    // if (beamExposure >= 1.8 && !horse.invincible) { beamExposure = 0; loseLife(); return; }
-
   } else {
     suckedByBeam = false;
     beamExposure = Math.max(0, beamExposure - dt * 1.5);
   }
+
+  // update edge-trigger memory for next frame
+  beamWasSucking = inBeam;
 }
 
 function drawBoss() {
