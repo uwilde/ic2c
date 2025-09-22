@@ -1851,13 +1851,13 @@ body,
 
 
 #starblasterWindow .iframe-content,
-#apacheWindow .iframe-content,  /* if you have an Apache “window” */
-#apacheToob .iframe-content {
+#apacheWindow .iframe-content {
     top: 50%;
     left: 50%;
     right: 50%;      /* or width:50% if you really meant a 50% width */
     transform: translate(-50%, -50%);
 }
+
 
 
 
