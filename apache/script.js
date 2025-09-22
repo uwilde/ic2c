@@ -82,14 +82,229 @@ bgLayer3.src = 'BG_LAYER3.png';
   if (imagesLoaded === 11) {
     lastTime = performance.now();
     animationId = requestAnimationFrame(gameLoop);
+    AudioKit.startSong(); 
   }
 });
 
 /* Sounds (your existing files) */
-const jumpSound = new Audio('jump.mp3');
-const stompSound = new Audio('stomp.mp3');
-const collectSound = new Audio('collect.mp3');
-const gameOverSound = new Audio('gameover.mp3');
+/* ===== 8-bit Audio: Music + SFX (WebAudio) ===== */
+const AudioKit = (() => {
+  let ctx, masterGain, started = false, muted = false;
+
+  // --- util ---
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const midiToHz = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  // --- node builders ---
+  function pulseOsc(freq, duty = 0.5, t0 = 0) {
+    // PWM via two oscillators + inverter trick -> “square-ish” with duty
+    const o1 = ctx.createOscillator(); o1.type = 'square'; o1.frequency.value = freq;
+    const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = freq;
+    const g1 = ctx.createGain(), g2 = ctx.createGain();
+    g1.gain.value =  0.5; g2.gain.value = -0.5; // combine into pulse
+    o1.connect(g1); o2.connect(g2);
+    const m = ctx.createGain(); g1.connect(m); g2.connect(m);
+    // detune phase by delaying one osc using periodic detune wobble
+    o2.detune.value = (duty - 0.5) * 120; // crude duty
+    o1.start(t0); o2.start(t0);
+    return { out: m, stop: t => { o1.stop(t); o2.stop(t); } };
+  }
+
+  function noiseNode(t0 = 0) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.start(t0);
+    return src;
+  }
+
+  function envADSR(node, t0, a=0.005, d=0.07, s=0.4, r=0.08, peak=1, sus=0.3) {
+    const g = ctx.createGain(); node.connect(g);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(peak, t0 + a);
+    g.gain.linearRampToValueAtTime(sus,  t0 + a + d);
+    return {
+      in: node,
+      out: g,
+      release: (t) => {
+        g.gain.cancelScheduledValues(t);
+        g.gain.setValueAtTime(g.gain.value, t);
+        g.gain.linearRampToValueAtTime(0, t + r);
+      }
+    };
+  }
+
+  // --- simple SFX ---
+  const SFX = {
+    jump() {
+      const t = ctx.currentTime;
+      const hz = midiToHz(76); // E5
+      const {out, stop} = pulseOsc(hz, 0.25, t);
+      const e = envADSR(out, t, 0.002, 0.03, 0.0, 0.08, 0.9, 0.0);
+      e.out.connect(masterGain);
+      stop(t + 0.12); e.release(t + 0.04);
+    },
+    stomp() {
+      const t = ctx.currentTime;
+      const hz = 110;
+      const {out, stop} = pulseOsc(hz, 0.125, t);
+      const e = envADSR(out, t, 0.001, 0.02, 0.0, 0.06, 1.0, 0.0);
+      e.out.connect(masterGain);
+      stop(t + 0.1); e.release(t + 0.03);
+    },
+    coin() {
+      const t = ctx.currentTime;
+      const n1 = pulseOsc(midiToHz(84), 0.5, t); // C6
+      const e1 = envADSR(n1.out, t, 0.002, 0.04, 0.0, 0.1, 0.9, 0.0);
+      e1.out.connect(masterGain);
+      setTimeout(() => { const n2 = pulseOsc(midiToHz(88), 0.5, ctx.currentTime);
+        const e2 = envADSR(n2.out, ctx.currentTime, 0.002, 0.04, 0, 0.08, 0.9, 0);
+        e2.out.connect(masterGain); n2.stop(ctx.currentTime + 0.12); e2.release(ctx.currentTime + 0.06);
+      }, 30);
+      n1.stop(t + 0.12); e1.release(t + 0.06);
+    },
+    powerup() {
+      const t = ctx.currentTime;
+      const steps = [72, 76, 79, 84, 88]; // C major “shine”
+      steps.forEach((m, i) => {
+        const tt = t + i*0.06;
+        const n = pulseOsc(midiToHz(m), 0.25, tt);
+        const e = envADSR(n.out, tt, 0.002, 0.04, 0, 0.08, 0.8, 0);
+        e.out.connect(masterGain); n.stop(tt + 0.12); e.release(tt + 0.06);
+      });
+    },
+    hit() {
+      const t = ctx.currentTime;
+      const n = noiseNode(t);
+      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.setValueAtTime(1200, t);
+      n.connect(f);
+      const e = envADSR(f, t, 0.001, 0.03, 0, 0.15, 0.9, 0);
+      e.out.connect(masterGain);
+      setTimeout(() => n.stop(), 160);
+    },
+    beam() {
+      // short “woo” when suction starts
+      const t = ctx.currentTime;
+      const {out, stop} = pulseOsc(300, 0.5, t);
+      out.frequency.exponentialRampToValueAtTime(140, t + 0.4);
+      const e = envADSR(out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
+      e.out.connect(masterGain);
+      stop(t + 0.5); e.release(t + 0.4);
+    },
+    dart() {
+      const t = ctx.currentTime;
+      const {out, stop} = pulseOsc(1000, 0.5, t);
+      const e = envADSR(out, t, 0.001, 0.015, 0, 0.05, 0.8, 0);
+      e.out.connect(masterGain); stop(t + 0.08); e.release(t + 0.03);
+    },
+    enemyDown() {
+      const t = ctx.currentTime;
+      [67, 62, 55].forEach((m, i) => {
+        const tt = t + i * 0.05;
+        const n = pulseOsc(midiToHz(m), 0.25, tt);
+        const e = envADSR(n.out, tt, 0.001, 0.03, 0, 0.06, 0.9, 0);
+        e.out.connect(masterGain); n.stop(tt + 0.09); e.release(tt + 0.05);
+      });
+    },
+    gameover() {
+      const t = ctx.currentTime;
+      [72, 67, 60, 48].forEach((m, i) => {
+        const tt = t + i*0.18;
+        const n = pulseOsc(midiToHz(m), 0.5, tt);
+        const e = envADSR(n.out, tt, 0.003, 0.08, 0.0, 0.25, 0.9, 0.0);
+        e.out.connect(masterGain); n.stop(tt + 0.35); e.release(tt + 0.18);
+      });
+    }
+  };
+
+  // --- tiny music sequencer (2 voices) ---
+  // “Thin Redneck Adventure” — upbeat, simple I–♭VII–IV vibe in A:
+  const SONG = {
+    bpm: 132,
+    patternLen: 16,
+    // lead: [midi, steps], 0 = rest
+    lead:  [ 81,  0,  81,  83,   81,  79,  76,  0,   81,  0,  81,  83,   86,  83,  81,  0],
+    bass:  [ 45,  45, 45,  45,   43,  43,  43,  43,  40,  40, 40,  40,   43,  43,  43,  43],
+  };
+
+  let songTimer = null, songStep = 0;
+  function scheduleStep(stepIdx, t0) {
+    const spb = 60 / SONG.bpm;
+    const dur = spb * 0.9; // staccato
+    // lead
+    const l = SONG.lead[stepIdx % SONG.patternLen];
+    if (l) {
+      const {out, stop} = pulseOsc(midiToHz(l), 0.25, t0);
+      const g = ctx.createGain(); g.gain.value = 0.22; out.connect(g); g.connect(masterGain);
+      const e = envADSR(g, t0, 0.002, 0.05, 0.15, 0.05, 1.0, 0.5);
+      e.out.connect(masterGain); stop(t0 + dur); e.release(t0 + dur - 0.04);
+    }
+    // bass
+    const b = SONG.bass[stepIdx % SONG.patternLen];
+    if (b) {
+      const {out, stop} = pulseOsc(midiToHz(b), 0.125, t0);
+      const g = ctx.createGain(); g.gain.value = 0.18; out.connect(g); g.connect(masterGain);
+      const e = envADSR(g, t0, 0.003, 0.04, 0.2, 0.06, 1.0, 0.6);
+      e.out.connect(masterGain); stop(t0 + dur); e.release(t0 + dur - 0.05);
+    }
+  }
+  function startSong() {
+    if (!ctx) init();
+    if (songTimer) return;
+    const spb = 60 / SONG.bpm;
+    let base = ctx.currentTime + 0.06;
+    songTimer = setInterval(() => {
+      const t = base + songStep * spb;
+      scheduleStep(songStep, t);
+      songStep = (songStep + 1) % SONG.patternLen;
+    }, spb * 1000);
+  }
+  function stopSong() {
+    if (songTimer) { clearInterval(songTimer); songTimer = null; }
+  }
+
+  // --- public ---
+  function init() {
+    if (ctx) return;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0.8;
+    masterGain.connect(ctx.destination);
+  }
+
+  async function readyFromGesture() {
+    if (!ctx) init();
+    if (ctx.state === 'suspended') await ctx.resume();
+    started = true;
+  }
+
+  function setMuted(v) {
+    muted = !!v;
+    if (masterGain) masterGain.gain.value = muted ? 0 : 0.8;
+  }
+
+  return {
+    readyFromGesture, startSong, stopSong, setMuted,
+    sfx: SFX,
+    get started(){ return started; },
+    toggleMute(){ setMuted(!muted); }
+  };
+})();
+
+/* Wrap your old variables so existing calls still work */
+const jumpSound    = { play: () => AudioKit.sfx.jump() };
+const stompSound   = { play: () => AudioKit.sfx.stomp() };
+const collectSound = { play: () => AudioKit.sfx.coin()  };
+const gameOverSound= { play: () => AudioKit.sfx.gameover() };
+
+/* Start audio context on first input (mobile-safe) */
+const _armAudio = () => {
+  if (!AudioKit.started) AudioKit.readyFromGesture();
+  window.removeEventListener('pointerdown', _armAudio);
+  window.removeEventListener('keydown', _armAudio);
+};
+window.addEventListener('pointerdown', _armAudio, { once: true });
+window.addEventListener('keydown', _armAudio,  { once: true });
 
 /* Physics */
 const GROUND_Y = 300;
@@ -157,9 +372,11 @@ document.addEventListener('keydown', e => {
     if (!isPaused) {
       lastTime = performance.now();
       animationId = requestAnimationFrame(gameLoop);
+      AudioKit.startSong();
     } else {
       cancelAnimationFrame(animationId);
       drawPauseOverlay();
+      AudioKit.stopSong();
     }
   }
 });
@@ -367,6 +584,7 @@ function updateEnemies(dt) {
       if (comingFromAbove) {
         // Jumping/falling on top defeats enemy
         enemies.splice(i, 1);
+        AudioKit.sfx.enemyDown();
         horse.score += 20;
         // small bounce (optional)
         horse.velocityY = -120;
@@ -421,6 +639,7 @@ function updatePowerUps(dt) {
       horse.invincible = true;
       powerUpCooldownUntil = performance.now() + 20000; 
       collectSound.play();
+      AudioKit.sfx.powerup();
 
     }
   }
@@ -623,6 +842,7 @@ function updateBoss(dt) {
 
 function tractorPull(dt) {
   if (!boss || !boss.beamActive) { suckedByBeam = false; beamExposure = 0; return; }
+  if (!wasSucked) AudioKit.sfx.beam();
 
   const beamTopX = boss.x + boss.w / 2;
   const beamTopY = boss.y + boss.h * 0.52;     // slightly under dome
@@ -1017,6 +1237,7 @@ function loseLife() {
   hurtUntil       = now + HURT_DURATION_MS;
   invincibleUntil = now + HURT_DURATION_MS;
   horse.invincible = true; // visual flicker still uses this boolean
+  AudioKit.sfx.hit();
 
   // now apply the life change
   horse.lives--;
@@ -1132,6 +1353,7 @@ function updateDarts(dt) {
       const e = enemies[j];
       if (rectsOverlap(d, e)) {
         enemies.splice(j, 1);
+        AudioKit.sfx.enemyDown();
         darts.splice(i, 1);
         horse.score += 20;
         // optional: play a sound here
@@ -1211,6 +1433,7 @@ function gameOver() {
   gameOverSound.play();
   const hs = +localStorage.getItem('highScore') || 0;
   if (horse.score > hs) localStorage.setItem('highScore', horse.score);
+  AudioKit.stopSong();
 }
 
 canvas.addEventListener('click', (event) => {
@@ -1246,6 +1469,7 @@ function resetGame() {
   boss = null; bossSpawnTimer = 0;
   lastTime = performance.now();
   animationId = requestAnimationFrame(gameLoop);
+  AudioKit.startSong();
 }
 
 /* ---------- Touch controls (unchanged) ---------- */
@@ -1338,6 +1562,7 @@ function gameLoop(ts) {
     if (now < ramboUntil) {
       if (now >= nextDartAt) {
         spawnDart();
+        AudioKit.sfx.dart();
         nextDartAt = now + DART_INTERVAL;
       }
     }
