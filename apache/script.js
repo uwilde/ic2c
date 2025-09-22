@@ -958,6 +958,7 @@ function drawBoss() {
     if (!(bottomY - topY > 1)) {
        drawBeamFX();
     } else {
+		}
 
     // pulsating width + slight sinusoidal edge wobble
     const pulse = 1 + Math.sin(performance.now() / 120) * 0.1 + boss.fx.flicker * 0.08;
