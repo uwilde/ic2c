@@ -18,7 +18,7 @@ const horse2Image = new Image();
 const bgLayer1 = new Image();
 const bgLayer2 = new Image();
 const bgLayer3 = new Image();
-const APPLES_PER_RAMBO = 30
+const APPLES_PER_RAMBO = 30;
 // HORSE2 (bonus trigger)
 let horse2s = []; // {platform, offsetX, x, y, width, height}
 const HORSE2_W = 64, HORSE2_H = 64;
@@ -98,18 +98,26 @@ const AudioKit = (() => {
 
   // --- node builders ---
   function pulseOsc(freq, duty = 0.5, t0 = 0) {
-    // PWM via two oscillators + inverter trick -> “square-ish” with duty
     const o1 = ctx.createOscillator(); o1.type = 'square'; o1.frequency.value = freq;
     const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = freq;
     const g1 = ctx.createGain(), g2 = ctx.createGain();
-    g1.gain.value =  0.5; g2.gain.value = -0.5; // combine into pulse
+    g1.gain.value =  0.5; g2.gain.value = -0.5;
     o1.connect(g1); o2.connect(g2);
     const m = ctx.createGain(); g1.connect(m); g2.connect(m);
-    // detune phase by delaying one osc using periodic detune wobble
-    o2.detune.value = (duty - 0.5) * 120; // crude duty
+    o2.detune.value = (duty - 0.5) * 120;
     o1.start(t0); o2.start(t0);
-    return { out: m, stop: t => { o1.stop(t); o2.stop(t); } };
+    return {
+      out: m,
+      stop: t => { o1.stop(t); o2.stop(t); },
+      rampFreq: (to, tStart, tEnd) => {
+        o1.frequency.setValueAtTime(o1.frequency.value, tStart);
+        o2.frequency.setValueAtTime(o2.frequency.value, tStart);
+        o1.frequency.exponentialRampToValueAtTime(to, tEnd);
+        o2.frequency.exponentialRampToValueAtTime(to, tEnd);
+      }
+    };
   }
+
 
   function noiseNode(t0 = 0) {
     const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -184,13 +192,12 @@ const AudioKit = (() => {
       setTimeout(() => n.stop(), 160);
     },
     beam() {
-      // short “woo” when suction starts
       const t = ctx.currentTime;
-      const {out, stop} = pulseOsc(300, 0.5, t);
-      out.frequency.exponentialRampToValueAtTime(140, t + 0.4);
-      const e = envADSR(out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
+      const n = pulseOsc(300, 0.5, t);
+      n.rampFreq(140, t, t + 0.4);  // ✅ now legal
+      const e = envADSR(n.out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
       e.out.connect(masterGain);
-      stop(t + 0.5); e.release(t + 0.4);
+      n.stop(t + 0.5); e.release(t + 0.4);
     },
     dart() {
       const t = ctx.currentTime;
@@ -855,24 +862,34 @@ function tractorPull(dt) {
   if (!boss || !boss.beamActive) {
     suckedByBeam = false;
     beamExposure = 0;
-    beamWasSucking = false; // reset edge-trigger when beam turns off
+    beamWasSucking = false;
     return;
   }
 
   const beamTopX = boss.x + boss.w / 2;
-  const beamTopY = boss.y + boss.h * 0.52;     // slightly under dome
+  const beamTopY = boss.y + boss.h * 0.52;
   const beamBottomY = canvas.height;
 
-  // Helper: half-width of cone at a given y
-  function halfWidthAt(y) {
-    const t = (y - beamTopY) / (beamBottomY - beamTopY);
-    if (t <= 0) return 0;
-    if (t >= 1) return boss.beamWidth / 2;
-    return (boss.beamWidth / 2) * t;
+  // If the beam would be inverted or zero-length, bail safely this frame.
+  const denom = beamBottomY - beamTopY;
+  if (!(denom > 1)) {
+    suckedByBeam = false;
+    beamExposure = Math.max(0, beamExposure - dt);
+    beamWasSucking = false;
+    return;
   }
 
-  // Sample three points along the player's body to avoid edge-miss issues
-  const pxL = horse.x, pxC = horse.x + horse.width / 2, pxR = horse.x + horse.width;
+  // Half-width along the cone; guaranteed finite & non-negative
+  function halfWidthAt(y) {
+    const tRaw = (y - beamTopY) / denom;
+    const t = clamp(tRaw, 0, 1);               // clamp avoids NaN/Inf use
+    return (boss.beamWidth * 0.5) * t;
+  }
+
+  // Sample points on the player
+  const pxL = horse.x;
+  const pxC = horse.x + horse.width / 2;
+  const pxR = horse.x + horse.width;
   const pyTop = horse.y + 4;
   const pyMid = horse.y + horse.height / 2;
   const pyBot = horse.y + horse.height - 4;
@@ -890,36 +907,34 @@ function tractorPull(dt) {
     pointInBeam(pxR, pyBot) ||
     pointInBeam(pxC, pyTop);
 
-  // --- edge trigger for SFX (fix undefined wasSucked) ---
-  if (inBeam && !beamWasSucking) {
-    AudioKit.sfx.beam(); // play once, right when suction starts
-  }
+  // Edge-trigger SFX
+  if (inBeam && !beamWasSucking) AudioKit.sfx.beam();
 
   if (inBeam) {
     suckedByBeam = true;
 
-    // suction ramps up the longer you remain in-beam (feels more “grabby”)
-    beamExposure += dt;
-    const ramp = Math.min(1, beamExposure / 0.8); // reach full power in ~0.8s
-    const suction = 900 + 700 * ramp;             // 900→1600 upward accel
-    horse.velocityY -= suction * dt;
+    beamExposure = clamp(beamExposure + dt, 0, 10);
+    const ramp = Math.min(1, beamExposure / 0.8);   // 0→1 over ~0.8s
+    const suction = 900 + 700 * ramp;
+
+    // Upward acceleration
+    horse.velocityY = nz(horse.velocityY, 0) - suction * dt;
     horse.isJumping = true;
     horse.onGround = false;
 
-    // lateral assist toward the beam center—scaled by how off-center you are
-    const dx = (beamTopX - pxC);
-    const centerFactor = Math.min(1, Math.abs(dx) / Math.max(1, halfWidthAt(pyMid)));
+    // Lateral pull toward center — fully safe
+    const dx = nz(beamTopX - pxC, 0);
+    const denomHW = Math.max(8, halfWidthAt(pyMid)); // never < 8 to avoid huge pulls
+    const centerFactor = clamp(Math.abs(dx) / denomHW, 0, 1);
     const lateralAssist = 280 * (0.6 + 0.4 * ramp) * Math.sign(dx) * (0.3 + 0.7 * centerFactor);
-    horse.x += lateralAssist * dt;
 
-    // keep inside screen
-    horse.x = Math.max(0, Math.min(canvas.width - horse.width, horse.x));
+    horse.x = nz(horse.x, 0) + lateralAssist * dt;
+    horse.x = clamp(horse.x, 0, canvas.width - horse.width);
   } else {
     suckedByBeam = false;
     beamExposure = Math.max(0, beamExposure - dt * 1.5);
   }
 
-  // update edge-trigger memory for next frame
   beamWasSucking = inBeam;
 }
 
@@ -939,13 +954,15 @@ function drawBoss() {
     // base geometry
     const topX = cx;
     const topY = y + h * 0.52;
+    const bottomY = canvas.height;
+    if (!(bottomY - topY > 1)) {
+       drawBeamFX();
+    } else {
 
     // pulsating width + slight sinusoidal edge wobble
     const pulse = 1 + Math.sin(performance.now() / 120) * 0.1 + boss.fx.flicker * 0.08;
     const baseW = boss.beamWidth * pulse;
 
-    // build wavy polygon (left/right edges wiggle)
-    const bottomY = canvas.height;
     const segments = 14;
     const leftPts = [];
     const rightPts = [];
@@ -1241,6 +1258,10 @@ function drawRamboMeter() {
 
 
 /* ---------- Helpers ---------- */
+
+function isNum(v){ return Number.isFinite(v); }
+function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
@@ -1586,6 +1607,9 @@ function gameLoop(ts) {
     updatePowerUps(dt);
     updateHorse2s(dt);
     updateBoss(dt);
+    if (!isNum(horse.x) || !isNum(horse.y) || !isNum(horse.velocityY)) {
+      resetHorsePosition();
+    }
     
     // Auto-fire while APAMBO is active
     const now = performance.now();
