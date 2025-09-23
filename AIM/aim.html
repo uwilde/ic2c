@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AOL Instant Messenger — Mock (Floating)</title>
+<style>
+  /* -------------------- Old-school system look -------------------- */
+  @font-face{
+    font-family:"MS Sans Replica";
+    src: local("Tahoma"), local("MS Sans Serif");
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:#1f58a4}
+  body{font:13px/1.2 "MS Sans Replica", Tahoma, Arial, sans-serif;color:#000}
+
+  /* Bevel helpers (Win9x vibes) */
+  .bevel {border:1px solid #808080; box-shadow: 0 0 0 1px #fff inset;}
+  .inset {border:1px solid #fff; box-shadow: 0 0 0 1px #808080 inset;}
+  .shadow {box-shadow: 2px 2px 0 #00000040, 4px 4px 0 #00000030;}
+
+  /* -------------------- WINDOWS -------------------- */
+  .win {
+    background:#d4d0c8; /* classic control gray */
+    width: 360px; margin:24px auto;
+  }
+  .titlebar {
+    height: 22px; display:flex; align-items:center; gap:6px;
+    padding:0 6px;
+    background: linear-gradient(#0a3fa2,#0b63d5);
+    color:#fff; font-weight:700; text-shadow:0 1px 0 #001b54;
+    cursor:default; user-select:none;
+    border:1px solid #001b54;
+  }
+  .titlebar .title {
+    flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .titlebar .sys-btn{
+    width:16px;height:16px;background:#c0c0c0;border:1px solid #000; display:grid;place-items:center;
+    color:#000; font-weight:900; line-height:1; cursor:pointer;
+  }
+  .content{padding:8px}
+
+  /* -------------------- LOGIN -------------------- */
+  #loginWin{width:370px}
+  .logo {
+    height:118px; margin-bottom:8px;
+    background:linear-gradient(#2f7ed1,#0d58a6);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff; position:relative;
+    border:1px solid #123c7a;
+  }
+  .logo .runner{width:92px;height:92px;background:#ffcc00;border-radius:20px;box-shadow:0 0 0 6px rgba(0,0,0,.25) inset}
+  .label{font-weight:700;color:#001b54;margin-top:6px}
+  select,input[type="password"],input[type="text"]{
+    width:100%;padding:5px;background:#fff;border:1px solid #7a7a7a;
+    font:13px "MS Sans Replica", Tahoma, sans-serif;
+  }
+  .row{margin:6px 0}
+  .links a{color:#0d58a6;text-decoration:underline;cursor:pointer}
+  .opt{display:flex;gap:14px;margin-top:6px}
+  .btn {background:#d4d0c8; border:1px solid #7a7a7a; padding:5px 10px; font-weight:700; cursor:pointer}
+  .btn:active{transform:translateY(1px)}
+  .footer{font-size:11px;color:#333;text-align:right;margin-top:4px}
+
+  /* -------------------- BUDDY LIST -------------------- */
+  #buddyWin{display:none;width:320px}
+  .buddy-panel{background:#fff; border:1px solid #7a7a7a; padding:6px}
+  details{margin:6px 0}
+  summary{font-weight:700; cursor:pointer; list-style:none}
+  .buddy{padding:4px 6px; border:1px solid #bbb; background:#fff; margin-top:4px; cursor:pointer}
+  .buddy:hover{background:#eef5ff}
+  .dock{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+  .dock .btn{min-width:48px}
+
+  /* -------------------- FLOATING CHAT WINDOW -------------------- */
+  #chatWin{
+    position:fixed; top:80px; left:60px; width:420px; display:none; z-index:9999;
+  }
+  #chatWin .titlebar{cursor:move}
+  .menubar{display:flex;gap:14px;margin:6px 0 4px 2px;font-size:12px}
+  .menubar span{cursor:default}
+  .chat-area{
+    height:250px;background:#fff;border:1px solid #7a7a7a; overflow:auto; padding:8px;
+    font:13px Verdana, Geneva, sans-serif;
+  }
+  .chat-line{margin:2px 0; white-space:pre-wrap}
+  .nick-user{color:#0b38b3;font-weight:700}
+  .nick-bot{color:#b30b0b;font-weight:700}
+  .linkbar{display:flex;gap:8px; align-items:center; margin-top:4px}
+  .tiny{width:16px;height:16px;background:#d4d0c8;border:1px solid #7a7a7a}
+  .chat-controls{display:flex; gap:6px; margin-top:6px}
+  .chat-controls input{flex:1}
+  .toolbar{display:flex; gap:8px; margin-top:6px}
+  .toolbar .btn{background:#eae7df}
+</style>
+</head>
+<body>
+
+<!-- LOGIN WINDOW -->
+<div id="loginWin" class="win bevel shadow">
+  <div class="titlebar"><div class="title">AOL® Instant Messenger™</div></div>
+  <div class="content">
+    <div class="logo"><div class="runner" title="placeholder logo"></div></div>
+
+    <div class="label">ScreenName</div>
+    <div class="row">
+      <select id="sn">
+        <option value="">— Select —</option>
+        <option>SmoothOperator69</option>
+        <option>CryptoCasanova</option>
+        <option>DMsOpen4Coupons</option>
+        <option>W1nkW1nk</option>
+        <option>FreeWifiVan</option>
+        <option>VelvetThunder</option>
+        <option>BigFlirtAlert</option>
+        <option>SideHustlePrince</option>
+      </select>
+    </div>
+    <div class="links row"><a id="getName">Get a Screen Name</a></div>
+
+    <div class="label">Password</div>
+    <div class="row"><input id="pw" type="password" autocomplete="off" /></div>
+    <div class="links row"><a id="forgot">Forgot Password?</a></div>
+
+    <div class="opt row">
+      <label><input type="checkbox" id="savePw"> Save password</label>
+      <label><input type="checkbox" id="autoLogin"> Auto-login</label>
+    </div>
+
+    <div class="row" style="display:flex;justify-content:space-between;margin-top:10px">
+      <div style="display:flex;gap:6px">
+        <button class="btn">Help</button>
+        <button class="btn">Setup</button>
+      </div>
+      <button id="signOn" class="btn inset">Sign On</button>
+    </div>
+    <div class="footer">Version: 5.9.6089</div>
+  </div>
+</div>
+
+<!-- BUDDY LIST -->
+<div id="buddyWin" class="win bevel shadow">
+  <div class="titlebar"><div class="title">My AIM™</div></div>
+  <div class="content">
+    <div class="buddy-panel">
+      <details open>
+        <summary>Buddies (1)</summary>
+        <div id="buddy-apabot" class="buddy">ApaBot</div>
+      </details>
+      <details><summary>Family (0)</summary></details>
+      <details><summary>Co-Workers (0)</summary></details>
+      <details><summary>Offline (0)</summary></details>
+    </div>
+    <div class="dock">
+      <button class="btn">IM</button>
+      <button class="btn">Chat</button>
+      <button class="btn">Write</button>
+      <button class="btn">Info</button>
+      <button class="btn">Setup</button>
+      <button class="btn" id="signOff">Sign Off</button>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING CHAT WINDOW -->
+<div id="chatWin" class="win bevel shadow">
+  <div class="titlebar" id="chatDragBar">
+    <div class="title">Instant Message — ApaBot</div>
+    <div class="sys-btn" id="chatClose" title="Close">×</div>
+  </div>
+  <div class="content">
+    <div class="menubar"><span>File</span><span>Edit</span><span>Insert</span><span>People</span></div>
+    <div id="chatArea" class="chat-area"></div>
+
+    <div class="linkbar">
+      <a href="#" style="color:#0b38b3;text-decoration:underline">link</a>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <div class="tiny" title="smiley"></div>
+        <div class="tiny" title="font"></div>
+        <div class="tiny" title="bg"></div>
+      </div>
+    </div>
+
+    <div class="chat-controls">
+      <input id="chatInput" type="text" placeholder="Type a message…" />
+      <button id="sendBtn" class="btn inset">Send</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn">Warn</button>
+      <button class="btn">Block</button>
+      <button class="btn">Add Buddy</button>
+      <button class="btn">Talk</button>
+      <button class="btn">Get Info</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Saved screen names -> autofill passwords ---------------- */
+const saved = {
+  "SmoothOperator69":"hunter2!",
+  "CryptoCasanova":"walletNotFound1",
+  "DMsOpen4Coupons":"B0G0pls",
+  "W1nkW1nk":";)",
+  "FreeWifiVan":"notAsus123",
+  "VelvetThunder":"sMo0th-ride",
+  "BigFlirtAlert":"heythere!",
+  "SideHustlePrince":"passiveIncom3"
+};
+const snSel = document.getElementById('sn');
+const pwInp = document.getElementById('pw');
+snSel.addEventListener('change', ()=> pwInp.value = saved[snSel.value] ?? "");
+
+/* ---------------- Sign on / off ---------------- */
+const loginWin = document.getElementById('loginWin');
+const buddyWin = document.getElementById('buddyWin');
+const chatWin  = document.getElementById('chatWin');
+
+document.getElementById('signOn').addEventListener('click', ()=>{
+  if(!snSel.value || !pwInp.value){ alert("Select a ScreenName and password."); return; }
+  loginWin.style.display='none';
+  buddyWin.style.display='block';
+});
+document.getElementById('signOff').addEventListener('click', ()=>{
+  chatWin.style.display='none';
+  buddyWin.style.display='none';
+  loginWin.style.display='block';
+});
+document.getElementById('buddy-apabot').addEventListener('click', ()=>{
+  chatWin.style.display='block';
+  bringToFront(chatWin);
+  if(!document.getElementById('chatArea').dataset.boot){ bootChat(); }
+});
+document.getElementById('chatClose').addEventListener('click', ()=> chatWin.style.display='none');
+
+/* ---------------- Floating/Draggable chat window ---------------- */
+(function enableDrag(){
+  const bar = document.getElementById('chatDragBar');
+  let dragging=false, startX=0, startY=0, startLeft=0, startTop=0;
+
+  const onDown = (e)=>{
+    dragging=true; bringToFront(chatWin);
+    const rect = chatWin.getBoundingClientRect();
+    startLeft = rect.left; startTop = rect.top;
+    startX = ('touches' in e ? e.touches[0].clientX : e.clientX);
+    startY = ('touches' in e ? e.touches[0].clientY : e.clientY);
+    e.preventDefault();
+  };
+  const onMove = (e)=>{
+    if(!dragging) return;
+    const x = ('touches' in e ? e.touches[0].clientX : e.clientX);
+    const y = ('touches' in e ? e.touches[0].clientY : e.clientY);
+    let left = startLeft + (x - startX);
+    let top  = startTop  + (y - startY);
+    // keep inside viewport
+    const maxL = window.innerWidth - chatWin.offsetWidth;
+    const maxT = window.innerHeight - 32;
+    left = Math.max(0, Math.min(left, Math.max(0,maxL)));
+    top  = Math.max(0, Math.min(top,  Math.max(0,maxT)));
+    chatWin.style.left = left + "px";
+    chatWin.style.top  = top  + "px";
+  };
+  const onUp = ()=> dragging=false;
+
+  bar.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+
+  bar.addEventListener('touchstart', onDown, {passive:false});
+  window.addEventListener('touchmove', onMove, {passive:false});
+  window.addEventListener('touchend', onUp);
+})();
+
+let zCounter = 10000;
+function bringToFront(el){ el.style.zIndex = ++zCounter; }
+
+/* ---------------- Chat behavior ---------------- */
+const chatArea  = document.getElementById('chatArea');
+const chatInput = document.getElementById('chatInput');
+const sendBtn   = document.getElementById('sendBtn');
+
+const universalSnark = [
+  "ApaBot: Look, I'm just a bot, not your life coach — but that decision screams “hold my soda.”",
+  "ApaBot: Relax. If it ain't broken, your cousin already tried to fix it.",
+  "ApaBot: I'm not saying you're dramatic, but your caps lock has gym membership energy.",
+  "ApaBot: Let's keep it classy — like a tuxedo T-shirt at a job interview.",
+  "ApaBot: I run on coffee and petty. Mostly petty.",
+  "ApaBot: Great idea. Add it to the pile right next to my nonexistent paycheck.",
+  "ApaBot: I'm here for you. From a safe digital distance. With judgment.",
+  "ApaBot: Pro tip: if it requires a disclaimer, maybe don't.",
+  "ApaBot: Sorry, I can't read minds. The union said no unpaid telepathy.",
+  "ApaBot: Bold of you to assume I have standards. ...But also yes, I do.",
+  "ApaBot: I'm not ignoring you — I'm buffering my patience.",
+  "ApaBot: We can do it the easy way, or the screenshot way.",
+  "ApaBot: If common sense were bandwidth, we'd be on dial-up."
+];
+
+function bootChat(){
+  addBot("ApaBot: You rang? New millennium, same chaos.");
+  chatArea.dataset.boot = "1";
+}
+function addLine(cls, nick, text){
+  const div = document.createElement('div');
+  div.className='chat-line';
+  div.innerHTML = `<span class="${cls}">${nick}:</span> ${escapeHtml(text)}`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function addUser(text){ addLine('nick-user', snSel.value || 'You', text); }
+function addBot(text){
+  if(!/^ApaBot:/.test(text)) text = "ApaBot: " + text;
+  const clean = text.replace(/^ApaBot:\s*/,'');
+  const div = document.createElement('div');
+  div.className='chat-line';
+  div.innerHTML = `<span class="nick-bot">Myfriend600</span>: ${escapeHtml(clean)}`; // red nick like old shot
+  // ^ nick label changed to mimic red name; content stays from bot
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function randomSnark(){ return universalSnark[Math.floor(Math.random()*universalSnark.length)]; }
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function sendMessage(){
+  const t = chatInput.value.trim();
+  if(!t) return;
+  addUser(t);
+  chatInput.value="";
+  setTimeout(()=> addBot(randomSnark()), 350 + Math.random()*700);
+}
+chatInput.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
+sendBtn.addEventListener('click', sendMessage);
+</script>
+</body>
+</html>
