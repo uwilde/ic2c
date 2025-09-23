@@ -1997,6 +1997,52 @@ soundTray.addEventListener('click', () => {
     }
 });
 
+function disableWindowAudioById(windowId) {
+    const win = document.getElementById(windowId);
+    if (!win) return;
+    const mediaEls = win.querySelectorAll('audio, video');
+    mediaEls.forEach(el => {
+        if (typeof el.pause === 'function') el.pause();
+        el.muted = true;
+    });
+    // Special handling for YouTube player windows
+    if ((windowId === 'apacheWindow' || windowId === 'apacheToob') && youtubePlayer) {
+        if (typeof youtubePlayer.pauseVideo === 'function') {
+            youtubePlayer.pauseVideo();
+        }
+        if (typeof youtubePlayer.mute === 'function') {
+            youtubePlayer.mute();
+        }
+    }
+}
+
+// Helper to enable audio/video inside a specific window
+function enableWindowAudioById(windowId) {
+    const win = document.getElementById(windowId);
+    if (!win) return;
+    const mediaEls = win.querySelectorAll('audio, video');
+    mediaEls.forEach(el => {
+        // Respect global mute state
+        el.muted = isMuted;
+        // Resume playback only if unmuted and previously paused
+        if (!el.muted && el.paused && typeof el.play === 'function') {
+            el.play().catch(() => {});
+        }
+    });
+    // Special handling for YouTube player windows
+    if ((windowId === 'apacheWindow' || windowId === 'apacheToob') && youtubePlayer) {
+        if (isMuted) {
+            if (typeof youtubePlayer.mute === 'function') {
+                youtubePlayer.mute();
+            }
+        } else {
+            if (typeof youtubePlayer.unMute === 'function') {
+                youtubePlayer.unMute();
+            }
+        }
+    }
+}
+
     function openWifiWindow() {
         const windowId = 'wifiWindow';
         togglePopup(windowId);
@@ -2090,6 +2136,7 @@ document.querySelectorAll('.window-buttons button, .media-player-buttons button'
 function isPortrait() {
     return window.matchMedia("(orientation: portrait)").matches;
 }
+
 
 
 
