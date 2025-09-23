@@ -602,6 +602,8 @@ function openWindow(windowId) {
             iconSrc = 'youtube/apache-toob.png';
         } else if (windowId === 'paintWindow') {
             iconSrc = 'images/paint.svg';
+        } else if (windowId === 'aimWindow' || windowId === 'aimMessageWindow') {
+            iconSrc = 'images/AIM.png';
         } else {
             iconSrc = 'images/window_icon.png'; // Default icon
         }
@@ -619,6 +621,10 @@ function openWindow(windowId) {
             title.innerText = 'A-Toob';
         } else if (windowId === 'paintWindow') {
             title.innerText = 'Paint';
+        } else if (windowId === 'aimWindow') {
+            title.innerText = 'AIM';
+        } else if (windowId === 'aimMessageWindow') {
+            title.innerText = 'Apapa IM';
         } else {
             title.innerText = windowId;
         }
@@ -1893,11 +1899,13 @@ function adjustIframeScale(windowId) {
 
     if (!iframeWrapper || !iframeContent) return;
 
-    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow') {
+    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow' || windowId === 'aimWindow' || windowId === 'aimMessageWindow') {
         // For apacheToob, make the iframe fill the wrapper without scaling
         iframeContent.style.width = '100%';
         iframeContent.style.height = '100%';
         iframeContent.style.transform = 'none';
+        iframeContent.style.top = '0';
+        iframeContent.style.left = '0';
     } else {
         // Existing scaling logic for other windows
         const originalWidth = parseInt(windowElement.getAttribute('data-original-width'), 10);
@@ -1996,52 +2004,6 @@ soundTray.addEventListener('click', () => {
         isMuted = true;
     }
 });
-
-function disableWindowAudioById(windowId) {
-    const win = document.getElementById(windowId);
-    if (!win) return;
-    const mediaEls = win.querySelectorAll('audio, video');
-    mediaEls.forEach(el => {
-        if (typeof el.pause === 'function') el.pause();
-        el.muted = true;
-    });
-    // Special handling for YouTube player windows
-    if ((windowId === 'apacheWindow' || windowId === 'apacheToob') && youtubePlayer) {
-        if (typeof youtubePlayer.pauseVideo === 'function') {
-            youtubePlayer.pauseVideo();
-        }
-        if (typeof youtubePlayer.mute === 'function') {
-            youtubePlayer.mute();
-        }
-    }
-}
-
-// Helper to enable audio/video inside a specific window
-function enableWindowAudioById(windowId) {
-    const win = document.getElementById(windowId);
-    if (!win) return;
-    const mediaEls = win.querySelectorAll('audio, video');
-    mediaEls.forEach(el => {
-        // Respect global mute state
-        el.muted = isMuted;
-        // Resume playback only if unmuted and previously paused
-        if (!el.muted && el.paused && typeof el.play === 'function') {
-            el.play().catch(() => {});
-        }
-    });
-    // Special handling for YouTube player windows
-    if ((windowId === 'apacheWindow' || windowId === 'apacheToob') && youtubePlayer) {
-        if (isMuted) {
-            if (typeof youtubePlayer.mute === 'function') {
-                youtubePlayer.mute();
-            }
-        } else {
-            if (typeof youtubePlayer.unMute === 'function') {
-                youtubePlayer.unMute();
-            }
-        }
-    }
-}
 
     function openWifiWindow() {
         const windowId = 'wifiWindow';
@@ -2145,5 +2107,47 @@ function isPortrait() {
 
 
 
+
+
+
+
+
+
+function setAimWindowState(state) {
+    const aimWindow = document.getElementById('aimWindow');
+    if (!aimWindow) return;
+
+    if (state === 'signed-in') {
+        aimWindow.classList.add('aim-expanded');
+    } else {
+        aimWindow.classList.remove('aim-expanded');
+    }
+
+    adjustIframeScale('aimWindow');
+}
+
+window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || typeof data !== 'object') return;
+
+    switch (data.type) {
+        case 'aim-sign-on':
+            setAimWindowState('signed-in');
+            break;
+        case 'aim-sign-off':
+            setAimWindowState('signed-out');
+            break;
+        case 'aim-open-chat': {
+            openWindow('aimMessageWindow');
+            const chatWindow = document.getElementById('aimMessageWindow');
+            if (chatWindow) {
+                bringToFront(chatWindow);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+});
 
 

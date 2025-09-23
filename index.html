@@ -41,6 +41,10 @@
                 <span>Documents</span>
             </div>
 
+            <div class="desktop-icon" data-window="aimWindow" style="top: 620px; left: 20px;">
+                <img src="images/AIM.png" alt="AIM Icon">
+                <span>AIM</span>
+            </div>
         </div>
 
         <!-- Taskbar -->
@@ -366,6 +370,37 @@
             </div>
             <div class="resize-handle resize-handle-bottom-right"></div>
         </div>
+        <!-- AIM Window -->
+        <div id="aimWindow" class="window" data-original-width="300" data-original-height="514">
+            <div class="window-header">
+                <span class="window-title">AIM 3.5</span>
+                <div class="window-buttons">
+                    <button class="minimize" onclick="minimizeWindow('aimWindow')">_</button>
+                    <button class="close" onclick="closeWindow('aimWindow')">X</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="iframe-wrapper">
+                    <iframe src="AIM/aim.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- AIM Message Window -->
+        <div id="aimMessageWindow" class="window" data-original-width="400" data-original-height="410" style="display:none;">
+            <div class="window-header">
+                <span class="window-title">Apapa - IM</span>
+                <div class="window-buttons">
+                    <button class="minimize" onclick="minimizeWindow('aimMessageWindow')">_</button>
+                    <button class="close" onclick="closeWindow('aimMessageWindow')">X</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="iframe-wrapper">
+                    <iframe src="AIM/message.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+        </div>
     </div> <!-- /desktop -->
 
     <!-- Include YouTube IFrame API -->
@@ -377,6 +412,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 

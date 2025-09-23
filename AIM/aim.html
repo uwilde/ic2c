@@ -27,6 +27,7 @@
     place-items:center;
     font-family: Tahoma, Verdana, Arial, sans-serif;
     color:var(--text);
+    overflow:hidden;
   }
   /* Frame */
   #aim{ width:300px; height:514px; background:var(--win-gray); border:1px solid #000; box-shadow: 0 10px 24px rgba(0,0,0,.45); display:flex; flex-direction:column; }
@@ -50,7 +51,7 @@
   .version{ width:261px; margin:4px auto 0; text-align:center; color:#444; font-size:11px; }
 
   /* Main view */
-  #aim[data-state="main"]{ height:618px; }
+  #aim[data-state="main"]{ height:570px; }
   #mainView{ display:none; height:100%; }
   .mainTop{ padding:4px 6px 0; font-size:12px; display:flex; gap:8px; border-bottom:1px solid var(--rim); background:var(--win-mid); }
   .menu{ position:relative; padding:2px 6px; cursor:pointer; }
@@ -227,6 +228,12 @@ const screennameSel=document.getElementById('screenname');
 const pwInput=document.getElementById('password');
 const signOnBtn=document.getElementById('signOn');
 
+function notifyDesktop(type, detail = {}) {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type, detail }, '*');
+  }
+}
+
 /* Populate ScreenName dropdown + password autofill */
 savedUsers.forEach(u=>{ const o=document.createElement('option'); o.value=o.textContent=u.name; screennameSel.appendChild(o); });
 function tryEnable(){ const ok=!!(screennameSel.value&&pwInput.value); signOnBtn.disabled=!ok; signOnBtn.classList.toggle('enabled',ok); }
@@ -235,8 +242,8 @@ pwInput.addEventListener('input',tryEnable);
 screennameSel.dispatchEvent(new Event('change'));
 
 /* Sign on/off */
-function signOn(){ aim.dataset.state='main'; loginView.style.display='none'; mainView.style.display='flex'; }
-function signOff(){ aim.dataset.state='login'; mainView.style.display='none'; loginView.style.display='block'; }
+function signOn(){ aim.dataset.state='main'; loginView.style.display='none'; mainView.style.display='flex'; notifyDesktop('aim-sign-on'); }
+function signOff(){ aim.dataset.state='login'; mainView.style.display='none'; loginView.style.display='block'; notifyDesktop('aim-sign-off'); }
 signOnBtn.addEventListener('click',signOn);
 document.getElementById('signOff').addEventListener('click',signOff);
 
@@ -270,11 +277,15 @@ function row(name,online=true){
   const d=document.createElement('div');
   d.className='buddy'+(online?'':' offline');
   d.innerHTML='<div class="statusDot"></div><div>'+name+'</div>';
-  // Per request: clicking Apapa should do nothing (no chat yet)
   if(name!=='Apapa'){
     d.addEventListener('dblclick',()=>alert(name+' is offline.'));
   }
-  d.addEventListener('click',()=> d.style.background='#dbe9ff');
+  d.addEventListener('click',()=>{
+    d.style.background='#dbe9ff';
+    if(name==='Apapa' && aim.dataset.state==='main'){
+      notifyDesktop('aim-open-chat',{ buddy:name });
+    }
+  });
   return d;
 }
 (function populate(){
@@ -307,3 +318,11 @@ document.getElementById('btnMax').onclick=()=>alert('Already maximized for mock 
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
