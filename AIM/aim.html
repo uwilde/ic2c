@@ -306,15 +306,21 @@ document.querySelectorAll('.groupHeader').forEach(h=>{
 });
 
 /* Misc buttons */
-document.getElementById('btnToday').onclick=()=>alert('AOL Today (mock)');
-document.getElementById('btnPrefs').onclick=()=>alert('Preferences (mock)');
-document.getElementById('btnSetup2').onclick=()=>alert('Setup (mock)');
-document.getElementById('btnIM').onclick=()=>alert('Compose IM (mock)');
-document.getElementById('btnRooms').onclick=()=>alert('Chat Rooms (mock)');
-document.getElementById('btnFile').onclick=()=>alert('Send File (mock)');
-document.getElementById('btnClose').onclick=()=>alert('Closing AIM… (mock)');
-document.getElementById('btnMin').onclick=()=>alert('Minimized (mock)');
-document.getElementById('btnMax').onclick=()=>alert('Already maximized for mock size');
+const quickButtons=[
+  ['btnToday',()=>alert('AOL Today (mock)')],
+  ['btnPrefs',()=>alert('Preferences (mock)')],
+  ['btnSetup2',()=>alert('Setup (mock)')],
+  ['btnIM',()=>alert('Compose IM (mock)')],
+  ['btnRooms',()=>alert('Chat Rooms (mock)')],
+  ['btnFile',()=>alert('Send File (mock)')],
+  ['btnClose',()=>alert('Closing AIM... (mock)')],
+  ['btnMin',()=>alert('Minimized (mock)')],
+  ['btnMax',()=>alert('Already maximized for mock size')]
+];
+quickButtons.forEach(([id,handler])=>{
+  const btn=document.getElementById(id);
+  if(btn) btn.onclick=handler;
+});
 </script>
 </body>
 </html>

@@ -210,6 +210,7 @@
 <script>
 
   function _playSentSound(){
+    if (!_canPlayDesktopSound()) return;
     const a = document.getElementById('sentSound');
     if (a) { try { a.currentTime = 0; a.play(); } catch(e){ console.log('Sent audio blocked:', e); } }
   }
@@ -239,7 +240,66 @@
     window.addEventListener(t, _unlockMsgAudioOnce, { once:true, capture:true, passive:true });
   });
 
+  const desktopMediaState = { muted: false, paused: false };
+
+  function _desktopAudioNodes(){
+    return ['msgSound','sentSound']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+  }
+
+  function _applyDesktopMute(){
+    const mute = desktopMediaState.muted;
+    _desktopAudioNodes().forEach(a => { a.muted = mute; });
+  }
+
+  function _stopDesktopAudio(){
+    _desktopAudioNodes().forEach(a => {
+      try { a.pause(); } catch(e){}
+      try { a.currentTime = 0; } catch(e){}
+    });
+  }
+
+  _applyDesktopMute();
+
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || typeof data !== 'object' || data.type !== 'desktop-media-control') return;
+    switch (data.action) {
+      case 'mute':
+        desktopMediaState.muted = true;
+        _applyDesktopMute();
+        _stopDesktopAudio();
+        break;
+      case 'unmute':
+        desktopMediaState.muted = false;
+        _applyDesktopMute();
+        break;
+      case 'pause':
+        desktopMediaState.paused = true;
+        _stopDesktopAudio();
+        break;
+      case 'resume':
+        desktopMediaState.paused = false;
+        if (!desktopMediaState.muted) {
+          _applyDesktopMute();
+        }
+        break;
+      case 'stop':
+        desktopMediaState.paused = true;
+        _stopDesktopAudio();
+        break;
+      default:
+        break;
+    }
+  });
+
+  function _canPlayDesktopSound(){
+    return !desktopMediaState.muted && !desktopMediaState.paused;
+  }
+
   function _playMsgSound(){
+    if (!_canPlayDesktopSound()) return;
     const snd = document.getElementById('msgSound');
     if (snd) { try { snd.currentTime = 0; snd.play(); } catch(e){ console.log('Audio play blocked:', e); } }
   }
