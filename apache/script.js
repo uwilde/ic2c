@@ -83,7 +83,7 @@ bgLayer3.src = 'BG_LAYER3.png';
   if (imagesLoaded === 11) {
     lastTime = performance.now();
     animationId = requestAnimationFrame(gameLoop);
-    AudioKit.startSong(); 
+
   }
 });
 
@@ -225,52 +225,95 @@ const AudioKit = (() => {
     }
   };
 
-  // --- tiny music sequencer (2 voices) ---
+  // --- music sequencer ---
   // “Thin Redneck Adventure” — upbeat, simple I–♭VII–IV vibe in A:
-  const SONG = {
+  // --- tiny music sequencer with 2 songs (MAIN + METAL) ---
+  // MAIN: “Thin Redneck Adventure”
+  const SONG_MAIN = {
+    name: 'main',
     bpm: 132,
     patternLen: 16,
-    // lead: [midi, steps], 0 = rest
-    lead:  [ 81,  0,  81,  83,   81,  79,  76,  0,   81,  0,  81,  83,   86,  83,  81,  0],
-    bass:  [ 45,  45, 45,  45,   43,  43,  43,  43,  40,  40, 40,  40,   43,  43,  43,  43],
+    lead: [81,0,81,83, 81,79,76,0, 81,0,81,83, 86,83,81,0],
+    bass: [45,45,45,45, 43,43,43,43, 40,40,40,40, 43,43,43,43],
   };
 
+  // METAL: short looping riff (power-chord-ish arps) in A
+  const SONG_METAL = {
+    name: 'metal',
+    bpm: 168,
+    patternLen: 16,
+    // quick arpeggios to mimic chugs: A5 (69), E5 (64), D5 (62)
+    lead: [
+      81,81, 0,81,  83,83, 0,83,   86,86, 0,86,  83,83, 0,83
+    ],
+    // bass “chugs”: A2, E2, D2, back to E2
+    bass: [
+      45,45,45,45,  40,40,40,40,  38,38,38,38,  40,40,40,40
+    ],
+    // optional “hat” noise ticks for edge; comment out if you prefer pure 2-voice
+    hat:  [1,0,1,0,  1,0,1,0,  1,0,1,0,  1,0,1,0],
+  };
+
+  let CURRENT_SONG = SONG_MAIN;
   let songTimer = null, songStep = 0;
-  function scheduleStep(stepIdx, t0) {
-    const spb = 60 / SONG.bpm;
-    const dur = spb * 0.9; // staccato
-    // lead
-    const l = SONG.lead[stepIdx % SONG.patternLen];
-    if (l) {
-      const {out, stop} = pulseOsc(midiToHz(l), 0.25, t0);
-      const g = ctx.createGain(); g.gain.value = 0.22; out.connect(g); g.connect(masterGain);
-      const e = envADSR(g, t0, 0.002, 0.05, 0.15, 0.05, 1.0, 0.5);
-      e.out.connect(masterGain); stop(t0 + dur); e.release(t0 + dur - 0.04);
-    }
-    // bass
-    const b = SONG.bass[stepIdx % SONG.patternLen];
-    if (b) {
-      const {out, stop} = pulseOsc(midiToHz(b), 0.125, t0);
-      const g = ctx.createGain(); g.gain.value = 0.18; out.connect(g); g.connect(masterGain);
-      const e = envADSR(g, t0, 0.003, 0.04, 0.2, 0.06, 1.0, 0.6);
-      e.out.connect(masterGain); stop(t0 + dur); e.release(t0 + dur - 0.05);
+
+  function scheduleStep(song, stepIdx, t0) {
+    const spb = 60 / song.bpm;
+    const dur = spb * 0.9;
+
+    const l = song.lead[stepIdx % song.patternLen];
+		const b = song.bass[stepIdx % song.patternLen];
+		// LEAD
+		if (l) {
+			const {out, stop} = pulseOsc(midiToHz(l), 0.25, t0);
+			const pre = ctx.createGain(); pre.gain.value = (song.name === 'metal' ? 0.27 : 0.22);
+			out.connect(pre);
+			const e = envADSR(pre, t0, 0.002, 0.05, 0.12, 0.05, 1.0, 0.5);
+			e.out.connect(masterGain);
+			stop(t0 + dur); e.release(t0 + dur - 0.04);
+		}
+
+		// BASS
+		if (b) {
+			const {out, stop} = pulseOsc(midiToHz(b), 0.125, t0);
+			const pre = ctx.createGain(); pre.gain.value = (song.name === 'metal' ? 0.22 : 0.18);
+			out.connect(pre);
+			const e = envADSR(pre, t0, 0.003, 0.04, 0.20, 0.06, 1.0, 0.6);
+			e.out.connect(masterGain);
+			stop(t0 + dur); e.release(t0 + dur - 0.05);
+		}
+
+    if (song.hat) {
+      const h = song.hat[stepIdx % song.patternLen];
+      if (h) {
+        const t = ctx.currentTime;
+        const n = noiseNode(t0);
+        const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3000;
+        n.connect(f);
+        const e = envADSR(f, t0, 0.001, 0.015, 0, 0.02, 0.5, 0);
+        e.out.connect(masterGain);
+        setTimeout(() => n.stop(), 50); // short tick
+      }
     }
   }
-  function startSong() {
+
+  function _startSequencer(song) {
     if (!ctx) init();
-    if (songTimer) return;
-    const spb = 60 / SONG.bpm;
+    if (songTimer) { clearInterval(songTimer); songTimer = null; }
+    CURRENT_SONG = song;
+    songStep = 0;
+    const spb = 60 / song.bpm;
     let base = ctx.currentTime + 0.06;
     songTimer = setInterval(() => {
       const t = base + songStep * spb;
-      scheduleStep(songStep, t);
-      songStep = (songStep + 1) % SONG.patternLen;
+      scheduleStep(CURRENT_SONG, songStep, t);
+      songStep = (songStep + 1) % CURRENT_SONG.patternLen;
     }, spb * 1000);
   }
-  function stopSong() {
-    if (songTimer) { clearInterval(songTimer); songTimer = null; }
-  }
 
+  function startSong(){ _startSequencer(SONG_MAIN); }
+  function playMetal(){ _startSequencer(SONG_METAL); }
+  function stopSong(){ if (songTimer){ clearInterval(songTimer); songTimer=null; } }
   // --- public ---
   function init() {
     if (ctx) return;
@@ -280,11 +323,19 @@ const AudioKit = (() => {
     masterGain.connect(ctx.destination);
   }
 
-  async function readyFromGesture() {
-    if (!ctx) init();
-    if (ctx.state === 'suspended') await ctx.resume();
-    started = true;
-  }
+	async function readyFromGesture() {
+		if (!ctx) init();
+		try {
+			// Call resume() but don't await it, so it stays in the same user-gesture task.
+			if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+				const p = ctx.resume();
+				// Don't await p — keep the call inside the gesture stack frame.
+			}
+		} catch (e) {
+			// Ignore: browsers may throw if no activation yet
+		}
+		started = (ctx.state === 'running'); // best-effort flag
+	}
 
   function setMuted(v) {
     muted = !!v;
@@ -292,10 +343,10 @@ const AudioKit = (() => {
   }
 
   return {
-    readyFromGesture, startSong, stopSong, setMuted,
+    readyFromGesture, startSong, stopSong, setMuted, toggleMute(){ setMuted(!muted); },
+		playMetal,
     sfx: SFX,
     get started(){ return started; },
-    toggleMute(){ setMuted(!muted); }
   };
 })();
 
@@ -306,13 +357,29 @@ const collectSound = { play: () => AudioKit.sfx.coin()  };
 const gameOverSound= { play: () => AudioKit.sfx.gameover() };
 
 /* Start audio context on first input (mobile-safe) */
-const _armAudio = () => {
-  if (!AudioKit.started) AudioKit.readyFromGesture();
-  window.removeEventListener('pointerdown', _armAudio);
-  window.removeEventListener('keydown', _armAudio);
-};
-window.addEventListener('pointerdown', _armAudio, { once: true });
-window.addEventListener('keydown', _armAudio,  { once: true });
+function _armAudio() {
+  // 1) resume in the same gesture tick (no await)
+  AudioKit.readyFromGesture();
+
+  // 2) immediately start the correct track
+  const inApambo = performance.now() < ramboUntil;
+  if (gameState === 'playing') {
+    AudioKit.stopSong();
+    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
+    else          { AudioKit.startSong(); apamboMusicOn = false; }
+  }
+}
+
+// One-time, capture-phase to catch the very first touch/click/keydown reliably
+['pointerdown','touchstart','keydown'].forEach(type => {
+  window.addEventListener(type, _armAudio, { once: true, capture: true, passive: true });
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' &&
+      navigator.userActivation && navigator.userActivation.hasBeenActive) {
+    _armAudio();
+  }
+});
 
 /* Physics */
 const GROUND_Y = 300;
@@ -357,6 +424,7 @@ const RAMBO_DURATION = 5500;    // 5.5s
 const DART_INTERVAL = 120;      // rapid fire cadence (ms)
 const DART_SPEED = 520;         // px/s
 let darts = [];                 // active projectiles
+let apamboMusicOn = false;
 
 /* ---------- Input ---------- */
 document.addEventListener('keydown', e => {
@@ -368,6 +436,7 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.code === 'Space' && horse.onGround) {
+		AudioKit.readyFromGesture();
     horse.isJumping = true;
     horse.velocityY = -350;
     horse.jumpHoldTime = 0;
@@ -375,18 +444,24 @@ document.addEventListener('keydown', e => {
     jumpSound.play();
   }
 
-  if (e.code === 'Escape') {
-    isPaused = !isPaused;
-    if (!isPaused) {
-      lastTime = performance.now();
-      animationId = requestAnimationFrame(gameLoop);
-      AudioKit.startSong();
-    } else {
-      cancelAnimationFrame(animationId);
-      drawPauseOverlay();
-      AudioKit.stopSong();
-    }
-  }
+	if (e.code === 'Escape') {
+		isPaused = !isPaused;
+		if (!isPaused) {
+			lastTime = performance.now();
+			animationId = requestAnimationFrame(gameLoop);
+
+			// choose proper track on resume
+			const inApambo = performance.now() < ramboUntil;
+			AudioKit.stopSong();
+			if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
+			else          { AudioKit.startSong(); apamboMusicOn = false; }
+
+		} else {
+			cancelAnimationFrame(animationId);
+			drawPauseOverlay();
+			AudioKit.stopSong();   // ← stop when pausing
+		}
+	}
 });
 
 document.addEventListener('keyup', e => {
@@ -632,7 +707,7 @@ function updateCoins(dt) {
         ramboUntil = performance.now() + RAMBO_DURATION;
         nextDartAt = 0; // fire immediately
       }
-
+			AudioKit.readyFromGesture();  
       collectSound.play();
     }
   }
@@ -652,12 +727,14 @@ function updatePowerUps(dt) {
     p.x -= gameSpeed * dt;
     if (p.x + p.width < 0) { powerUps.splice(i, 1); continue; }
     if (!p.collected && rectsOverlap(horse, p)) {
-      p.collected = true; powerUps.splice(i, 1);
-      invincibleUntil = performance.now() + 8000;  // 8 seconds
-      horse.invincible = true;
-      powerUpCooldownUntil = performance.now() + 20000; 
-      collectSound.play();
-      AudioKit.sfx.powerup();
+			p.collected = true; powerUps.splice(i, 1);
+			invincibleUntil = performance.now() + 8000;
+			horse.invincible = true;
+			powerUpCooldownUntil = performance.now() + 20000;
+			AudioKit.readyFromGesture();
+			collectSound.play();
+			AudioKit.sfx.powerup();
+
 
     }
   }
@@ -696,10 +773,13 @@ function drawHorse2s() {
 
 // Create & show the flashing “APAMBO MODE!!!” banner, then enable APAMBO
 function triggerApamboBanner() {
-  // start banner
+  AudioKit.readyFromGesture();   
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
   // immediately set APAMBO so the meter & darts are ready when banner clears
   ramboUntil = performance.now() + RAMBO_DURATION;
+	AudioKit.stopSong();
+	AudioKit.playMetal();
+	apamboMusicOn = true;
   nextDartAt = 0; // fire ASAP
 }
 
@@ -908,7 +988,10 @@ function tractorPull(dt) {
     pointInBeam(pxC, pyTop);
 
   // Edge-trigger SFX
-  if (inBeam && !beamWasSucking) AudioKit.sfx.beam();
+	if (inBeam && !beamWasSucking) {
+		AudioKit.readyFromGesture();                 // <- add
+		AudioKit.sfx.beam();
+	}
 
   if (inBeam) {
     suckedByBeam = true;
@@ -1189,18 +1272,30 @@ function updateGoldCoins(dt) {
   for (let i = goldCoins.length - 1; i >= 0; i--) {
     const g = goldCoins[i];
     g.t += dt;
-    // scroll with level
-    g.x -= gameSpeed * dt;
-    // gentle bob for attention
-    g.bobY = Math.sin(g.t * 5) * 3;
-    if (g.x + g.width < 0) { goldCoins.splice(i, 1); continue; }
+    g.x -= gameSpeed * dt;                 // scroll with level
+    g.bobY = Math.sin(g.t * 5) * 3;        // gentle bob
+
+    if (g.x + g.width < 0) { 
+      goldCoins.splice(i, 1); 
+      continue; 
+    }
+
+    // define the coin's hitbox (account for bob)
+    const hitbox = {
+      x: g.x,
+      y: g.y + (g.bobY || 0),
+      width: g.width,
+      height: g.height
+    };
 
     // pickup
-    const hitbox = { x: g.x, y: g.y + g.bobY, width: g.width, height: g.height };
     if (!g.collected && rectsOverlap(horse, hitbox)) {
       g.collected = true;
       goldCoins.splice(i, 1);
-      horse.lives += 1;      // reward: extra life
+      horse.lives += 1;
+
+      // sfx
+      AudioKit.readyFromGesture();
       collectSound.play();
     }
   }
@@ -1263,6 +1358,15 @@ function drawRamboMeter() {
 function isNum(v){ return Number.isFinite(v); }
 function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+function syncMusicToState() {
+  const inApambo = performance.now() < ramboUntil;
+  AudioKit.stopSong();
+  if (gameState === 'playing') {
+    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
+    else          { AudioKit.startSong(); apamboMusicOn = false; }
+  }
+}
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
@@ -1534,13 +1638,26 @@ rightButton.addEventListener('pointerup',   e => { e.preventDefault(); keys['Arr
 pauseButton.addEventListener('pointerup', e => {
   e.preventDefault();
   isPaused = !isPaused;
-  if (!isPaused) { lastTime = performance.now(); animationId = requestAnimationFrame(gameLoop); }
-  else { cancelAnimationFrame(animationId); drawPauseOverlay(); }
+  if (!isPaused) {
+    lastTime = performance.now();
+    animationId = requestAnimationFrame(gameLoop);
+
+    const inApambo = performance.now() < ramboUntil;
+    AudioKit.stopSong();
+    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
+    else          { AudioKit.startSong(); apamboMusicOn = false; }
+
+  } else {
+    cancelAnimationFrame(animationId);
+    drawPauseOverlay();
+    AudioKit.stopSong();   // ← stop when pausing
+  }
 });
 
 jumpButton.addEventListener('pointerdown', e => {
   e.preventDefault();
   if (horse.onGround) {
+		AudioKit.readyFromGesture();
     horse.isJumping = true;
     horse.velocityY = -350;
     horse.jumpHoldTime = 0;
@@ -1564,6 +1681,23 @@ let lastTime = 0;
 function gameLoop(ts) {
   const dt = Math.min((ts - lastTime) / 1000, 0.1);
   lastTime = ts;
+	
+{
+  const inApambo = performance.now() < ramboUntil;
+
+  // Entering APAMBO → start METAL
+  if (inApambo && !apamboMusicOn) {
+    AudioKit.playMetal();
+    apamboMusicOn = true;
+  }
+
+  // Exiting APAMBO → go back to MAIN
+  if (!inApambo && apamboMusicOn) {
+    AudioKit.startSong();
+    apamboMusicOn = false;
+  }
+}
+	
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1616,6 +1750,7 @@ function gameLoop(ts) {
     const now = performance.now();
     if (now < ramboUntil) {
       if (now >= nextDartAt) {
+				AudioKit.readyFromGesture(); 
         spawnDart();
         AudioKit.sfx.dart();
         nextDartAt = now + DART_INTERVAL;
