@@ -239,7 +239,6 @@ const AudioKit = (() => {
      MUSIC UPGRADE PATCH
      ========================= */
 
-  // --- extra builders ---
   function sineOsc(freq, t0 = 0) {
     const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq; o.start(t0);
     return o;
@@ -304,15 +303,15 @@ const AudioKit = (() => {
   // string pad-ish: two detuned saws through gentle lowpass
   function stringPad(midi, t0, dur, gain=0.18) {
     const f = midiToHz(midi);
-    const o1 = sawOsc(f, t0), o2 = sawOsc(f*0.999, t0);
-    o2.detune.value = +6;
+    const o1 = sawOsc(f, t0), o2 = sawOsc(f*0.999, t0), o3 = sawOsc(f*1.001, t0);
+    o2.detune.value = +6; o3.detune.value = -6;
     const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.2;
     const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
     g.gain.linearRampToValueAtTime(gain, t0 + 0.05);
     g.gain.linearRampToValueAtTime(gain*0.75, t0 + dur*0.6);
     g.gain.linearRampToValueAtTime(0, t0 + dur);
-    o1.connect(lp); o2.connect(lp); lp.connect(g).connect(masterGain);
-    setTimeout(()=>{ try{o1.stop();o2.stop();}catch(e){} }, (dur*1000 + 10)|0);
+    o1.connect(lp); o2.connect(lp); o3.connect(lp); lp.connect(g).connect(masterGain);
+    setTimeout(()=>{ try{o1.stop();o2.stop();o3.stop();}catch(e){} }, (dur*1000 + 10)|0);
   }
 
   // banjo/fiddle-ish lead: bright pulse w/ vibrato + quick envelope
@@ -326,54 +325,87 @@ const AudioKit = (() => {
     stop(t0 + dur); e.release(t0 + dur - 0.04);
     setTimeout(()=>{ killVib(); }, (dur*1000+20)|0);
   }
+  
+  function mellowLead(midi, t0, dur=0.62, vol=0.22) {
+    const s  = sineOsc(midiToHz(midi), t0);
+    const p  = pulseOsc(midiToHz(midi), 0.24, t0); // a touch of breath
+    const pre = ctx.createGain(); pre.gain.value = vol;
+    const killVibS = (() => { // gentle vibrato on sine only
+      const lfo = ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value = 5.1;
+      const lfoG = ctx.createGain(); lfoG.gain.value = 4; lfo.connect(lfoG); lfoG.connect(s.frequency); lfo.start(t0);
+      return ()=>{ try{ lfo.stop(); }catch(e){} };
+    })();
+    s.connect(pre); p.out.connect(pre);
+    const e = envADSR(pre, t0, /*A*/0.02, /*D*/0.12, /*S*/0.6, /*R*/0.28, /*peak*/1.0, /*sus*/0.6);
+    e.out.connect(masterGain);
+    setTimeout(()=>{ try{s.stop();}catch(e){}; killVibS(); }, (dur*1000+30)|0);
+    // shape
+    const stopAt = t0 + dur; e.release(stopAt - 0.02);
+  }
 
   // distorted “guitar” chug: saw -> distortion -> lowpass gate
-  function chug(midi, t0, dur=0.20, vol=0.22) {
-    const o = sawOsc(midiToHz(midi), t0);
-    const dist = makeDistortion(38);
-    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1200; lp.Q.value = 0.3;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
-    g.gain.linearRampToValueAtTime(vol, t0+0.01);
-    g.gain.linearRampToValueAtTime(0, t0 + dur);
-    o.connect(dist).connect(lp).connect(g).connect(masterGain);
-    setTimeout(()=>{ try{o.stop();}catch(e){} }, (dur*1000+20)|0);
+  function chug(midi, t0, dur=0.16, vol=0.22) {
+    const f = midiToHz(midi);
+    const o1 = sawOsc(f, t0);
+    const o2 = sawOsc(f, t0); o2.detune.value = 4;
+    const o3 = sawOsc(f, t0); o3.detune.value = -4;
+    const dist = makeDistortion(80);            // increased for more intense overdrive
+    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 80;
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass';  lp.frequency.value = 2200; lp.Q.value = 0.6; // adjusted for bite
+    const g  = ctx.createGain(); g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol, t0+0.006);
+    g.gain.linearRampToValueAtTime(0,   t0+dur);            // tight gate
+    o1.connect(dist); o2.connect(dist); o3.connect(dist);
+    dist.connect(hp).connect(lp).connect(g).connect(masterGain);
+    setTimeout(()=>{ try{o1.stop();o2.stop();o3.stop();}catch(e){} }, (dur*1000+20)|0);
   }
 
   // helper: power-chord (root + fifth) as layered chugs
   function powerChord(rootMidi, t0, dur=0.22) {
     chug(rootMidi, t0, dur);
     chug(rootMidi+7, t0, dur*0.92, 0.18);
+    chug(rootMidi+12, t0, dur*0.88, 0.12); // added octave for fuller, heavier sound
   }
 
   /* ------------ SONG DEFINITIONS ------------- */
   // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
   const SONG_MAIN = {
     name: 'main',
-    bpm: 132,
+    bpm: 124,
     patternLen: 16,
-    // chords timeline (by bar): A (x4), G (x4), D (x4), G (x4)
-    chords: [57,57,57,57, 55,55,55,55, 50,50,50,50, 55,55,55,55], // MIDI roots (A2,G2,D2,G2)
-    // walking bass outlining roots/5ths/octaves
-    bass:   [45,52,45,52, 43,50,43,50, 38,45,38,45, 43,50,43,50],
-    // country-ish lead (pentatonic-ish; rests as 0)
-    lead:   [81,0,83,0, 81,79,76,0,  81,0,83,0, 86,83,81,0],
-    // drums: K=kick, S=snare, H=hihat (eighth hats)
-    drums:  ['K',0,'H',0, 'S','H','H',0,  'K','H',0,'H', 'S','H','H',0]
+    chords: [57,57,57,57, 55,55,55,55, 50,50,50,50, 55,55,55,55], // A,G,D,G (roots)
+    // walking bass for more dynamic feel
+    bass:   [45,47,48,50, 43,45,47,48, 38,39,41,43, 43,45,47,48],
+    // fuller, more melodic and catchy lead line with scale runs
+    lead:   [81,83,85,86, 79,78,76,74, 74,76,78,81, 79,76,74,71],
+    // standard backbeat drums with hats on every quarter for groove
+    drums:  ['KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH']
   };
 
-  // METAL: heavy action loop (A minor flavor). Think: chugs + double-kick.
+  // METAL — faster & crunchier (more drive, double-kick grid)
+  const metalDrums = [];
+  for (let i = 0; i < 64; i++) {
+    let dd = 'K'; // kick on every 16th for intense double bass
+    if (i % 4 === 0 && (Math.floor(i / 4) % 4 === 1 || Math.floor(i / 4) % 4 === 3)) dd += 'S'; // snare on beats 2 and 4
+    if (i % 4 === 0) dd += 'R'; // open hat on quarter downbeats
+    else if (i % 2 === 0) dd += 'H'; // closed hat on offbeat 8ths
+    metalDrums.push(dd);
+  }
   const SONG_METAL = {
     name: 'metal',
-    bpm: 176,
-    patternLen: 16,
-    // power-chord roots (A–A–G–F–E, compressed into 16 steps)
-    chugs:  [45,45,45,45, 43,43,43,43, 41,41,41,41, 40,40,40,40],
-    // aggressive bass doubles roots an octave down
-    bass:   [33,33,33,33, 31,31,31,31, 29,29,29,29, 28,28,28,28],
-    // lead stab (minor pentatonic fragments)
-    lead:   [81,0,0,83,  0,86,0,83,   81,0,0,79,  0,83,0,81],
-    // drums grid: double-kick on 16ths, snare on 2 & 4, hat/ride constant
-    drums:  ['K','H','K','H', 'S','R','K','H', 'K','H','K','H', 'S','R','K','H']
+    bpm: 192,
+    patternLen: 64, // expanded for 16th-note grid
+    // repeated for tremolo-style chugs on 16ths
+    chugs:  [...Array(16).fill(45), ...Array(16).fill(43), ...Array(16).fill(41), ...Array(16).fill(40)],
+    // bass doubles
+    bass:   [...Array(16).fill(33), ...Array(16).fill(31), ...Array(16).fill(29), ...Array(16).fill(28)],
+    // expanded lead stabs, placed on original timings
+    lead:   [81,0,0,0, 0,0,0,0, 0,0,0,0, 83,0,0,0,
+             0,0,0,0, 88,0,0,0, 0,0,0,0, 83,0,0,0,
+             81,0,0,0, 0,0,0,0, 0,0,0,0, 79,0,0,0,
+             0,0,0,0, 83,0,0,0, 0,0,0,0, 81,0,0,0],
+    // intense death metal drum pattern with fast kicks and blasts
+    drums:  metalDrums
   };
 
   let CURRENT_SONG = SONG_MAIN;
@@ -389,74 +421,67 @@ const AudioKit = (() => {
       (song.chords ? song.chords[stepIdx % song.patternLen]
                    : (song.chugs ? song.chugs[stepIdx % song.patternLen] : null));
 
+    // Common: bass
+    const b = song.bass ? song.bass[stepIdx % song.patternLen] : 0;
+    const l = song.lead ? song.lead[stepIdx % song.patternLen] : 0;
+    const d = song.drums ? song.drums[stepIdx % song.patternLen] : '';
+
     // --- MAIN THEME layers ---
     if (song.name === 'main') {
-      // strings/pad on strong beats (every beat start)
+      // long, smooth pads on strong beats
       if (stepIdx % 4 === 0 && chordRoot) {
-        // A triad flavour: root, fifth, octave
-        stringPad(chordRoot,             t0, beatDur*0.98, 0.16);
-        stringPad(chordRoot + 7,         t0, beatDur*0.98, 0.12);
-        stringPad(chordRoot + 12,        t0, beatDur*0.98, 0.10);
+        stringPad(chordRoot,      t0, beatDur*1.00, 0.16);
+        stringPad(chordRoot + 7,  t0, beatDur*1.00, 0.12);
+        stringPad(chordRoot + 12, t0, beatDur*1.00, 0.10);
       }
 
-      // walking bass (eighth-ish feel)
-      const b = song.bass && song.bass[stepIdx % song.patternLen];
+      // walking bass
       if (b) {
-        const {out, stop} = pulseOsc(midiToHz(b), 0.22, t0);
-        const pre = ctx.createGain(); pre.gain.value = 0.18;
+        const {out, stop} = pulseOsc(midiToHz(b), 0.2, t0);
+        const pre = ctx.createGain(); pre.gain.value = 0.14;
         out.connect(pre);
-        const e = envADSR(pre, t0, 0.003, 0.05, 0.18, 0.05, 1.0, 0.6);
+        const e = envADSR(pre, t0, 0.006, 0.08, 0.5, 0.16, 1.0, 0.55);
         e.out.connect(masterGain);
-        stop(t0 + noteDur*0.55); e.release(t0 + noteDur*0.5);
+        stop(t0 + spb*0.7); e.release(t0 + spb*0.66);
       }
 
-      // twangy lead
-      const l = song.lead && song.lead[stepIdx % song.patternLen];
-      if (l) twangLead(l, t0, spb*0.52, 0.26);
-
-      // drums: backbeat + eighth hats
-      const d = song.drums && song.drums[stepIdx % song.patternLen];
-      if (d === 'K') kick(t0);
-      if (d === 'S') snare(t0);
-      if (d === 'H') hat(t0, false);
+      // melodic lead
+      if (l) mellowLead(l, t0, spb*0.9, 0.22);
     }
 
     // --- METAL layers ---
     if (song.name === 'metal') {
-      // chugs as power-chords on 8ths
-      const root = song.chugs && song.chugs[stepIdx % song.patternLen];
-      if (root) powerChord(root, t0, spb*0.48);
+      const stepDur = spb / 4; // 16th-note timing
 
-      // bass doubles
-      const b = song.bass && song.bass[stepIdx % song.patternLen];
-      if (b) {
-        const o = triOsc(midiToHz(b), t0);
-        const dist = makeDistortion(28);
-        const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(0.18, t0+0.01);
-        g.gain.linearRampToValueAtTime(0, t0+spb*0.5);
-        o.connect(dist).connect(g).connect(masterGain);
-        setTimeout(()=>{ try{o.stop();}catch(e){} }, (spb*500)|0);
-      }
+      // crunchy chugs as power-chords, tight gate
+      const root = song.chugs[stepIdx % song.patternLen];
+      if (root) powerChord(root, t0, stepDur*0.38);
 
-      // lead accents
-      const l = song.lead && song.lead[stepIdx % song.patternLen];
+      // bass doubles tightly
+      if (b) chug(b, t0, stepDur*0.28, 0.18);
+
+      // sharp lead stabs with added distortion for intensity
       if (l) {
-        // sharper envelope
         const {out, stop} = pulseOsc(midiToHz(l), 0.22, t0);
+        const dist = makeDistortion(30); // added distortion for heavier lead
         const pre = ctx.createGain(); pre.gain.value = 0.24;
-        out.connect(pre);
+        out.connect(dist).connect(pre);
         const e = envADSR(pre, t0, 0.002, 0.04, 0.12, 0.04, 1.0, 0.5);
         e.out.connect(masterGain);
-        stop(t0 + spb*0.45); e.release(t0 + spb*0.40);
+        stop(t0 + stepDur*0.36); e.release(t0 + stepDur*0.32);
       }
+    }
 
-      // drums: 'K' kick 16ths, 'S' backbeat, 'H' closed hat, 'R' ride/open hat
-      const d = song.drums && song.drums[stepIdx % song.patternLen];
-      if (d === 'K') kick(t0);
-      if (d === 'S') snare(t0);
-      if (d === 'H') hat(t0, false);
-      if (d === 'R') hat(t0, true);
+    // Common: drums (layered via strings)
+    if (d) {
+      for (let char of d) {
+        switch (char) {
+          case 'K': kick(t0); break;
+          case 'S': snare(t0); break;
+          case 'H': hat(t0, false); break;
+          case 'R': hat(t0, true); break;
+        }
+      }
     }
   }
 
@@ -466,7 +491,8 @@ const AudioKit = (() => {
     CURRENT_SONG = song;
     songStep = 0;
     const spb = 60 / song.bpm;
-    const tickMs = Math.max(40, Math.min(140, (spb * 1000) / 4));
+    const stepDur = (song.name === 'metal') ? spb / 4 : spb; // finer grid for metal
+    const tickMs = Math.max(40, Math.min(140, (stepDur * 1000) / 4));
     let nextStepTime = ctx.currentTime + 0.08;
     const lookAhead = 0.05;
     songTimer = setInterval(() => {
@@ -475,7 +501,7 @@ const AudioKit = (() => {
       while (nextStepTime < now + lookAhead) {
         scheduleStep(CURRENT_SONG, songStep, nextStepTime);
         songStep = (songStep + 1) % CURRENT_SONG.patternLen;
-        nextStepTime += spb;
+        nextStepTime += stepDur;
       }
     }, tickMs);
   }
