@@ -211,9 +211,12 @@ const AudioKit = (() => {
     },
     dart() {
       const t = ctx.currentTime;
-      const {out, stop} = pulseOsc(1000, 0.5, t);
-      const e = envADSR(out, t, 0.001, 0.015, 0, 0.05, 0.8, 0);
-      e.out.connect(masterGain); stop(t + 0.08); e.release(t + 0.03);
+      const n = pulseOsc(1200, 0.5, t); // Started higher for more "zip"
+      n.rampFreq(600, t, t + 0.06); // Quick downward ramp for "pew" effect
+      const e = envADSR(n.out, t, 0.001, 0.02, 0, 0.08, 1.0, 0); // Increased peak volume, slight duration tweak
+      e.out.connect(masterGain);
+      n.stop(t + 0.12); // Slightly longer tail
+      e.release(t + 0.05);
     },
     enemyDown() {
       const t = ctx.currentTime;
@@ -1193,6 +1196,16 @@ function tractorPull(dt) {
     return;
   }
 
+  const nowMs = performance.now();
+
+  // Play beam sound periodically while beam is active (independent of player position)
+  if (nowMs >= nextBeamSoundAt) {
+    console.log('Playing beam sound'); // For debugging—remove after testing
+    ensureAudioActive(); // Changed from ensureAudioActive(true) to avoid forced resume issues
+    AudioKit.sfx.beam();
+    nextBeamSoundAt = nowMs + 450;
+  }
+
   const beamTopX = boss.x + boss.w / 2;
   const beamTopY = boss.y + boss.h * 0.52;
   const beamBottomY = canvas.height;
@@ -1234,15 +1247,7 @@ function tractorPull(dt) {
     pointInBeam(pxR, pyBot) ||
     pointInBeam(pxC, pyTop);
 
-  const nowMs = performance.now();
-
   if (inBeam) {
-    if (nowMs >= nextBeamSoundAt) {
-      ensureAudioActive(true);
-      AudioKit.sfx.beam();
-      nextBeamSoundAt = nowMs + 450;
-    }
-
     suckedByBeam = true;
 
     beamExposure = clamp(beamExposure + dt, 0, 10);
@@ -1265,7 +1270,6 @@ function tractorPull(dt) {
   } else {
     suckedByBeam = false;
     beamExposure = Math.max(0, beamExposure - dt * 1.5);
-    nextBeamSoundAt = nowMs;
   }
 
   beamWasSucking = inBeam;
@@ -2053,3 +2057,73 @@ function gameLoop(ts) {
 
 
 
+
+const DESKTOP_MEDIA_MESSAGE = 'desktop-media-control';
+let desktopMutedByHost = false;
+let desktopPausedByHost = false;
+
+function handleDesktopMediaCommand(action) {
+  switch (action) {
+    case 'mute':
+      desktopMutedByHost = true;
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.setMuted === 'function') {
+        AudioKit.setMuted(true);
+      }
+      break;
+    case 'unmute':
+      desktopMutedByHost = false;
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.setMuted === 'function') {
+        AudioKit.setMuted(false);
+      }
+      if (!desktopPausedByHost) {
+        try {
+          ensureAudioActive();
+          syncMusicToState();
+        } catch (err) {
+          console.warn('Resume audio failed', err);
+        }
+      }
+      break;
+    case 'pause':
+      desktopPausedByHost = true;
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.stopSong === 'function') {
+        AudioKit.stopSong();
+      }
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.setMuted === 'function') {
+        AudioKit.setMuted(true);
+      }
+      break;
+    case 'resume':
+      desktopPausedByHost = false;
+      if (!desktopMutedByHost) {
+        if (typeof AudioKit !== 'undefined' && typeof AudioKit.setMuted === 'function') {
+          AudioKit.setMuted(false);
+        }
+        try {
+          ensureAudioActive();
+          syncMusicToState();
+        } catch (err) {
+          console.warn('Resume audio failed', err);
+        }
+      }
+      break;
+    case 'stop':
+      desktopPausedByHost = true;
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.stopSong === 'function') {
+        AudioKit.stopSong();
+      }
+      if (typeof AudioKit !== 'undefined' && typeof AudioKit.setMuted === 'function') {
+        AudioKit.setMuted(true);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type !== DESKTOP_MEDIA_MESSAGE) return;
+  handleDesktopMediaCommand(data.action);
+});
