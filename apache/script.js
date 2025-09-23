@@ -30,7 +30,7 @@ const APAMBO_BANNER_DURATION = 1100; // ms (fast flash)
 
 /* Optional boss sprite: if missing, we draw a fallback */
 const ufoImage = new Image();
-ufoImage.src = 'UFO.png'; // optional — safe to leave absent
+
 
 const leftButton = document.getElementById('leftButton');
 const rightButton = document.getElementById('rightButton');
@@ -115,6 +115,15 @@ const AudioKit = (() => {
         o2.frequency.setValueAtTime(o2.frequency.value, tStart);
         o1.frequency.exponentialRampToValueAtTime(to, tEnd);
         o2.frequency.exponentialRampToValueAtTime(to, tEnd);
+      },
+      addVibrato: (freqHz = 5.7, depth = 6) => {
+        const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = freqHz;
+        const lfoGain = ctx.createGain(); lfoGain.gain.value = depth;
+        lfo.connect(lfoGain);
+        lfoGain.connect(o1.frequency);
+        lfoGain.connect(o2.frequency);
+        lfo.start(t0);
+        return () => { try { lfo.stop(); } catch(e){} };
       }
     };
   }
@@ -226,33 +235,145 @@ const AudioKit = (() => {
     }
   };
 
-  // --- music sequencer ---
-  // “Thin Redneck Adventure” — upbeat, simple I–♭VII–IV vibe in A:
-  // --- tiny music sequencer with 2 songs (MAIN + METAL) ---
-  // MAIN: “Thin Redneck Adventure”
+  /* =========================
+     MUSIC UPGRADE PATCH
+     ========================= */
+
+  // --- extra builders ---
+  function sineOsc(freq, t0 = 0) {
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq; o.start(t0);
+    return o;
+  }
+  function sawOsc(freq, t0 = 0) {
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq; o.start(t0);
+    return o;
+  }
+  function triOsc(freq, t0 = 0) {
+    const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq; o.start(t0);
+    return o;
+  }
+  function makeDistortion(amount = 24) {
+    const ws = ctx.createWaveShaper();
+    const n = 44100;
+    const curve = new Float32Array(n);
+    const deg = Math.PI / 180;
+    for (let i = 0; i < n; ++i) {
+      const x = (i * 2) / n - 1;
+      curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+    }
+    ws.curve = curve; ws.oversample = '4x';
+    return ws;
+  }
+  function addVibrato(osc, freqHz = 5.3, depth = 8) {
+    const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = freqHz;
+    const lfoGain = ctx.createGain(); lfoGain.gain.value = depth;
+    lfo.connect(lfoGain); lfoGain.connect(osc.frequency); lfo.start();
+    return () => { try { lfo.stop(); } catch(e){} };
+  }
+
+  // percussion instruments
+  function kick(t0) {
+    const o = sineOsc(120, t0);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(1.0, t0+0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+0.22);
+    o.frequency.setValueAtTime(120, t0);
+    o.frequency.exponentialRampToValueAtTime(45, t0+0.22);
+    o.connect(g).connect(masterGain);
+    setTimeout(()=>{ try{o.stop();}catch(e){} }, 240);
+  }
+  function snare(t0) {
+    const n = noiseNode(t0);
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1800; bp.Q.value = 0.7;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.9, t0+0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+0.18);
+    n.connect(bp).connect(g).connect(masterGain);
+    setTimeout(()=>{ try{n.stop();}catch(e){} }, 200);
+  }
+  function hat(t0, open=false) {
+    const n = noiseNode(t0);
+    const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value = 5000;
+    const g = ctx.createGain();
+    const dur = open ? 0.18 : 0.04;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(open ? 0.5 : 0.35, t0+0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    n.connect(hp).connect(g).connect(masterGain);
+    setTimeout(()=>{ try{n.stop();}catch(e){} }, (dur*1000)|0);
+  }
+
+  // string pad-ish: two detuned saws through gentle lowpass
+  function stringPad(midi, t0, dur, gain=0.18) {
+    const f = midiToHz(midi);
+    const o1 = sawOsc(f, t0), o2 = sawOsc(f*0.999, t0);
+    o2.detune.value = +6;
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1800; lp.Q.value = 0.2;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + 0.05);
+    g.gain.linearRampToValueAtTime(gain*0.75, t0 + dur*0.6);
+    g.gain.linearRampToValueAtTime(0, t0 + dur);
+    o1.connect(lp); o2.connect(lp); lp.connect(g).connect(masterGain);
+    setTimeout(()=>{ try{o1.stop();o2.stop();}catch(e){} }, (dur*1000 + 10)|0);
+  }
+
+  // banjo/fiddle-ish lead: bright pulse w/ vibrato + quick envelope
+  function twangLead(midi, t0, dur=0.24, vol=0.28) {
+    const {out, stop, addVibrato} = pulseOsc(midiToHz(midi), 0.28, t0);
+    const pre = ctx.createGain(); pre.gain.value = vol;
+    const killVib = addVibrato(5.7, 6); // ✅ vibrato modulates the underlying oscillators
+    out.connect(pre);
+    const e = envADSR(pre, t0, 0.004, 0.06, 0.16, 0.08, 1.0, 0.6);
+    e.out.connect(masterGain);
+    stop(t0 + dur); e.release(t0 + dur - 0.04);
+    setTimeout(()=>{ killVib(); }, (dur*1000+20)|0);
+  }
+
+  // distorted “guitar” chug: saw -> distortion -> lowpass gate
+  function chug(midi, t0, dur=0.20, vol=0.22) {
+    const o = sawOsc(midiToHz(midi), t0);
+    const dist = makeDistortion(38);
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 1200; lp.Q.value = 0.3;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol, t0+0.01);
+    g.gain.linearRampToValueAtTime(0, t0 + dur);
+    o.connect(dist).connect(lp).connect(g).connect(masterGain);
+    setTimeout(()=>{ try{o.stop();}catch(e){} }, (dur*1000+20)|0);
+  }
+
+  // helper: power-chord (root + fifth) as layered chugs
+  function powerChord(rootMidi, t0, dur=0.22) {
+    chug(rootMidi, t0, dur);
+    chug(rootMidi+7, t0, dur*0.92, 0.18);
+  }
+
+  /* ------------ SONG DEFINITIONS ------------- */
+  // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
   const SONG_MAIN = {
     name: 'main',
     bpm: 132,
     patternLen: 16,
-    lead: [81,0,81,83, 81,79,76,0, 81,0,81,83, 86,83,81,0],
-    bass: [45,45,45,45, 43,43,43,43, 40,40,40,40, 43,43,43,43],
+    // chords timeline (by bar): A (x4), G (x4), D (x4), G (x4)
+    chords: [57,57,57,57, 55,55,55,55, 50,50,50,50, 55,55,55,55], // MIDI roots (A2,G2,D2,G2)
+    // walking bass outlining roots/5ths/octaves
+    bass:   [45,52,45,52, 43,50,43,50, 38,45,38,45, 43,50,43,50],
+    // country-ish lead (pentatonic-ish; rests as 0)
+    lead:   [81,0,83,0, 81,79,76,0,  81,0,83,0, 86,83,81,0],
+    // drums: K=kick, S=snare, H=hihat (eighth hats)
+    drums:  ['K',0,'H',0, 'S','H','H',0,  'K','H',0,'H', 'S','H','H',0]
   };
 
-  // METAL: short looping riff (power-chord-ish arps) in A
+  // METAL: heavy action loop (A minor flavor). Think: chugs + double-kick.
   const SONG_METAL = {
     name: 'metal',
-    bpm: 168,
+    bpm: 176,
     patternLen: 16,
-    // quick arpeggios to mimic chugs: A5 (69), E5 (64), D5 (62)
-    lead: [
-      81,81, 0,81,  83,83, 0,83,   86,86, 0,86,  83,83, 0,83
-    ],
-    // bass “chugs”: A2, E2, D2, back to E2
-    bass: [
-      45,45,45,45,  40,40,40,40,  38,38,38,38,  40,40,40,40
-    ],
-    // optional “hat” noise ticks for edge; comment out if you prefer pure 2-voice
-    hat:  [1,0,1,0,  1,0,1,0,  1,0,1,0,  1,0,1,0],
+    // power-chord roots (A–A–G–F–E, compressed into 16 steps)
+    chugs:  [45,45,45,45, 43,43,43,43, 41,41,41,41, 40,40,40,40],
+    // aggressive bass doubles roots an octave down
+    bass:   [33,33,33,33, 31,31,31,31, 29,29,29,29, 28,28,28,28],
+    // lead stab (minor pentatonic fragments)
+    lead:   [81,0,0,83,  0,86,0,83,   81,0,0,79,  0,83,0,81],
+    // drums grid: double-kick on 16ths, snare on 2 & 4, hat/ride constant
+    drums:  ['K','H','K','H', 'S','R','K','H', 'K','H','K','H', 'S','R','K','H']
   };
 
   let CURRENT_SONG = SONG_MAIN;
@@ -260,41 +381,82 @@ const AudioKit = (() => {
 
   function scheduleStep(song, stepIdx, t0) {
     const spb = 60 / song.bpm;
-    const dur = spb * 0.9;
+    const beatDur = spb;         // quarter note
+    const noteDur = spb * 0.9;   // lead/chords gate
 
-    const l = song.lead[stepIdx % song.patternLen];
-		const b = song.bass[stepIdx % song.patternLen];
-		// LEAD
-		if (l) {
-			const {out, stop} = pulseOsc(midiToHz(l), 0.25, t0);
-			const pre = ctx.createGain(); pre.gain.value = (song.name === 'metal' ? 0.27 : 0.22);
-			out.connect(pre);
-			const e = envADSR(pre, t0, 0.002, 0.05, 0.12, 0.05, 1.0, 0.5);
-			e.out.connect(masterGain);
-			stop(t0 + dur); e.release(t0 + dur - 0.04);
-		}
+    // Determine current harmony root
+    const chordRoot =
+      (song.chords ? song.chords[stepIdx % song.patternLen]
+                   : (song.chugs ? song.chugs[stepIdx % song.patternLen] : null));
 
-		// BASS
-		if (b) {
-			const {out, stop} = pulseOsc(midiToHz(b), 0.125, t0);
-			const pre = ctx.createGain(); pre.gain.value = (song.name === 'metal' ? 0.22 : 0.18);
-			out.connect(pre);
-			const e = envADSR(pre, t0, 0.003, 0.04, 0.20, 0.06, 1.0, 0.6);
-			e.out.connect(masterGain);
-			stop(t0 + dur); e.release(t0 + dur - 0.05);
-		}
-
-    if (song.hat) {
-      const h = song.hat[stepIdx % song.patternLen];
-      if (h) {
-        const t = ctx.currentTime;
-        const n = noiseNode(t0);
-        const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3000;
-        n.connect(f);
-        const e = envADSR(f, t0, 0.001, 0.015, 0, 0.02, 0.5, 0);
-        e.out.connect(masterGain);
-        setTimeout(() => n.stop(), 50); // short tick
+    // --- MAIN THEME layers ---
+    if (song.name === 'main') {
+      // strings/pad on strong beats (every beat start)
+      if (stepIdx % 4 === 0 && chordRoot) {
+        // A triad flavour: root, fifth, octave
+        stringPad(chordRoot,             t0, beatDur*0.98, 0.16);
+        stringPad(chordRoot + 7,         t0, beatDur*0.98, 0.12);
+        stringPad(chordRoot + 12,        t0, beatDur*0.98, 0.10);
       }
+
+      // walking bass (eighth-ish feel)
+      const b = song.bass && song.bass[stepIdx % song.patternLen];
+      if (b) {
+        const {out, stop} = pulseOsc(midiToHz(b), 0.22, t0);
+        const pre = ctx.createGain(); pre.gain.value = 0.18;
+        out.connect(pre);
+        const e = envADSR(pre, t0, 0.003, 0.05, 0.18, 0.05, 1.0, 0.6);
+        e.out.connect(masterGain);
+        stop(t0 + noteDur*0.55); e.release(t0 + noteDur*0.5);
+      }
+
+      // twangy lead
+      const l = song.lead && song.lead[stepIdx % song.patternLen];
+      if (l) twangLead(l, t0, spb*0.52, 0.26);
+
+      // drums: backbeat + eighth hats
+      const d = song.drums && song.drums[stepIdx % song.patternLen];
+      if (d === 'K') kick(t0);
+      if (d === 'S') snare(t0);
+      if (d === 'H') hat(t0, false);
+    }
+
+    // --- METAL layers ---
+    if (song.name === 'metal') {
+      // chugs as power-chords on 8ths
+      const root = song.chugs && song.chugs[stepIdx % song.patternLen];
+      if (root) powerChord(root, t0, spb*0.48);
+
+      // bass doubles
+      const b = song.bass && song.bass[stepIdx % song.patternLen];
+      if (b) {
+        const o = triOsc(midiToHz(b), t0);
+        const dist = makeDistortion(28);
+        const g = ctx.createGain(); g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.18, t0+0.01);
+        g.gain.linearRampToValueAtTime(0, t0+spb*0.5);
+        o.connect(dist).connect(g).connect(masterGain);
+        setTimeout(()=>{ try{o.stop();}catch(e){} }, (spb*500)|0);
+      }
+
+      // lead accents
+      const l = song.lead && song.lead[stepIdx % song.patternLen];
+      if (l) {
+        // sharper envelope
+        const {out, stop} = pulseOsc(midiToHz(l), 0.22, t0);
+        const pre = ctx.createGain(); pre.gain.value = 0.24;
+        out.connect(pre);
+        const e = envADSR(pre, t0, 0.002, 0.04, 0.12, 0.04, 1.0, 0.5);
+        e.out.connect(masterGain);
+        stop(t0 + spb*0.45); e.release(t0 + spb*0.40);
+      }
+
+      // drums: 'K' kick 16ths, 'S' backbeat, 'H' closed hat, 'R' ride/open hat
+      const d = song.drums && song.drums[stepIdx % song.patternLen];
+      if (d === 'K') kick(t0);
+      if (d === 'S') snare(t0);
+      if (d === 'H') hat(t0, false);
+      if (d === 'R') hat(t0, true);
     }
   }
 
