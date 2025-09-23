@@ -757,6 +757,7 @@ function update(dt){
           boss = null;
           afterBossDifficultyBump();
           resetHUD();
+          break;
         }
       }
     }
