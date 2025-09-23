@@ -48,8 +48,9 @@ let powerUpSpawnTimer = 0;
 let bossSpawnTimer = 0;              // counts up; when past threshold, spawn a boss
 let boss = null;                     // active boss or null
 let beamExposure = 0;
-let suckedByBeam = false; 
+let suckedByBeam = false;
 let beamWasSucking = false;
+let nextBeamSoundAt = 0;
 
 let gameState = 'playing';
 let imagesLoaded = 0;
@@ -58,7 +59,7 @@ let invincibleUntil = 0;      // ms timestamp when invincibility ends
 let powerUpCooldownUntil = 0;    // ms timestamp to throttle powerUp spawns
 
 const HURT_DURATION_MS = 750;   // post-hit i-frames
-let hurtUntil = 0;     
+let hurtUntil = 0;
 
 /* Keep your original sources */
 horseImage.src = 'APACHE.png';
@@ -303,12 +304,18 @@ const AudioKit = (() => {
     CURRENT_SONG = song;
     songStep = 0;
     const spb = 60 / song.bpm;
-    let base = ctx.currentTime + 0.06;
+    const tickMs = Math.max(40, Math.min(140, (spb * 1000) / 4));
+    let nextStepTime = ctx.currentTime + 0.08;
+    const lookAhead = 0.05;
     songTimer = setInterval(() => {
-      const t = base + songStep * spb;
-      scheduleStep(CURRENT_SONG, songStep, t);
-      songStep = (songStep + 1) % CURRENT_SONG.patternLen;
-    }, spb * 1000);
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      while (nextStepTime < now + lookAhead) {
+        scheduleStep(CURRENT_SONG, songStep, nextStepTime);
+        songStep = (songStep + 1) % CURRENT_SONG.patternLen;
+        nextStepTime += spb;
+      }
+    }, tickMs);
   }
 
   function startSong(){ _startSequencer(SONG_MAIN); }
@@ -324,18 +331,34 @@ const AudioKit = (() => {
   }
 
 	async function readyFromGesture() {
+
 		if (!ctx) init();
+
 		try {
-			// Call resume() but don't await it, so it stays in the same user-gesture task.
-			if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+
+			if (ctx && ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+
 				const p = ctx.resume();
-				// Don't await p — keep the call inside the gesture stack frame.
+
+				if (p && typeof p.then === 'function') {
+
+					p.then(() => { started = !!ctx && ctx.state === 'running'; }).catch(() => {});
+
+				}
+
 			}
+
 		} catch (e) {
+
 			// Ignore: browsers may throw if no activation yet
+
 		}
-		started = (ctx.state === 'running'); // best-effort flag
+
+		started = !!ctx && ctx.state === 'running'; // best-effort flag
+
 	}
+
+
 
   function setMuted(v) {
     muted = !!v;
@@ -343,6 +366,7 @@ const AudioKit = (() => {
   }
 
   return {
+    init,
     readyFromGesture, startSong, stopSong, setMuted, toggleMute(){ setMuted(!muted); },
 		playMetal,
     sfx: SFX,
@@ -357,18 +381,49 @@ const collectSound = { play: () => AudioKit.sfx.coin()  };
 const gameOverSound= { play: () => AudioKit.sfx.gameover() };
 
 /* Start audio context on first input (mobile-safe) */
-function _armAudio() {
-  // 1) resume in the same gesture tick (no await)
-  AudioKit.readyFromGesture();
-
-  // 2) immediately start the correct track
-  const inApambo = performance.now() < ramboUntil;
-  if (gameState === 'playing') {
-    AudioKit.stopSong();
-    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
-    else          { AudioKit.startSong(); apamboMusicOn = false; }
+function ensureAudioActive(force = false) {
+  if (force) {
+    userAudioActivated = true;
+  } else if (!userAudioActivated && typeof navigator !== 'undefined' && navigator.userActivation && navigator.userActivation.hasBeenActive) {
+    userAudioActivated = true;
   }
+
+  if (typeof AudioKit.init === 'function') {
+    AudioKit.init();
+  }
+
+  if (!AudioKit.started) {
+    if (!userAudioActivated && !audioBootstrapped) {
+      audioWasRunning = false;
+      return;
+    }
+    AudioKit.readyFromGesture();
+  }
+
+  const ctxRunning = AudioKit.started;
+
+  if (!audioBootstrapped) {
+    if (ctxRunning) {
+      syncMusicToState();
+      audioBootstrapped = true;
+    }
+    audioWasRunning = ctxRunning;
+    return;
+  }
+
+  if (ctxRunning && !audioWasRunning) {
+    syncMusicToState();
+  }
+
+  audioWasRunning = ctxRunning;
 }
+
+function _armAudio() {
+
+  userAudioActivated = true;
+  ensureAudioActive(true);
+}
+
 
 // One-time, capture-phase to catch the very first touch/click/keydown reliably
 ['pointerdown','touchstart','keydown'].forEach(type => {
@@ -376,8 +431,8 @@ function _armAudio() {
 });
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' &&
-      navigator.userActivation && navigator.userActivation.hasBeenActive) {
-    _armAudio();
+      (typeof navigator === 'undefined' || !navigator.userActivation || navigator.userActivation.hasBeenActive)) {
+    ensureAudioActive(true);
   }
 });
 
@@ -425,6 +480,10 @@ const DART_INTERVAL = 120;      // rapid fire cadence (ms)
 const DART_SPEED = 520;         // px/s
 let darts = [];                 // active projectiles
 let apamboMusicOn = false;
+let audioBootstrapped = false;
+let audioWasRunning = false;
+let userAudioActivated = false;
+
 
 /* ---------- Input ---------- */
 document.addEventListener('keydown', e => {
@@ -436,7 +495,7 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.code === 'Space' && horse.onGround) {
-		AudioKit.readyFromGesture();
+		ensureAudioActive();
     horse.isJumping = true;
     horse.velocityY = -350;
     horse.jumpHoldTime = 0;
@@ -693,7 +752,7 @@ function updateEnemies(dt) {
 function updateCoins(dt) {
   for (let i = coins.length - 1; i >= 0; i--) {
     const c = coins[i];
-    c.x -= gameSpeed * 0.645 * dt; 
+    c.x -= gameSpeed * 0.645 * dt;
     if (c.x + c.width < 0) { coins.splice(i, 1); continue; }
     if (!c.collected && rectsOverlap(horse, c)) {
       c.collected = true;
@@ -707,7 +766,7 @@ function updateCoins(dt) {
         ramboUntil = performance.now() + RAMBO_DURATION;
         nextDartAt = 0; // fire immediately
       }
-			AudioKit.readyFromGesture();  
+			ensureAudioActive();
       collectSound.play();
     }
   }
@@ -731,7 +790,7 @@ function updatePowerUps(dt) {
 			invincibleUntil = performance.now() + 8000;
 			horse.invincible = true;
 			powerUpCooldownUntil = performance.now() + 20000;
-			AudioKit.readyFromGesture();
+			ensureAudioActive();
 			collectSound.play();
 			AudioKit.sfx.powerup();
 
@@ -761,7 +820,7 @@ function updateHorse2s(dt) {
       triggerApamboBanner();      // brief banner, then APAMBO active
       horse.velocityY = -160;     // tiny bounce for feel (optional)
     }
-    
+
   }
 }
 
@@ -773,7 +832,7 @@ function drawHorse2s() {
 
 // Create & show the flashing “APAMBO MODE!!!” banner, then enable APAMBO
 function triggerApamboBanner() {
-  AudioKit.readyFromGesture();   
+  ensureAudioActive();
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
   // immediately set APAMBO so the meter & darts are ready when banner clears
   ramboUntil = performance.now() + RAMBO_DURATION;
@@ -987,17 +1046,19 @@ function tractorPull(dt) {
     pointInBeam(pxR, pyBot) ||
     pointInBeam(pxC, pyTop);
 
-  // Edge-trigger SFX
-	if (inBeam && !beamWasSucking) {
-		AudioKit.readyFromGesture();                 // <- add
-		AudioKit.sfx.beam();
-	}
+  const nowMs = performance.now();
 
   if (inBeam) {
+    if (nowMs >= nextBeamSoundAt) {
+      ensureAudioActive(true);
+      AudioKit.sfx.beam();
+      nextBeamSoundAt = nowMs + 450;
+    }
+
     suckedByBeam = true;
 
     beamExposure = clamp(beamExposure + dt, 0, 10);
-    const ramp = Math.min(1, beamExposure / 0.8);   // 0→1 over ~0.8s
+    const ramp = Math.min(1, beamExposure / 0.8);   // 0-1 over ~0.8s
     const suction = 900 + 700 * ramp;
 
     // Upward acceleration
@@ -1016,6 +1077,7 @@ function tractorPull(dt) {
   } else {
     suckedByBeam = false;
     beamExposure = Math.max(0, beamExposure - dt * 1.5);
+    nextBeamSoundAt = nowMs;
   }
 
   beamWasSucking = inBeam;
@@ -1275,9 +1337,9 @@ function updateGoldCoins(dt) {
     g.x -= gameSpeed * dt;                 // scroll with level
     g.bobY = Math.sin(g.t * 5) * 3;        // gentle bob
 
-    if (g.x + g.width < 0) { 
-      goldCoins.splice(i, 1); 
-      continue; 
+    if (g.x + g.width < 0) {
+      goldCoins.splice(i, 1);
+      continue;
     }
 
     // define the coin's hitbox (account for bob)
@@ -1295,7 +1357,7 @@ function updateGoldCoins(dt) {
       horse.lives += 1;
 
       // sfx
-      AudioKit.readyFromGesture();
+      ensureAudioActive();
       collectSound.play();
     }
   }
@@ -1360,13 +1422,21 @@ function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
 function syncMusicToState() {
+
   const inApambo = performance.now() < ramboUntil;
+
   AudioKit.stopSong();
+
   if (gameState === 'playing') {
+
     if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
+
     else          { AudioKit.startSong(); apamboMusicOn = false; }
+
   }
+
 }
+
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
@@ -1657,7 +1727,7 @@ pauseButton.addEventListener('pointerup', e => {
 jumpButton.addEventListener('pointerdown', e => {
   e.preventDefault();
   if (horse.onGround) {
-		AudioKit.readyFromGesture();
+		ensureAudioActive();
     horse.isJumping = true;
     horse.velocityY = -350;
     horse.jumpHoldTime = 0;
@@ -1681,7 +1751,11 @@ let lastTime = 0;
 function gameLoop(ts) {
   const dt = Math.min((ts - lastTime) / 1000, 0.1);
   lastTime = ts;
-	
+
+
+  ensureAudioActive();
+
+
 {
   const inApambo = performance.now() < ramboUntil;
 
@@ -1697,7 +1771,7 @@ function gameLoop(ts) {
     apamboMusicOn = false;
   }
 }
-	
+
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1745,18 +1819,18 @@ function gameLoop(ts) {
     if (!isNum(horse.x) || !isNum(horse.y) || !isNum(horse.velocityY)) {
       resetHorsePosition();
     }
-    
+
     // Auto-fire while APAMBO is active
     const now = performance.now();
     if (now < ramboUntil) {
       if (now >= nextDartAt) {
-				AudioKit.readyFromGesture(); 
+				ensureAudioActive();
         spawnDart();
         AudioKit.sfx.dart();
         nextDartAt = now + DART_INTERVAL;
       }
     }
-    updateDarts(dt);    
+    updateDarts(dt);
 
     // Draw
     drawBackground(dt);
@@ -1787,3 +1861,7 @@ function gameLoop(ts) {
 
   animationId = requestAnimationFrame(gameLoop);
 }
+
+
+
+
