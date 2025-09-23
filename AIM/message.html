@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=400, initial-scale=1" />
+<title>Apapa Messenger — Oldschool</title>
+<style>
+  /**********************
+   * Win98-ish palette  *
+   **********************/
+  :root{
+    --w98-face:#c0c0c0;
+    --w98-light:#ffffff;
+    --w98-lite2:#e9e9e9;
+    --w98-mid:#b5b5b5;
+    --w98-dark:#808080;
+    --w98-darker:#404040;
+    --text:#1a1a1a;
+    --blue:#003cff;
+    --red:#c41818;
+  }
+  html,body{margin:0;height:100%;background:#9aa3ad}
+  body{display:flex;align-items:center;justify-content:center}
+
+  /**********************
+   * Bevel helpers      *
+   **********************/
+  /* raised, with double white edge + dark rake for “cheap 3D” */
+  .bevel-out{
+    background:var(--w98-face);
+    border:2px solid var(--w98-mid);
+    box-shadow:
+      inset 1px 1px 0 0 var(--w98-light),
+      inset 2px 2px 0 0 var(--w98-lite2),
+      inset -1px -1px 0 0 var(--w98-darker),
+      inset -2px -2px 0 0 var(--w98-dark);
+  }
+  /* sunken panel (editor/transcript look) */
+  .bevel-in{
+    background:#fff;
+    border:2px solid var(--w98-dark);
+    box-shadow:
+      inset 1px 1px 0 0 var(--w98-darker),
+      inset 2px 2px 0 0 var(--w98-dark),
+      inset -1px -1px 0 0 var(--w98-light),
+      inset -2px -2px 0 0 var(--w98-lite2);
+  }
+  /* buttons default raised; pressed -> sunken */
+  .btn{cursor:pointer; user-select:none}
+  .btn:active{transform:translateY(1px)}
+  .btn.raise{padding:2px 8px; background:var(--w98-face);
+    box-shadow:
+      inset 0px 0px 0 0 var(--w98-light),
+      inset 0px 0px 0 0 var(--w98-lite2),
+      inset 0px 0px 0 0 var(--w98-darker),
+      inset 0px 0px 0 0 var(--w98-dark);
+  }
+  .btn.raise.pressed{
+    border:2px solid var(--w98-dark);
+    box-shadow:
+      inset 1px 1px 0 0 var(--w98-darker),
+      inset 2px 2px 0 0 var(--w98-dark),
+      inset -1px -1px 0 0 var(--w98-light),
+      inset -2px -2px 0 0 var(--w98-lite2);
+  }
+
+  /**********************
+   * Window shell       *
+   **********************/
+  .win{
+    width:400px;height:410px;
+    background:var(--w98-face); color:var(--text);
+    border:2px solid var(--w98-dark);
+    box-shadow:
+      inset 1px 1px 0 0 var(--w98-light),
+      inset 2px 2px 0 0 var(--w98-lite2),
+      inset -1px -1px 0 0 var(--w98-darker),
+      inset -2px -2px 0 0 var(--w98-dark);
+    font:13px/1.15 "MS Sans Serif", Tahoma, system-ui, sans-serif;
+    user-select:none;
+  }
+
+  /* fake title strip area (we leave it blank per request) */
+  .titlegap{height:0px}
+
+  .menu{
+    display:flex; gap:16px; padding:3px 8px 2px;
+    border-bottom:2px solid var(--w98-dark);
+    box-shadow:
+      inset 0 1px 0 var(--w98-light),
+      inset 0 2px 0 var(--w98-lite2),
+      0 1px 0 var(--w98-light);
+  }
+  .menu a{color:#000; text-decoration:none; cursor:pointer}
+  .menu a:hover{background:#dcdcdc; padding:0 2px}
+
+  .warning{ margin-left:auto; color:#000; font-size:12px }
+
+  .transcript{ height:172px; margin:6px; padding:8px; overflow:auto }
+  .nick-apapa{ color:var(--red); font-weight:700 }
+  .nick-user { color:#1b3fe6; font-weight:700 }
+
+  .toolbar{
+    display:flex; align-items:center; gap:6px;
+    margin:0 6px; padding:4px;
+    border-left:2px solid var(--w98-dark);
+    border-right:2px solid var(--w98-dark);
+    box-shadow:
+      inset 1px 0 0 var(--w98-light),
+      inset -1px 0 0 var(--w98-light);
+    background:var(--w98-face);
+  }
+  .tool{min-width:24px; text-align:center}
+  .tool.active{outline:1px dotted #000}
+
+  .colorSwatch{ width:20px; height:18px }
+  .link{ color:#0b27ff; text-decoration:underline; cursor:pointer; padding:0 4px }
+
+  .composer{ height:80px; margin:6px; padding:6px; overflow:auto }
+  .composer[contenteditable="true"]{ outline:none; user-select:text }
+
+  .bottom{
+    display:grid; grid-template-columns: repeat(6, 1fr) 78px; gap:6px; margin:6px;
+  }
+  .bigbtn{
+    text-align:center; padding:8px 4px; font-size:12px;
+  }
+  .sendBox{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:6px }
+  .meter{ width:100%; height:8px; background:var(--w98-face); border:2px solid var(--w98-mid);
+    box-shadow: inset 1px 1px 0 var(--w98-light), inset -1px -1px 0 var(--w98-darker);
+  }
+  .meter span{ display:block; height:100%; width:22%; background:#6abf4b }
+
+  .status{ margin:0 6px 6px; font-size:11px; color:#000 }
+
+  /* Popup windows */
+  .popup{
+    position:absolute; width:260px;
+    background:var(--w98-face); padding:6px;
+    border:2px solid var(--w98-dark);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-light),
+      inset 2px 2px 0 var(--w98-lite2),
+      inset -1px -1px 0 var(--w98-darker),
+      inset -2px -2px 0 var(--w98-dark),
+      2px 2px 0 rgba(0,0,0,.15);
+    z-index:20;
+  }
+  .popup h4{margin:0 0 6px 0;font-size:13px}
+  .popup .close{float:right;cursor:pointer}
+  .emoji-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:4px }
+  .emoji-grid button{ font-family:monospace; font-size:12px; padding:3px; border:none }
+  .emoji-grid button:hover{ background:#dedede }
+
+  /* tiny separators to sell the era */
+  .rule{
+    height:2px; margin:0 6px; background:var(--w98-dark);
+    box-shadow: inset 0 1px 0 var(--w98-light), 0 1px 0 var(--w98-light);
+  }
+</style>
+</head>
+<body>
+<div class="win" id="win">
+
+  <div class="titlegap"></div>
+
+  <div class="menu">
+    <a id="mFile">File</a>
+    <a id="mEdit">Edit</a>
+    <a id="mInsert">Insert</a>
+    <div class="warning">Apapa’s Warning Level: 0%</div>
+  </div>
+
+  <div class="transcript bevel-in" id="log" aria-live="polite">
+    <div class="status" id="status"></div>
+  </div>  
+  <div class="rule"></div>
+
+  <div class="toolbar bevel-out">
+    <div class="btn raise tool" id="smallerA">A</div>
+    <div class="btn raise tool" id="largerA" style="font-size:16px">A</div>
+    <div class="btn raise tool" id="bold"><b>B</b></div>
+    <div class="btn raise tool" id="italic"><i>I</i></div>
+    <div class="btn raise tool" id="underline"><u>U</u></div>
+    <span style="flex:1"></span>
+    <span class="link" id="linkBtn">link</span>
+    <div class="btn raise colorSwatch" id="colorBtn" title="Font color"></div>
+    <div class="btn raise tool" id="emojiBtn" title="Emoticons">☺</div>
+  </div>
+
+  <div class="composer bevel-in" id="composer" contenteditable="true" aria-label="Type a message…"></div>
+
+  <div class="bottom">
+    <div class="btn raise bigbtn" id="warnBtn">Warn</div>
+    <div class="btn raise bigbtn" id="blockBtn">Block</div>
+    <div class="btn raise bigbtn" id="addBuddyBtn">Add Buddy</div>
+    <div class="btn raise bigbtn" id="talkBtn">Talk</div>
+    <div class="btn raise bigbtn" id="infoBtn">Get Info</div>
+    <div class="btn raise bigbtn" id="weirdBtn">🌀</div>
+
+    <div class="btn raise sendBox" id="sendBtn">
+      <div>Send</div>
+      <div class="meter"><span id="meterFill"></span></div>
+    </div>
+  </div>
+
+  
+</div>
+
+<script>
+  const $ = s=>document.querySelector(s);
+  const log = $('#log');
+  const composer = $('#composer');
+  const statusLine = $('#status');
+  let currentSize = 3;
+
+  /******** Replies (edgy but non-hateful) ********/
+  const replies = [
+    "Affirmative — but the printer ate my schedule again.",
+    "Busy greasing horseshoes with olive oil. Don’t @ me.",
+    "Apapa approves. Barely.",
+    "That plan has the structural integrity of wet bread.",
+    "Please hold—my brain just dialed up.",
+    "Respectfully: lol, no. Disrespectfully: still no.",
+    "If it backfires, I was never online.",
+    "I bring tools. You bring snacks. Civilization advances.",
+    "I’m late. The fence won the rematch.",
+    "Your message had strong ‘soggy crouton’ energy.",
+    "Even Apapa wouldn’t breed with that plan.",
+    "I’m in my 404: Motivation Not Found era.",
+    "Yikes. My eyes need antivirus now.",
+    "Copy that. Executing chaos.exe",
+    "Bold of you to assume I read the second sentence."
+  ];
+
+  function line(nickClass, name, html){
+    const row=document.createElement('div');
+    row.innerHTML=`<span class="${nickClass}">${name} :</span> ${html}`;
+    log.appendChild(row);
+    log.scrollTop=log.scrollHeight;
+  }
+  line('nick-apapa','Apapa','Is the meeting still at 9?');
+  line('nick-user','User','Affirmative - bring the tools.');
+
+  /******** Toolbar behavior ********/
+  function exec(cmd,val=null){
+    composer.focus();
+    document.execCommand(cmd,false,val);
+    $('#bold').classList.toggle('pressed',document.queryCommandState('bold'));
+    $('#italic').classList.toggle('pressed',document.queryCommandState('italic'));
+    $('#underline').classList.toggle('pressed',document.queryCommandState('underline'));
+  }
+  function insertTextAtCaret(t){
+    composer.focus();
+    const s=window.getSelection(); if(!s||!s.rangeCount) return;
+    const r=s.getRangeAt(0); r.deleteContents();
+    r.insertNode(document.createTextNode(t));
+    r.collapse(false); s.removeAllRanges(); s.addRange(r);
+  }
+
+  $('#bold').onclick = ()=>exec('bold');
+  $('#italic').onclick = ()=>exec('italic');
+  $('#underline').onclick = ()=>exec('underline');
+  $('#largerA').onclick = ()=>{ currentSize=Math.min(7,currentSize+1); exec('fontSize',String(currentSize)); };
+  $('#smallerA').onclick = ()=>{ currentSize=Math.max(1,currentSize-1); exec('fontSize',String(currentSize)); };
+
+  $('#colorBtn').onclick = ()=>{
+    const i=document.createElement('input'); i.type='color'; i.style.position='fixed'; i.style.left='-9999px';
+    document.body.appendChild(i);
+    i.addEventListener('input',()=>exec('foreColor',i.value),{once:true});
+    i.click(); setTimeout(()=>i.remove(),0);
+  };
+  $('#linkBtn').onclick = ()=>{
+    const url=prompt('Enter URL:','https://'); if(url) exec('createLink',url);
+  };
+
+  /******** Emoji picker ********/
+  const emoticons=[':-)',';-)',':-P',':-D',':-O',':-|',':-*','x-D','^_^','T_T','(╯°□°）╯︵ ┻━┻','┬─┬ ノ( ゜-゜ノ )','<3','(>_<)','( ͡° ͜ʖ ͡° )','O_o',':-]','UwU',':-3'];
+  let emojiPopup=null;
+  $('#emojiBtn').onclick = (ev)=>{
+    if(emojiPopup){emojiPopup.remove();emojiPopup=null;return;}
+    const p=document.createElement('div'); p.className='popup';
+    p.style.left=(ev.target.getBoundingClientRect().left-6)+'px';
+    p.style.top=(ev.target.getBoundingClientRect().top+24)+'px';
+    p.innerHTML='<h4>Emoticons <span class="close">✖</span></h4><div class="emoji-grid"></div>';
+    p.querySelector('.close').onclick=()=>{p.remove();emojiPopup=null};
+    const g=p.querySelector('.emoji-grid');
+    emoticons.forEach(e=>{const b=document.createElement('button'); b.textContent=e; b.onclick=()=>insertTextAtCaret(e+' '); g.appendChild(b);});
+    document.body.appendChild(p); emojiPopup=p;
+  };
+
+  /******** Send & Autoreply ********/
+  function pulseMeter(){
+    const m=$('#meterFill'); m.style.transition='none'; m.style.width='16%';
+    requestAnimationFrame(()=>{m.style.transition='width 900ms linear'; m.style.width='96%';});
+  }
+  function sanitize(s){return s.replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));}
+  function sendMessage(){
+    const html=composer.innerHTML.trim(); if(!html) return;
+    line('nick-user','User',html); composer.innerHTML=''; pulseMeter();
+    setTimeout(()=>{ const r=replies[Math.floor(Math.random()*replies.length)]; line('nick-apapa','Apapa',sanitize(r)); }, 600+Math.random()*800);
+  }
+  $('#sendBtn').onclick=sendMessage;
+  composer.addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }});
+
+  /******** Bottom-row gags ********/
+  function status(msg){ $('#status').textContent=msg; setTimeout(()=>$('#status').textContent='',5200); }
+  function shake(el){ el.animate([{transform:'translateX(0)'},{transform:'translateX(2px)'},{transform:'translateX(-2px)'},{transform:'translateX(0)'}],{duration:300}); }
+  function invertBriefly(){ const el=$('#win'); el.style.filter='invert(1)'; setTimeout(()=>el.style.filter='none',600); }
+  function confetti(n=12){
+    for(let i=0;i<n;i++){
+      const s=document.createElement('div');
+      s.style.position='absolute'; s.style.left='50%'; s.style.top='24%';
+      s.style.width=s.style.height='6px'; s.style.background=`hsl(${Math.random()*360},80%,60%)`;
+      s.style.transition='transform 900ms,opacity 900ms'; s.style.opacity='1';
+      document.body.appendChild(s);
+      requestAnimationFrame(()=>{s.style.transform=`translate(${(Math.random()-0.5)*230}px, ${160+Math.random()*190}px) rotate(${Math.random()*720}deg)`; s.style.opacity='0';});
+      setTimeout(()=>s.remove(),950);
+    }
+  }
+
+  $('#warnBtn').onclick = ()=>{ status("You warned Apapa. Warning Level now 0% → 87% (he snorts)."); confetti(100); };
+  $('#blockBtn').onclick = ()=>{ status("Block failed: Apapa jumped the firewall. Literally."); shake($('#win')); };
+  $('#addBuddyBtn').onclick = ()=>{ status("Added → removed → added. Healthy relationship achieved."); confetti(18); };
+  $('#talkBtn').onclick = ()=>{ status("Dialing… ksshh-beeoo… Connected to ‘HayNet 56k’."); shake(log); };
+  $('#weirdBtn').onclick = ()=>{ status("You pressed the mysterious button. The UI smells like barn now."); invertBriefly(); };
+
+  $('#infoBtn').onclick = ()=>{
+    const pop=document.createElement('div'); pop.className='popup'; pop.style.left='10px'; pop.style.top='56px';
+    pop.innerHTML=`<h4>Apapa — Get Info <span class="close">✖</span></h4>
+      <div><b>Handle:</b> Apapa</div>
+      <div><b>Species:</b> Horse (stud)</div>
+      <div><b>Profession:</b> Breeding specialist; part-time chaos agent</div>
+      <div><b>Interests:</b> Hay analytics, fence jumping, dramatic exits</div>
+      <div><b>Status:</b> “Only good for breeding.” (self-reported)</div>`;
+    pop.querySelector('.close').onclick=()=>pop.remove();
+    document.body.appendChild(pop);
+  };
+
+  /******** Menus ********/
+  $('#mFile').onclick = ()=>{
+    const c=prompt("File ▸ (new | save | print)","print"); if(!c) return;
+    if(c.toLowerCase().includes('print')) status("Printing… Paper jam. Someone fed it carrots.");
+    else if(c.toLowerCase().includes('save')) status("Saved to C:\\AIM\\APAPA\\1999_chat.aim");
+    else status("New window opened called NEWMSG.EXE (it immediately froze).");
+  };
+  $('#mEdit').onclick = ()=> alert("Edit ▸\n• Undo (neigh)\n• Redo (double-neigh)\n• Copy vibes\n• Paste chaos");
+  $('#mInsert').onclick = ()=>{ insertTextAtCaret("[[horse.gif]] "); status("Inserted: 3MB GIF placeholder like it’s 1999."); };
+
+  composer.focus();
+</script>
+</body>
+</html>
