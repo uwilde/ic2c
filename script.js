@@ -559,6 +559,165 @@ function isMobilePortrait() {
     return window.innerWidth <= 800 && window.matchMedia("(orientation: portrait)").matches;
 }
 
+const DESKTOP_MEDIA_MESSAGE = 'desktop-media-control';
+
+function getAllDesktopWindows() {
+    return Array.from(document.querySelectorAll('.window'));
+}
+
+function isWindowOpen(windowElement) {
+    return !!windowElement && windowElement.classList.contains('show') && windowElement.style.display !== 'none';
+}
+
+function markWindowResumeOnUnmute(windowElement, shouldResume) {
+    if (!windowElement) return;
+    if (shouldResume) {
+        windowElement.dataset.resumeOnUnmute = 'true';
+    } else {
+        delete windowElement.dataset.resumeOnUnmute;
+    }
+}
+
+function manageWindowMedia(windowElement, action) {
+    if (!windowElement) return;
+    const iframes = windowElement.querySelectorAll('iframe');
+    iframes.forEach(iframe => controlIframeMedia(iframe, action));
+}
+
+function controlIframeMedia(iframe, action) {
+    if (!iframe) return;
+
+    try {
+        iframe.contentWindow?.postMessage({
+            source: 'desktop',
+            type: DESKTOP_MEDIA_MESSAGE,
+            action
+        }, '*');
+    } catch (err) {
+        /* ignore cross-origin issues */
+    }
+
+    try {
+        applyActionToMediaElements(iframe.contentDocument, action);
+    } catch (err) {
+        /* iframe may be cross-origin */
+    }
+
+    if (action === 'stop') {
+        const currentSrc = iframe.getAttribute('src');
+        if (currentSrc && currentSrc !== 'about:blank') {
+            iframe.dataset.lastKnownSrc = currentSrc;
+            iframe.setAttribute('src', 'about:blank');
+        }
+    }
+}
+
+function applyActionToMediaElements(doc, action) {
+    if (!doc) return;
+    const mediaElements = doc.querySelectorAll('audio, video');
+    mediaElements.forEach(media => {
+        switch (action) {
+            case 'mute':
+                if (!media.muted) {
+                    media.dataset.desktopMuted = 'true';
+                }
+                media.muted = true;
+                break;
+            case 'unmute':
+                if (media.dataset.desktopMuted === 'true') {
+                    media.muted = false;
+                    delete media.dataset.desktopMuted;
+                }
+                break;
+            case 'pause':
+                if (!media.paused) {
+                    media.dataset.desktopResumeOnOpen = 'true';
+                }
+                media.pause();
+                break;
+            case 'resume':
+                if (media.dataset.desktopResumeOnOpen === 'true') {
+                    media.play().catch(() => {});
+                    delete media.dataset.desktopResumeOnOpen;
+                }
+                break;
+            case 'stop':
+                media.pause();
+                media.currentTime = 0;
+                delete media.dataset.desktopResumeOnOpen;
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+function restoreWindowIframes(windowElement) {
+    if (!windowElement) return;
+    const iframes = windowElement.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+        if (!iframe.dataset.originalSrc) {
+            iframe.dataset.originalSrc = iframe.getAttribute('src') || '';
+        }
+        if (!iframe.dataset.loadHandlerAttached) {
+            iframe.addEventListener('load', () => {
+                if (isMuted) {
+                    controlIframeMedia(iframe, 'mute');
+                } else if (iframe.dataset.desktopResumeOnOpen === 'true') {
+                    controlIframeMedia(iframe, 'resume');
+                }
+            });
+            iframe.dataset.loadHandlerAttached = 'true';
+        }
+        const currentSrc = iframe.getAttribute('src');
+        if (currentSrc === 'about:blank') {
+            const restoreSrc = iframe.dataset.lastKnownSrc || iframe.dataset.originalSrc;
+            if (restoreSrc) {
+                iframe.setAttribute('src', restoreSrc);
+            }
+        }
+    });
+}
+
+function handleWindowOpened(windowElement) {
+    if (!windowElement) return;
+    restoreWindowIframes(windowElement);
+    if (isMuted) {
+        markWindowResumeOnUnmute(windowElement, true);
+    } else {
+        markWindowResumeOnUnmute(windowElement, false);
+        manageWindowMedia(windowElement, 'resume');
+    }
+    setTimeout(() => {
+        if (!isWindowOpen(windowElement)) return;
+        manageWindowMedia(windowElement, isMuted ? 'mute' : 'unmute');
+    }, 50);
+}
+
+function handleWindowClosed(windowElement) {
+    if (!windowElement) return;
+    manageWindowMedia(windowElement, 'stop');
+    markWindowResumeOnUnmute(windowElement, false);
+}
+
+function muteAllWindowsMedia() {
+    getAllDesktopWindows().forEach(win => {
+        if (isWindowOpen(win)) {
+            markWindowResumeOnUnmute(win, true);
+        }
+        manageWindowMedia(win, 'mute');
+    });
+}
+
+function unmuteOpenWindowsMedia() {
+    getAllDesktopWindows().forEach(win => {
+        if (isWindowOpen(win)) {
+            manageWindowMedia(win, 'unmute');
+            markWindowResumeOnUnmute(win, false);
+        }
+    });
+}
+
 function openWindow(windowId) {
     const windowElement = document.getElementById(windowId);
     const taskbarInstances = document.getElementById("taskbarInstances");
@@ -582,7 +741,10 @@ function openWindow(windowId) {
     // Adjust iframe scale
     adjustIframeScale(windowId);
 
+    handleWindowOpened(windowElement);
+
     // Check if the taskbar button already exists
+
     let taskbarButton = document.getElementById(`taskbar-${windowId}`);
     if (!taskbarButton) {
         // Create taskbar button with icon
@@ -645,6 +807,7 @@ function openWindow(windowId) {
 function closeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
     const taskbarButton = document.getElementById(`taskbar-${windowId}`);
+    handleWindowClosed(windowElement);
 
     // Hide the window
     windowElement.classList.add("hide");
@@ -659,6 +822,7 @@ function closeWindow(windowId) {
 
 function minimizeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
+    manageWindowMedia(windowElement, 'pause');
     windowElement.classList.add("hide");
     windowElement.classList.remove("show");
     windowElement.style.display = "none";
@@ -718,7 +882,9 @@ function toggleMinimizeRestoreWindow(windowId) {
         windowElement.classList.add("show");
         windowElement.style.display = "flex";
         bringToFront(windowElement);
+        handleWindowOpened(windowElement);
     } else {
+
         // Minimize the window
         minimizeWindow(windowId);
     }
@@ -985,6 +1151,7 @@ function startDrag(e) {
     offsetX = e.clientX - currentWindow.getBoundingClientRect().left;
     offsetY = e.clientY - currentWindow.getBoundingClientRect().top;
     bringToFront(currentWindow);
+    currentWindow.classList.add('dragging-window');
 
     // Prevent text selection
     e.preventDefault();
@@ -1000,6 +1167,7 @@ function startDragTouch(e) {
     offsetX = touch.clientX - rect.left;
     offsetY = touch.clientY - rect.top;
     bringToFront(currentWindow);
+    currentWindow.classList.add('dragging-window');
 
     // Prevent scrolling
     e.preventDefault();
@@ -1017,12 +1185,16 @@ function dragMove(e) {
         let newX = clientX - offsetX;
         let newY = clientY - offsetY;
 
-        // Calculate maximum positions to prevent overlapping the taskbar and going off-screen
-        const maxX = window.innerWidth - currentWindow.offsetWidth;
-        const maxY = window.innerHeight - currentWindow.offsetHeight - 60; // 60px taskbar height on mobile
+        const header = currentWindow.querySelector('.window-header, .media-player-header');
+        const headerHeight = header ? header.offsetHeight : 32;
 
-        newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
+        const minX = Math.min(0, window.innerWidth - currentWindow.offsetWidth);
+        const maxX = Math.max(0, window.innerWidth - currentWindow.offsetWidth);
+        const minY = Math.min(0, window.innerHeight - currentWindow.offsetHeight);
+        const maxY = Math.max(0, window.innerHeight - headerHeight);
+
+        newX = Math.min(Math.max(newX, minX), maxX);
+        newY = Math.min(Math.max(newY, minY), maxY);
 
         currentWindow.style.left = newX + 'px';
         currentWindow.style.top = newY + 'px';
@@ -1040,12 +1212,16 @@ function dragMoveTouch(e) {
         let newX = clientX - offsetX;
         let newY = clientY - offsetY;
 
-        // Calculate maximum positions to prevent overlapping the taskbar and going off-screen
-        const maxX = window.innerWidth - currentWindow.offsetWidth;
-        const maxY = window.innerHeight - currentWindow.offsetHeight - 60; // 60px taskbar height on mobile
+        const header = currentWindow.querySelector('.window-header, .media-player-header');
+        const headerHeight = header ? header.offsetHeight : 32;
 
-        newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
+        const minX = Math.min(0, window.innerWidth - currentWindow.offsetWidth);
+        const maxX = Math.max(0, window.innerWidth - currentWindow.offsetWidth);
+        const minY = Math.min(0, window.innerHeight - currentWindow.offsetHeight);
+        const maxY = Math.max(0, window.innerHeight - headerHeight);
+
+        newX = Math.min(Math.max(newX, minX), maxX);
+        newY = Math.min(Math.max(newY, minY), maxY);
 
         currentWindow.style.left = newX + 'px';
         currentWindow.style.top = newY + 'px';
@@ -1060,6 +1236,9 @@ document.addEventListener('mouseup', stopDrag);
 document.addEventListener('touchend', stopDrag, { passive: false });
 
 function stopDrag() {
+    if (currentWindow) {
+        currentWindow.classList.remove('dragging-window');
+    }
     isDragging = false;
     currentWindow = null;
 }
@@ -1970,6 +2149,8 @@ function adjustMediaPlayerScale() {
 
 let isMuted = false;
 
+getAllDesktopWindows().forEach(restoreWindowIframes);
+
 // Select the sound tray icon
 const soundTray = document.getElementById('soundTray');
 const soundIcon = soundTray.querySelector('img');
@@ -1977,33 +2158,36 @@ const soundIcon = soundTray.querySelector('img');
 // Add click event listener to toggle mute
 soundTray.addEventListener('click', () => {
     if (isMuted) {
-        // Unmute all audio
         if (youtubePlayer && typeof youtubePlayer.unMute === 'function') {
             youtubePlayer.unMute();
         }
-        // Unmute other audio elements if any
         const audioElements = document.querySelectorAll('audio, video');
-        audioElements.forEach(audio => {
-            audio.muted = false;
+        audioElements.forEach(media => {
+            if (media.dataset.desktopMuted === 'true') {
+                media.muted = false;
+                delete media.dataset.desktopMuted;
+            }
         });
-        // Change icon to sound.png
         soundIcon.src = 'images/sound.png';
         isMuted = false;
+        unmuteOpenWindowsMedia();
     } else {
-        // Mute all audio
         if (youtubePlayer && typeof youtubePlayer.mute === 'function') {
             youtubePlayer.mute();
         }
-        // Mute other audio elements if any
         const audioElements = document.querySelectorAll('audio, video');
-        audioElements.forEach(audio => {
-            audio.muted = true;
+        audioElements.forEach(media => {
+            if (!media.muted) {
+                media.dataset.desktopMuted = 'true';
+            }
+            media.muted = true;
         });
-        // Change icon to no_sound.png
         soundIcon.src = 'images/no_sound.png';
         isMuted = true;
+        muteAllWindowsMedia();
     }
 });
+
 
     function openWifiWindow() {
         const windowId = 'wifiWindow';
@@ -2149,5 +2333,15 @@ window.addEventListener('message', (event) => {
             break;
     }
 });
+
+
+
+
+
+
+
+
+
+
 
 
