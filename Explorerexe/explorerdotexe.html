@@ -116,6 +116,34 @@
     .address{width:48%}
     :root{ --pane-width: 200px; }
   }
+  .thumb .icon-folder{
+    width:100%;
+    height:100%;
+    display:block;    
+  }  
+  .thumb .icon-drive {
+    width:100%;
+    height:100%;
+    display:block;     
+  }    
+  .thumb .icon-disc {
+    width:100%;
+    height:100%;
+    display:block;     
+  }    
+
+  .tile:has(.icon-folder) .thumb{
+    background:transparent;
+    border:0;
+  }  
+  .tile:has(.icon-drive) .thumb{
+    background:transparent;
+    border:0;
+  }    
+  .tile:has(.icon-disc) .thumb{
+    background:transparent;
+    border:0;
+  }      
 </style>
 </head>
 <body>
