@@ -2078,6 +2078,37 @@ let playlist = [
 ];
 let currentTrackIndex = null;
 
+const youtubeErrorMessageEl = document.getElementById('youtube-error-message');
+const youtubeErrorLinkEl = document.getElementById('youtube-error-link');
+
+function hideYouTubeError() {
+    if (!youtubeErrorMessageEl) return;
+    youtubeErrorMessageEl.classList.add('hidden');
+    if (youtubeErrorLinkEl) {
+        youtubeErrorLinkEl.href = '#';
+        youtubeErrorLinkEl.setAttribute('aria-hidden', 'true');
+        youtubeErrorLinkEl.setAttribute('tabindex', '-1');
+    }
+}
+
+function showYouTubeError(youtubeId) {
+    if (!youtubeErrorMessageEl) return;
+
+    if (youtubeErrorLinkEl) {
+        if (youtubeId) {
+            youtubeErrorLinkEl.href = `https://www.youtube.com/watch?v=${youtubeId}`;
+            youtubeErrorLinkEl.removeAttribute('aria-hidden');
+            youtubeErrorLinkEl.removeAttribute('tabindex');
+        } else {
+            youtubeErrorLinkEl.href = '#';
+            youtubeErrorLinkEl.setAttribute('aria-hidden', 'true');
+            youtubeErrorLinkEl.setAttribute('tabindex', '-1');
+        }
+    }
+
+    youtubeErrorMessageEl.classList.remove('hidden');
+}
+
 // Initialize when YouTube API is ready
 function onYouTubeIframeAPIReady() {
     const playerVars = {
@@ -2098,7 +2129,7 @@ function onYouTubeIframeAPIReady() {
     youtubePlayer = new YT.Player('youtube-video', {
         height: '200',
         width: '100%',
-        host: 'https://www.youtube-nocookie.com',
+        host: 'https://www.youtube.com',
         videoId: '',
         playerVars,
         events: {
@@ -2117,6 +2148,7 @@ function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.ENDED) {
         nextTrack();
     } else if (event.data === YT.PlayerState.PLAYING) {
+        hideYouTubeError();
         isPlaying = true;
         updatePlayButton();
         if (playlist[currentTrackIndex] && playlist[currentTrackIndex].type === 'audio') {
@@ -2131,13 +2163,7 @@ function onPlayerStateChange(event) {
 function onPlayerError(event) {
     console.warn('YouTube player error', event && event.data, event);
     const track = playlist[currentTrackIndex];
-    if (track && track.type === 'video') {
-        const watchUrl = `https://www.youtube.com/watch?v=${track.youtubeId}`;
-        const message = 'YouTube is refusing to embed this video right now.\n\nOpen it in a new tab instead?';
-        if (confirm(message)) {
-            window.open(watchUrl, '_blank', 'noopener');
-        }
-    }
+    showYouTubeError(track && track.youtubeId);
     updatePlayButton();
 }
 
@@ -2201,6 +2227,8 @@ function loadTrack(index) {
     }
     items[index].classList.add('active');
 
+    hideYouTubeError();
+
     if (track.type === 'audio') {
         youtubePlayer.cueVideoById(track.youtubeId);
         youtubePlayer.mute();
@@ -2221,6 +2249,7 @@ function play() {
         console.log('No track selected. Please select a track from the playlist.');
         return;
     }
+    hideYouTubeError();
     if (youtubePlayer && typeof youtubePlayer.playVideo === 'function') {
         youtubePlayer.playVideo();
     } else {
