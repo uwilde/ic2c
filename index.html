@@ -75,8 +75,8 @@
         <!-- Start Menu -->
         <div id="startMenu" class="start-menu">
             <div class="start-menu-header">
-                <img src="icons/start_menu_logo.png" alt="Start Menu Logo" class="start-menu-logo">
-                <span class="start-menu-title">Start</span>
+                <img src="icons/start_menu_logo.png" class="start-menu-logo">
+                <span class="start-menu-title"></span>
             </div>
             <div class="start-menu-content">
                 <div class="start-menu-section">
@@ -149,26 +149,119 @@
         </div>
 
         <!-- Settings Popup -->
-        <div id="settingsPopup" class="window popup-window" data-original-width="400" data-original-height="300">
+        <div id="settingsPopup" class="window popup-window" data-original-width="520" data-original-height="420">
             <div class="window-header">
-                <span class="window-title">Settings</span>
+                <span class="window-title">Display Properties</span>
                 <div class="window-buttons">
                     <button class="minimize" onclick="minimizeWindow('settingsPopup')">_</button>
-                    <button class="maximize" onclick="maximizeWindow('settingsPopup', !document.getElementById('settingsPopup').classList.contains('maximized'))">□</button>
+                    <button class="maximize" onclick="maximizeWindow('settingsPopup', !document.getElementById('settingsPopup').classList.contains('maximized'))">�-�</button>
                     <button class="close" onclick="closeWindow('settingsPopup')">X</button>
                 </div>
             </div>
-            <div class="window-content">
-                <p>🔧 Adjust your settings:</p>
-                <ul>
-                    <li><button onclick="enableUnicornMode()">Enable Unicorn Mode 🦄</button></li>
-                    <li><button onclick="setBackgroundToDancingCats()">Set Background to Dancing Cats 🐱💃</button></li>
-                    <li><button onclick="activateDanceParty()">Activate Dance Party 🎉</button></li>
-                </ul>
+            <div class="window-content settings-dialog">
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-tab="background">Background</button>
+                    <button class="settings-tab" data-tab="screen-saver">Screen Saver</button>
+                    <button class="settings-tab" data-tab="appearance">Appearance</button>
+                    <button class="settings-tab" data-tab="energy">Energy</button>
+                </div>
+                <div class="settings-body">
+                    <div class="settings-preview">
+                        <div class="settings-monitor">
+                            <div class="settings-monitor-bezel">
+                                <div class="settings-monitor-screen" id="settingsMonitorScreen">
+                                    <div class="settings-squiggle"></div>
+                                    <div class="settings-squiggle ghost"></div>
+                                </div>
+                            </div>
+                            <div class="settings-monitor-stand"></div>
+                        </div>
+                        <div class="settings-preview-controls">
+                            <label for="settingsScreenSaverSelect">Screen Saver</label>
+                            <select id="settingsScreenSaverSelect">
+                                <option value="curves">Curves and Colors</option>
+                                <option value="pipes">Color Sticks (Probably Leaking)</option>
+                                <option value="flying">Flying Toaster Thingies (Beta)</option>
+                                <option value="mystery">Mystery Swirl</option>
+                            </select>
+                            <div class="settings-preview-buttons">
+                                <button id="settingsSaverSettings">Settings...</button>
+                                <button id="settingsSaverPreview">Preview</button>
+                            </div>
+                            <div class="settings-wait">
+                                <label for="settingsWaitInput">Wait:</label>
+                                <input id="settingsWaitInput" type="number" min="1" max="120" value="15"> minutes
+                            </div>
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="settingsPasswordProtect"> Password protected
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-panels">
+                        <div class="settings-pane active" data-tab="background">
+                            <label for="settingsBackgroundSelect">Wallpaper</label>
+                            <select id="settingsBackgroundSelect">
+                                <option value="xp">OG</option>
+                                <option value="cats">Dancing Cats</option>
+                                <option value="unicorn">Unicorn Mode</option>
+                                <option value="beige">Corporate Beige</option>
+                            </select>
+                            <div class="settings-background-options">
+                                <label class="settings-checkbox"><input type="checkbox" id="settingsTileDesktop"> Tile background ironically</label>
+                                <label class="settings-checkbox"><input type="checkbox" id="settingsRainbowIcons"> Rainbow-ize icons</label>
+                            </div>
+                            <button id="settingsBackgroundBrowse">Browse...</button>
+                        </div>
+                        <div class="settings-pane" data-tab="screen-saver">
+                            <p>Choose a screen saver personality for your monitor.</p>
+                            <label class="settings-slider">Squiggle speed
+                                <input type="range" id="settingsSquiggleSpeed" min="1" max="10" value="5">
+                            </label>
+                            <label class="settings-checkbox"><input type="checkbox" id="settingsScreensaverSound"> Play soothing modem noises</label>
+                        </div>
+                        <div class="settings-pane" data-tab="appearance">
+                            <p>Refine your retro aesthetic.</p>
+                            <label>Color scheme
+                                <select id="settingsColorScheme">
+                                    <option value="classic">Apindows Classic</option>
+                                    <option value="midnight">Midnight Debugger</option>
+                                    <option value="bubblegum">Bubblegum Pop</option>
+                                    <option value="matrix">Matrix Green</option>
+                                    <option value="sunset">Miami Sunset</option>
+                                    <option value="terminal">Terminal Glow</option>
+                                    <option value="ocean">Deep Ocean</option>
+                                </select>
+                            </label>
+                            <label>Font size
+                                <select id="settingsFontSize">
+                                    <option value="small">Squint Mode</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="large">Grandma Mode</option>
+                                </select>
+                            </label>
+                            <button id="settingsThemeDance">Dance Party Mode</button>
+                        </div>
+                        <div class="settings-pane" data-tab="energy">
+                            <p>Save imaginary electricity.</p>
+                            <label class="settings-checkbox"><input type="checkbox" id="settingsLowPower"> Low-power standby</label>
+                            <label class="settings-checkbox"><input type="checkbox" id="settingsShutOff"> Shut off monitor</label>
+                            <div class="settings-energy-times">
+                                <label>Standby after <input type="number" id="settingsStandbyMinutes" min="1" max="120" value="30"> minutes</label>
+                                <label>Shutdown after <input type="number" id="settingsShutdownMinutes" min="1" max="240" value="60"> minutes</label>
+                            </div>
+                            <button id="settingsEnergyBoost">Suggest Energy Plan</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-status" id="settingsStatus">Settings loaded, probably.</div>
+                <div class="settings-footer">
+                    <button id="settingsOk">OK</button>
+                    <button id="settingsCancel">Cancel</button>
+                    <button id="settingsApply">Apply</button>
+                </div>
             </div>
             <div class="resize-handle resize-handle-bottom-right"></div>
         </div>
-
         <!-- Find Popup -->
         <div id="findPopup" class="window popup-window" data-original-width="400" data-original-height="300">
             <div class="window-header">

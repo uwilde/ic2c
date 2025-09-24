@@ -23,6 +23,24 @@ document.addEventListener('DOMContentLoaded', () => {
         setupSlider(panSlider, 'pan');
     }
 
+    const desktop = document.querySelector('.desktop');
+    if (desktop) {
+        const computed = window.getComputedStyle(desktop);
+        if (!desktop.dataset.originalBackground) {
+            desktop.dataset.originalBackground = computed.backgroundImage || '';
+        }
+        if (!desktop.dataset.originalRepeat) {
+            desktop.dataset.originalRepeat = computed.backgroundRepeat || '';
+        }
+    }
+
+    document.body.classList.add('theme-classic');
+    document.body.classList.add('font-normal');
+
+    initializeStartMenuInteractions();
+    initSettingsWindow();
+    ensureScreensaverOverlay();
+
     // Initialize ApacheToob toolbar
     const apacheToob = document.getElementById('apacheToob');
     if (apacheToob) {
@@ -244,14 +262,690 @@ function changeStartButtonImage(imagePath) {
 // Function to toggle Start Menu visibility
 function toggleStartMenu() {
     const startMenu = document.getElementById('startMenu');
+    if (!startMenu) return;
+    const willShow = !startMenu.classList.contains('show');
     startMenu.classList.toggle('show');
-    if (startMenu.classList.contains('show')) {
+    if (willShow) {
         startMenu.style.display = 'block';
+        closeAllStartMenuSubmenus();
         bringToFront(startMenu);
     } else {
         startMenu.style.display = 'none';
+        closeAllStartMenuSubmenus();
     }
 }
+
+function closeAllStartMenuSubmenus() {
+    document.querySelectorAll('.start-menu-submenu').forEach(sub => sub.classList.remove('show'));
+    document.querySelectorAll('.start-menu-item.active').forEach(item => item.classList.remove('active'));
+}
+
+function initializeStartMenuInteractions() {
+    const items = document.querySelectorAll('.start-menu-item');
+    items.forEach(item => {
+        const submenu = item.nextElementSibling;
+        if (submenu && submenu.classList.contains('start-menu-submenu')) {
+            item.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const shouldOpen = !submenu.classList.contains('show');
+                closeAllStartMenuSubmenus();
+                if (shouldOpen) {
+                    submenu.classList.add('show');
+                    item.classList.add('active');
+                }
+            });
+
+        } else {
+            item.addEventListener('click', () => {
+                closeAllStartMenuSubmenus();
+                const startMenuEl = document.getElementById('startMenu');
+                if (startMenuEl) {
+                    startMenuEl.classList.remove('show');
+                    startMenuEl.style.display = 'none';
+                }
+            });
+        }
+    });
+
+    const submenuItems = document.querySelectorAll('.start-menu-submenu ul li');
+    submenuItems.forEach(entry => {
+        entry.addEventListener('click', () => {
+            const startMenuEl = document.getElementById('startMenu');
+            if (startMenuEl) {
+                startMenuEl.classList.remove('show');
+                startMenuEl.style.display = 'none';
+            }
+            closeAllStartMenuSubmenus();
+        });
+    });
+}
+const SETTINGS_STATE = {
+  background: 'xp',
+  tile: false,
+  rainbow: false,
+  screenSaver: 'curves',
+  wait: 15,
+  password: false,
+  squiggleSpeed: 5,
+  screensaverSound: false,
+  colorScheme: 'classic',
+  fontSize: 'normal',
+  lowPower: false,
+  shutOff: false,
+  standbyMinutes: 30,
+  shutdownMinutes: 60
+};
+const SETTINGS_THEME_CLASSES = ['theme-classic','theme-midnight','theme-bubblegum','theme-matrix','theme-sunset','theme-terminal','theme-ocean'];
+function youtubeOrigin() {
+  const origin = window.location.origin;
+  if (origin && origin !== 'null' && origin !== 'file://') {
+    return origin;
+  }
+  return null;
+}
+
+let settingsMonitorTimer = null;
+let screensaverOverlay = null;
+let screensaverOverlayTimer = null;
+
+function initSettingsWindow() {
+  const settingsWindow = document.getElementById('settingsPopup');
+  if (!settingsWindow) return;
+  if (settingsWindow.dataset.initialized === 'true') {
+    prepareSettingsWindow();
+    return;
+  }
+  settingsWindow.dataset.initialized = 'true';
+
+  const tabs = settingsWindow.querySelectorAll('.settings-tab');
+  const panes = settingsWindow.querySelectorAll('.settings-pane');
+  const backgroundSelect = document.getElementById('settingsBackgroundSelect');
+  const tileCheckbox = document.getElementById('settingsTileDesktop');
+  const rainbowCheckbox = document.getElementById('settingsRainbowIcons');
+  const browseButton = document.getElementById('settingsBackgroundBrowse');
+  const saverSelect = document.getElementById('settingsScreenSaverSelect');
+  const saverSettings = document.getElementById('settingsSaverSettings');
+  const saverPreview = document.getElementById('settingsSaverPreview');
+  const waitInput = document.getElementById('settingsWaitInput');
+  const passwordCheckbox = document.getElementById('settingsPasswordProtect');
+  const squiggleSpeed = document.getElementById('settingsSquiggleSpeed');
+  const saverSound = document.getElementById('settingsScreensaverSound');
+  const colourSelect = document.getElementById('settingsColorScheme');
+  const fontSelect = document.getElementById('settingsFontSize');
+  const themeButton = document.getElementById('settingsThemeDance');
+  const lowPower = document.getElementById('settingsLowPower');
+  const shutOff = document.getElementById('settingsShutOff');
+  const standbyMinutes = document.getElementById('settingsStandbyMinutes');
+  const shutdownMinutes = document.getElementById('settingsShutdownMinutes');
+  const energyBoost = document.getElementById('settingsEnergyBoost');
+  const okButton = document.getElementById('settingsOk');
+  const cancelButton = document.getElementById('settingsCancel');
+  const applyButton = document.getElementById('settingsApply');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      if (tab.classList.contains('active')) return;
+      tabs.forEach(t => t.classList.remove('active'));
+      panes.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const targetPane = settingsWindow.querySelector(`.settings-pane[data-tab="${tab.dataset.tab}"]`);
+      if (targetPane) targetPane.classList.add('active');
+      updateSettingsStatus(`${tab.textContent} tab opened. Your CRT is impressed.`);
+    });
+  });
+
+  if (backgroundSelect) {
+    backgroundSelect.addEventListener('change', (event) => {
+      SETTINGS_STATE.background = event.target.value;
+      previewBackground(SETTINGS_STATE.background);
+      updateSettingsStatus(`Wallpaper queued: ${backgroundSelect.options[backgroundSelect.selectedIndex].text}.`);
+    });
+    previewBackground(SETTINGS_STATE.background);
+  }
+
+  if (tileCheckbox) {
+    tileCheckbox.addEventListener('change', (event) => {
+      SETTINGS_STATE.tile = event.target.checked;
+      updateSettingsStatus(event.target.checked ? 'Background will now be tiled like a Windows 95 masterpiece.' : 'Background tiling politely disabled.');
+    });
+  }
+
+  if (rainbowCheckbox) {
+    rainbowCheckbox.addEventListener('change', (event) => {
+      SETTINGS_STATE.rainbow = event.target.checked;
+      updateSettingsStatus(event.target.checked ? 'Icons entering rainbow mode. Sunglasses deployed.' : 'Icons back to OSHA-approved colors.');
+    });
+  }
+
+  if (browseButton) {
+    browseButton.addEventListener('click', () => {
+      updateSettingsStatus('Attempting to access A:\\ ... drive not found.');
+      alert('Browse function requires 37 floppy disks. Please insert Disk 1 of 37.');
+    });
+  }
+
+  if (saverSelect) {
+    saverSelect.addEventListener('change', (event) => {
+      SETTINGS_STATE.screenSaver = event.target.value;
+      previewScreenSaver(SETTINGS_STATE.screenSaver);
+      updateSettingsStatus(`${saverSelect.options[saverSelect.selectedIndex].text} armed and ready.`);
+    });
+    previewScreenSaver(SETTINGS_STATE.screenSaver);
+  }
+
+  if (saverSettings) {
+    saverSettings.addEventListener('click', () => {
+      updateSettingsStatus('Opening settings dialog... please imagine a smaller dialog on top of this dialog.');
+      alert('Advanced settings unavailable: someone lost the install CD.');
+    });
+  }
+
+  if (saverPreview) {
+    saverPreview.addEventListener('click', () => {
+      updateSettingsStatus('Launching preview. Wiggle the mouse to exit (mentally).');
+      settingsPreviewScreensaver();
+    });
+  }
+
+  if (waitInput) {
+    waitInput.addEventListener('input', (event) => {
+      SETTINGS_STATE.wait = Number(event.target.value) || 1;
+      updateSettingsStatus(`Screen saver will wait ${SETTINGS_STATE.wait} minutes before haunting the screen.`);
+    });
+  }
+
+  if (passwordCheckbox) {
+    passwordCheckbox.addEventListener('change', (event) => {
+      SETTINGS_STATE.password = event.target.checked;
+      toggleSettingsPassword(event.target.checked);
+    });
+  }
+
+  if (squiggleSpeed) {
+    squiggleSpeed.addEventListener('input', (event) => {
+      SETTINGS_STATE.squiggleSpeed = Number(event.target.value) || 5;
+      adjustSettingsSquiggleSpeed(SETTINGS_STATE.squiggleSpeed);
+    });
+  }
+
+  if (saverSound) {
+    saverSound.addEventListener('change', (event) => {
+      SETTINGS_STATE.screensaverSound = event.target.checked;
+      toggleScreensaverSound(event.target.checked);
+    });
+  }
+
+  if (colourSelect) {
+    colourSelect.addEventListener('change', (event) => {
+      SETTINGS_STATE.colorScheme = event.target.value;
+      applyColorScheme(SETTINGS_STATE.colorScheme);
+    });
+  }
+
+  if (fontSelect) {
+    fontSelect.addEventListener('change', (event) => {
+      SETTINGS_STATE.fontSize = event.target.value;
+      applyFontSize(SETTINGS_STATE.fontSize);
+    });
+  }
+
+  if (themeButton) {
+    themeButton.addEventListener('click', () => {
+      playSettingsThemeSong();
+    });
+  }
+
+  if (lowPower) {
+    lowPower.addEventListener('change', (event) => {
+      SETTINGS_STATE.lowPower = event.target.checked;
+      updateSettingsStatus(event.target.checked ? 'Low-power standby set. Dial-up disabled.' : 'Standby cancelled. Monitor stays hyper-alert.');
+    });
+  }
+
+  if (shutOff) {
+    shutOff.addEventListener('change', (event) => {
+      SETTINGS_STATE.shutOff = event.target.checked;
+      updateSettingsStatus(event.target.checked ? 'Monitor will now practice mindfulness (OFF).' : 'Monitor vows to never sleep again.');
+    });
+  }
+
+  if (standbyMinutes) {
+    standbyMinutes.addEventListener('input', (event) => {
+      SETTINGS_STATE.standbyMinutes = Number(event.target.value) || 1;
+      updateSettingsStatus(`Standby after ${SETTINGS_STATE.standbyMinutes} minutes. Plenty of time for a poop break.`);
+    });
+  }
+
+  if (shutdownMinutes) {
+    shutdownMinutes.addEventListener('input', (event) => {
+      SETTINGS_STATE.shutdownMinutes = Number(event.target.value) || 5;
+      updateSettingsStatus(`Monitor shutdown scheduled after ${SETTINGS_STATE.shutdownMinutes} minutes, probably.`);
+    });
+  }
+
+  if (energyBoost) {
+    energyBoost.addEventListener('click', () => {
+      suggestEnergyPlan();
+    });
+  }
+
+  if (okButton) {
+    okButton.addEventListener('click', () => {
+      applySettingsState(true);
+    });
+  }
+
+  if (applyButton) {
+    applyButton.addEventListener('click', () => {
+      applySettingsState(false);
+    });
+  }
+
+  if (cancelButton) {
+    cancelButton.addEventListener('click', () => {
+      updateSettingsStatus('Changes canceled. CRT smiles politely.');
+      closeWindow('settingsPopup');
+    });
+  }
+
+  prepareSettingsWindow();
+}
+
+function updateSettingsStatus(message) {
+  const status = document.getElementById('settingsStatus');
+  if (status) status.textContent = message;
+}
+
+function prepareSettingsWindow() {
+  const backgroundSelect = document.getElementById('settingsBackgroundSelect');
+  if (backgroundSelect) backgroundSelect.value = SETTINGS_STATE.background;
+  const tileCheckbox = document.getElementById('settingsTileDesktop');
+  if (tileCheckbox) tileCheckbox.checked = SETTINGS_STATE.tile;
+  const rainbowCheckbox = document.getElementById('settingsRainbowIcons');
+  if (rainbowCheckbox) rainbowCheckbox.checked = SETTINGS_STATE.rainbow;
+  const saverSelect = document.getElementById('settingsScreenSaverSelect');
+  if (saverSelect) saverSelect.value = SETTINGS_STATE.screenSaver;
+  const waitInput = document.getElementById('settingsWaitInput');
+  if (waitInput) waitInput.value = SETTINGS_STATE.wait;
+  const passwordCheckbox = document.getElementById('settingsPasswordProtect');
+  if (passwordCheckbox) passwordCheckbox.checked = SETTINGS_STATE.password;
+  const squiggleSpeed = document.getElementById('settingsSquiggleSpeed');
+  if (squiggleSpeed) squiggleSpeed.value = SETTINGS_STATE.squiggleSpeed;
+  const saverSound = document.getElementById('settingsScreensaverSound');
+  if (saverSound) saverSound.checked = SETTINGS_STATE.screensaverSound;
+  const colourSelect = document.getElementById('settingsColorScheme');
+  if (colourSelect) colourSelect.value = SETTINGS_STATE.colorScheme;
+  const fontSelect = document.getElementById('settingsFontSize');
+  if (fontSelect) fontSelect.value = SETTINGS_STATE.fontSize;
+  const lowPower = document.getElementById('settingsLowPower');
+  if (lowPower) lowPower.checked = SETTINGS_STATE.lowPower;
+  const shutOff = document.getElementById('settingsShutOff');
+  if (shutOff) shutOff.checked = SETTINGS_STATE.shutOff;
+  const standbyMinutes = document.getElementById('settingsStandbyMinutes');
+  if (standbyMinutes) standbyMinutes.value = SETTINGS_STATE.standbyMinutes;
+  const shutdownMinutes = document.getElementById('settingsShutdownMinutes');
+  if (shutdownMinutes) shutdownMinutes.value = SETTINGS_STATE.shutdownMinutes;
+
+  previewBackground(SETTINGS_STATE.background);
+  previewScreenSaver(SETTINGS_STATE.screenSaver);
+  adjustSettingsSquiggleSpeed(SETTINGS_STATE.squiggleSpeed);
+  updateSettingsStatus('Display Properties ready. Pretend you just installed a new graphics card.');
+}
+
+function ensureScreensaverOverlay() {
+  if (screensaverOverlay) return screensaverOverlay;
+  let overlay = document.getElementById('screensaverOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'screensaverOverlay';
+    overlay.className = 'screensaver-overlay';
+    const dismiss = document.createElement('div');
+    dismiss.className = 'screensaver-dismiss';
+    dismiss.textContent = 'Click or press Esc to exit preview.';
+    const canvas = document.createElement('div');
+    canvas.className = 'screensaver-canvas';
+    overlay.appendChild(dismiss);
+    overlay.appendChild(canvas);
+    overlay.addEventListener('click', hideScreensaverOverlay);
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        hideScreensaverOverlay();
+      }
+    });
+  }
+  screensaverOverlay = overlay;
+  return overlay;
+}
+
+function showScreensaverOverlay(mode) {
+  const overlay = ensureScreensaverOverlay();
+  if (!overlay) return;
+  const canvas = overlay.querySelector('.screensaver-canvas');
+  const dismiss = overlay.querySelector('.screensaver-dismiss');
+  canvas.innerHTML = '';
+  overlay.classList.add('active');
+  overlay.dataset.mode = mode;
+  if (dismiss) {
+    const titles = {
+      curves: 'Curves & Colors',
+      pipes: 'Leaky Pipes',
+      flying: 'Flying Toasters',
+      mystery: 'Mystery Swirl'
+    };
+    dismiss.textContent = `${titles[mode] || 'Screensaver'} preview - click or press Esc to exit.`;
+  }
+  switch (mode) {
+    case 'pipes':
+      buildScreensaverPipes(canvas);
+      break;
+    case 'flying':
+      buildScreensaverToasters(canvas);
+      break;
+    case 'mystery':
+      buildScreensaverMystery(canvas);
+      break;
+    default:
+      buildScreensaverCurves(canvas);
+      break;
+  }
+  if (screensaverOverlayTimer) clearTimeout(screensaverOverlayTimer);
+  screensaverOverlayTimer = setTimeout(() => {
+    hideScreensaverOverlay();
+  }, 12000);
+}
+
+function hideScreensaverOverlay() {
+  if (!screensaverOverlay) return;
+  screensaverOverlay.classList.remove('active');
+  const canvas = screensaverOverlay.querySelector('.screensaver-canvas');
+  if (canvas) canvas.innerHTML = '';
+  screensaverOverlay.dataset.mode = '';
+  if (screensaverOverlayTimer) {
+    clearTimeout(screensaverOverlayTimer);
+    screensaverOverlayTimer = null;
+  }
+}
+
+function buildScreensaverCurves(canvas) {
+  for (let i = 0; i < 10; i++) {
+    const curve = document.createElement('div');
+    curve.className = 'saver-curve';
+    curve.style.left = '50%';
+    curve.style.top = '50%';
+    curve.style.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+    curve.style.setProperty('--speed', `${6 + Math.random() * 4}s`);
+    curve.style.opacity = `${0.5 + Math.random() * 0.4}`;
+    curve.style.transform = 'translate(-50%, -50%)';
+    canvas.appendChild(curve);
+  }
+}
+
+function buildScreensaverPipes(canvas) {
+  for (let i = 0; i < 6; i++) {
+    const pipe = document.createElement('div');
+    pipe.className = 'saver-pipe';
+    pipe.style.top = `${Math.random() * 100}%`;
+    pipe.style.setProperty('--speed', `${8 + Math.random() * 6}s`);
+    pipe.style.opacity = `${0.4 + Math.random() * 0.5}`;
+    pipe.style.background = `linear-gradient(90deg, hsl(${Math.random()*360},80%,60%), hsl(${Math.random()*360},80%,70%))`;
+    canvas.appendChild(pipe);
+  }
+}
+
+function buildScreensaverToasters(canvas) {
+  const faces = ['[toast]','(yum)','(hot!)','(party)','<o/'];
+  for (let i = 0; i < 5; i++) {
+    const toast = document.createElement('div');
+    toast.className = 'saver-toast';
+    toast.style.left = `${20 + Math.random() * 60}%`;
+    toast.style.top = `${20 + Math.random() * 60}%`;
+    toast.style.setProperty('--speed', `${10 + Math.random() * 6}s`);
+    toast.style.animationDelay = `${Math.random() * -6}s`;
+    toast.textContent = faces[Math.floor(Math.random()*faces.length)];
+    canvas.appendChild(toast);
+  }
+}
+
+function buildScreensaverMystery(canvas) {
+  for (let i = 0; i < 12; i++) {
+    const orb = document.createElement('div');
+    orb.className = 'saver-mystery';
+    const size = 80 + Math.random() * 160;
+    orb.style.left = `${Math.random() * 100}%`;
+    orb.style.top = `${Math.random() * 100}%`;
+    orb.style.setProperty('--size', `${size}px`);
+    orb.style.setProperty('--speed', `${7 + Math.random() * 5}s`);
+    orb.style.opacity = `${0.3 + Math.random() * 0.5}`;
+    canvas.appendChild(orb);
+  }
+}
+
+function previewBackground(mode) {
+  const monitor = document.getElementById('settingsMonitorScreen');
+  if (!monitor) return;
+  monitor.classList.remove('previewing');
+  let label = '';
+  monitor.style.backgroundImage = '';
+  monitor.style.backgroundColor = '#000';
+  switch(mode) {
+    case 'cats':
+      monitor.style.backgroundImage = "url('images/dancing_cats.gif')";
+      label = 'Feline Frenzy';
+      break;
+    case 'unicorn':
+      monitor.style.backgroundImage = "url('images/unicorn_background.gif')";
+      label = 'Unicorn Nebula';
+      break;
+    case 'beige':
+      monitor.style.backgroundColor = '#cfc7b8';
+      label = 'Corporate Beige';
+      break;
+    default:
+      monitor.style.backgroundImage = "url('images/background.png')";
+      monitor.style.backgroundSize = 'cover';
+      label = 'Classic Hills';
+  }
+  monitor.dataset.label = label;
+}
+
+function previewScreenSaver(mode) {
+  const monitor = document.getElementById('settingsMonitorScreen');
+  if (!monitor) return;
+  const squiggles = monitor.querySelectorAll('.settings-squiggle');
+  const colors = {
+    curves: ['#39ff14', '#fffc00'],
+    pipes: ['#00bfff', '#ffffff'],
+    flying: ['#ff00c8', '#00ffe1'],
+    mystery: ['#ff8c00', '#00ff90']
+  };
+  const labels = {
+    curves: 'Curves & Colors',
+    pipes: '3D Pipes (Leaky)',
+    flying: 'Flying Toasters',
+    mystery: 'Mystery Swirl'
+  };
+  const palette = colors[mode] || colors.curves;
+  squiggles.forEach((sq, index) => {
+    sq.style.borderColor = palette[index % palette.length];
+  });
+  monitor.dataset.label = labels[mode] || labels.curves;
+}
+
+function adjustSettingsSquiggleSpeed(speed) {
+  const monitor = document.getElementById('settingsMonitorScreen');
+  if (!monitor) return;
+  const squiggles = monitor.querySelectorAll('.settings-squiggle');
+  const base = Math.max(2, 11 - Number(speed));
+  squiggles.forEach((sq, index) => {
+    sq.style.animationDuration = `${base + index * 3}s`;
+  });
+  updateSettingsStatus(`Screen saver squiggle speed set to ${speed}. OSHA unconsulted.`);
+}
+
+function settingsPreviewScreensaver() {
+  const monitor = document.getElementById('settingsMonitorScreen');
+  if (!monitor) return;
+  monitor.classList.add('previewing');
+  monitor.dataset.label = 'Previewing...';
+  clearTimeout(settingsMonitorTimer);
+  settingsMonitorTimer = setTimeout(() => {
+    monitor.classList.remove('previewing');
+    previewScreenSaver(SETTINGS_STATE.screenSaver);
+  }, 3500);
+  showScreensaverOverlay(SETTINGS_STATE.screenSaver);
+}
+
+function toggleSettingsPassword(enabled) {
+  updateSettingsStatus(enabled ? 'Password protection enabled. Default password: "password".' : 'Password removed. Blind trust resumed.');
+}
+
+function toggleScreensaverSound(enabled) {
+  updateSettingsStatus(enabled ? 'Modem noises scheduled every 45 seconds.' : 'Screensaver will now mime quietly.');
+}
+
+function toggleDesktopTiling(enabled, silent = false) {
+  const desktop = document.querySelector('.desktop');
+  if (!desktop) return;
+  desktop.classList.toggle('tile-background', enabled);
+  if (!silent) {
+    updateSettingsStatus(enabled ? 'Background now tiles like 1995.' : 'Background stretching respectfully.');
+  }
+}
+
+function toggleRainbowIcons(enabled, silent = false) {
+  document.body.classList.toggle('rainbow-icons', enabled);
+  if (!silent) {
+    updateSettingsStatus(enabled ? 'Icons now cycling through 16 million colors.' : 'Icons returned to factory-approved hues.');
+  }
+}
+
+function applyColorScheme(scheme, silent = false) {
+  SETTINGS_THEME_CLASSES.forEach(cls => document.body.classList.remove(cls));
+  document.body.classList.add(`theme-${scheme}`);
+  if (!silent) {
+    const messages = {
+      classic: 'Classic theme restored.',
+      midnight: 'Midnight Debugger engaged. Hacker vibes rising.',
+      bubblegum: 'Bubblegum Pop applied. Wrists getting weaker.',
+      matrix: 'Matrix Green activated. Follow the white rabbit.',
+      sunset: 'Miami Sunset engaged. Sunglasses recommended.',
+      terminal: 'Terminal Glow enabled, I am sorry.',
+      ocean: 'Deep Ocean mode on. Cue the whales.'
+    };
+    updateSettingsStatus(messages[scheme] || 'Theme adjustedamated.');
+  }
+}
+
+function applyFontSize(size, silent = false) {
+  document.body.classList.remove('font-small','font-normal','font-large');
+  document.body.classList.add(`font-${size}`);
+  if (!silent) {
+    const soundbites = {
+      small: 'Text shrunk. Feel the burn.',
+      normal: 'Text normalized. Balanced like a good CRT.',
+      large: 'Text embiggened. Geriatric approved.'
+    };
+    updateSettingsStatus(soundbites[size] || 'Font size adjusted.');
+  }
+}
+
+function playSettingsThemeSong() {
+  updateSettingsStatus('Dance music queued. Air guitar optional.');
+  activateDanceParty();
+}
+
+function applyEnergySettings(silent = false) {
+  if (!silent) {
+    let message = 'Energy plan: monitor will stay caffeinated.';
+    if (SETTINGS_STATE.lowPower && SETTINGS_STATE.shutOff) {
+      message = `Standby after ${SETTINGS_STATE.standbyMinutes} minutes, shutdown after ${SETTINGS_STATE.shutdownMinutes}. Power company terrified.`;
+    } else if (SETTINGS_STATE.lowPower) {
+      message = `Low-power standby after ${SETTINGS_STATE.standbyMinutes} minutes. Dim the lights.`;
+    } else if (SETTINGS_STATE.shutOff) {
+      message = `Monitor will nap after ${SETTINGS_STATE.shutdownMinutes} minutes. Sweet dreams.`;
+    }
+    updateSettingsStatus(message);
+  }
+}
+
+function suggestEnergyPlan() {
+  const plans = [
+    'Recommendation: unplug everything and move to a cabin.',
+    'Energy tip: tape solar panel to CRT.',
+    'Convince the PC to identify as already off.',
+    'Plan approved: you are trash.'
+  ];
+  const choice = plans[Math.floor(Math.random()*plans.length)];
+  updateSettingsStatus(choice);
+  alert(choice);
+}
+
+function restoreDesktopBackground() {
+  const desktop = document.querySelector('.desktop');
+  if (!desktop) return;
+  if (desktop.dataset.originalBackground !== undefined) {
+    desktop.style.backgroundImage = desktop.dataset.originalBackground;
+  }
+  if (desktop.dataset.originalRepeat !== undefined) {
+    desktop.style.backgroundRepeat = desktop.dataset.originalRepeat;
+  }
+  desktop.style.backgroundSize = '';
+  desktop.style.backgroundColor = '';
+}
+
+function applySettingsState(closeAfter) {
+  switch (SETTINGS_STATE.background) {
+    case 'cats':
+      setBackgroundToDancingCats();
+      break;
+    case 'unicorn':
+      enableUnicornMode();
+      break;
+    case 'beige': {
+      const desktop = document.querySelector('.desktop');
+      if (desktop) {
+        desktop.style.backgroundImage = 'none';
+        desktop.style.backgroundColor = '#d9d2c4';
+      }
+      alert('Beige mode initiated. Productivity +5%. Joy -80%.');
+      break;
+    }
+    default:
+      restoreDesktopBackground();
+      updateSettingsStatus('Classic hill wallpaper restored. Cow still missing.');
+  }
+
+  toggleDesktopTiling(SETTINGS_STATE.tile, true);
+  toggleRainbowIcons(SETTINGS_STATE.rainbow, true);
+  applyColorScheme(SETTINGS_STATE.colorScheme, true);
+  applyFontSize(SETTINGS_STATE.fontSize, true);
+  applyEnergySettings(true);
+
+  if (SETTINGS_STATE.password) {
+    updateSettingsStatus('Password saved as "hunter2". Definitely secure.');
+  } else {
+    updateSettingsStatus('No password. Trust exercise resumed.');
+  }
+
+  if (SETTINGS_STATE.screensaverSound) {
+    console.log('~modem squeal~');
+  }
+
+  adjustSettingsSquiggleSpeed(SETTINGS_STATE.squiggleSpeed);
+  previewScreenSaver(SETTINGS_STATE.screenSaver);
+  previewBackground(SETTINGS_STATE.background);
+
+  const waitNote = `Screen saver waits ${SETTINGS_STATE.wait} minute${SETTINGS_STATE.wait === 1 ? '' : 's'}.`;
+  if (closeAfter) {
+    updateSettingsStatus(`Settings applied. ${waitNote} Window self-destructs in 3...2...1... (just kidding).`);
+    closeWindow('settingsPopup');
+  } else {
+    updateSettingsStatus(`Settings applied. ${waitNote} Window stays open for more shenanigans.`);
+  }
+}
+
+
 
     function togglePopup(popupId) {
         let popup = document.getElementById(popupId);
@@ -326,13 +1020,18 @@ function toggleStartMenu() {
             // Close the popup when clicking outside
             closePopupOnClickOutside(popup, popupId === 'wifiWindow' ? 'networkTray' : 'batteryTray');
         } else {
-            // Toggle the 'show' class
-            popup.classList.toggle('show');
-            if (popup.classList.contains('show')) {
+            const isOpen = popup.classList.contains('show') && popup.style.display !== 'none';
+            if (isOpen) {
+                popup.classList.remove('show');
+                popup.classList.add('hide');
+                popup.style.display = 'none';
+                handleWindowClosed(popup);
+            } else {
+                popup.classList.remove('hide');
+                popup.classList.add('show');
                 popup.style.display = 'flex';
                 bringToFront(popup);
-            } else {
-                popup.style.display = 'none';
+                handleWindowOpened(popup);
             }
         }
     }
@@ -468,37 +1167,11 @@ function dance() {
             startMenu.style.display = 'none';
             
             // Hide all submenus
-            document.querySelectorAll('.start-menu-submenu').forEach(sub => {
-                sub.classList.remove('show');
-            });
-            
-            // Remove active class from all menu items
-            document.querySelectorAll('.start-menu-item').forEach(item => {
-            	item.addEventListener('click', function(e) {
-            		const submenu = this.nextElementSibling;
-            		if (submenu && submenu.classList.contains('start-menu-submenu')) {
-            			submenu.classList.toggle('show');
-            			this.classList.toggle('active');
-            			bringToFront(submenu);
-            		} else {
-            			// If the item doesn't have a submenu, perform its action
-            			// For example, if it's a direct link to a program
-            			const action = this.getAttribute('data-action');
-            			if (action) {
-            				// Execute the action, e.g., open a window
-            				toggleWindow(action);
-            			}
-            
-            			// Hide the start menu after action
-            			const startMenu = document.getElementById('startMenu');
-            			startMenu.classList.remove('show');
-            			startMenu.style.display = 'none';
-            		}
-            	});
-            }); 
+            closeAllStartMenuSubmenus();
 
-            // Hide all active popups
+            // Hide all active popups except Settings (Display Properties)
             activePopups.forEach(popup => {
+                if (popup.id === 'settingsPopup') return;
                 popup.classList.remove('show');
                 popup.style.display = 'none';
             });
@@ -682,6 +1355,9 @@ function restoreWindowIframes(windowElement) {
 function handleWindowOpened(windowElement) {
     if (!windowElement) return;
     restoreWindowIframes(windowElement);
+    if (windowElement.id === 'settingsPopup') {
+        prepareSettingsWindow();
+    }
     if (isMuted) {
         markWindowResumeOnUnmute(windowElement, true);
     } else {
@@ -736,6 +1412,12 @@ function openWindow(windowId) {
         if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
             maximizeWindow(windowId, true); // Always maximize when opening
         }
+    }
+
+    if (windowId === 'settingsPopup') {
+        windowElement.style.top = '40px';
+        windowElement.style.height = '750px';
+        windowElement.style.maxHeight = '750px';
     }
 
     // Adjust iframe scale
@@ -808,6 +1490,7 @@ function closeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
     const taskbarButton = document.getElementById(`taskbar-${windowId}`);
     handleWindowClosed(windowElement);
+    if (windowId === 'settingsPopup') hideScreensaverOverlay();
 
     // Hide the window
     windowElement.classList.add("hide");
@@ -823,6 +1506,7 @@ function closeWindow(windowId) {
 function minimizeWindow(windowId) {
     const windowElement = document.getElementById(windowId);
     manageWindowMedia(windowElement, 'pause');
+    if (windowId === 'settingsPopup') hideScreensaverOverlay();
     windowElement.classList.add("hide");
     windowElement.classList.remove("show");
     windowElement.style.display = "none";
@@ -1396,21 +2080,31 @@ let currentTrackIndex = null;
 
 // Initialize when YouTube API is ready
 function onYouTubeIframeAPIReady() {
+    const playerVars = {
+        autoplay: 0,
+        controls: 0,
+        showinfo: 0,
+        rel: 0,
+        iv_load_policy: 3,
+        modestbranding: 1,
+        enablejsapi: 1,
+        playsinline: 1
+    };
+    const originValue = youtubeOrigin();
+    if (originValue) {
+        playerVars.origin = originValue;
+    }
+
     youtubePlayer = new YT.Player('youtube-video', {
         height: '200',
         width: '100%',
+        host: 'https://www.youtube-nocookie.com',
         videoId: '',
-        playerVars: {
-            'autoplay': 0,
-            'controls': 0,
-            'showinfo': 0,
-            'rel': 0,
-            'iv_load_policy': 3,
-            'modestbranding': 1
-        },
+        playerVars,
         events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange,
+            onError: onPlayerError
         }
     });
 }
@@ -1434,6 +2128,19 @@ function onPlayerStateChange(event) {
     }
 }
 
+function onPlayerError(event) {
+    console.warn('YouTube player error', event && event.data, event);
+    const track = playlist[currentTrackIndex];
+    if (track && track.type === 'video') {
+        const watchUrl = `https://www.youtube.com/watch?v=${track.youtubeId}`;
+        const message = 'YouTube is refusing to embed this video right now.\n\nOpen it in a new tab instead?';
+        if (confirm(message)) {
+            window.open(watchUrl, '_blank', 'noopener');
+        }
+    }
+    updatePlayButton();
+}
+
 function initMediaPlayer() {
     const playButton = document.getElementById('play');
     const stopButton = document.getElementById('stop');
@@ -1452,15 +2159,18 @@ function initMediaPlayer() {
     canvas.height = canvas.offsetHeight;
 
     // Populate the playlist
-    playlist.forEach((trackItem, index) => {
-        let li = document.createElement('li');
-        li.textContent = trackItem.title;
-        li.addEventListener('click', () => {
-            loadTrack(index);
-            play();
+    if (playlistElement) {
+        playlistElement.innerHTML = '';
+        playlist.forEach((trackItem, index) => {
+            const li = document.createElement('li');
+            li.textContent = trackItem.title;
+            li.addEventListener('click', () => {
+                loadTrack(index);
+                play();
+            });
+            playlistElement.appendChild(li);
         });
-        playlistElement.appendChild(li);
-    });
+    }
 
     // Do not load the first track by default
 
@@ -1511,21 +2221,34 @@ function play() {
         console.log('No track selected. Please select a track from the playlist.');
         return;
     }
-    youtubePlayer.playVideo();
+    if (youtubePlayer && typeof youtubePlayer.playVideo === 'function') {
+        youtubePlayer.playVideo();
+    } else {
+        console.warn('YouTube player not ready to play.');
+        return;
+    }
     isPlaying = true;
     updatePlayButton();
 }
 
 function pause() {
     if (!youtubePlayer) return;
-    youtubePlayer.pauseVideo();
+    if (typeof youtubePlayer.pauseVideo === 'function') {
+        youtubePlayer.pauseVideo();
+    } else {
+        return;
+    }
     isPlaying = false;
     updatePlayButton();
 }
 
 function stop() {
     if (!youtubePlayer) return;
-    youtubePlayer.stopVideo();
+    if (typeof youtubePlayer.stopVideo === 'function') {
+        youtubePlayer.stopVideo();
+    } else {
+        return;
+    }
     isPlaying = false;
     updatePlayButton();
 }
@@ -2149,7 +2872,13 @@ function adjustMediaPlayerScale() {
 
 let isMuted = false;
 
-getAllDesktopWindows().forEach(restoreWindowIframes);
+const desktopWindows = getAllDesktopWindows();
+desktopWindows.forEach(win => {
+    restoreWindowIframes(win);
+    if (!isWindowOpen(win)) {
+        handleWindowClosed(win);
+    }
+});
 
 // Select the sound tray icon
 const soundTray = document.getElementById('soundTray');
