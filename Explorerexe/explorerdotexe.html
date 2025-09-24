@@ -98,6 +98,7 @@
   }
   .thumb img{width:100%; height:100%; object-fit:cover; display:block}
   .label{font-size:11px; text-align:center; word-break:break-word}
+  .tile .details{font-size:10px; color:#333; text-align:center;}
   .badge{position:absolute; top:6px; right:8px; font-size:10px; background:#fff;border:1px solid #aaa;border-radius:10px;padding:1px 6px;display:none;}
   .tile .meta{position:relative;width:100%}
 
@@ -110,7 +111,7 @@
 
 
   /* Tiny icons */
-  .icon-folder,.icon-video{width:20px;height:16px}
+  .icon-folder,.icon-video,.icon-drive,.icon-disc{width:20px;height:16px}
   @media (max-width: 768px){
     .address{width:48%}
     :root{ --pane-width: 200px; }
@@ -315,7 +316,11 @@ function render(path){
     const meta = document.createElement('div'); meta.className="meta";
     const thumb = document.createElement('div'); thumb.className="thumb";
 
-    if(item.type==="folder" || item.type==="shortcut"){
+    if(item.icon === "drive"){
+      thumb.innerHTML = driveSVG();
+    }else if(item.icon === "disc"){
+      thumb.innerHTML = discSVG();
+    }else if(item.type==="folder" || item.type==="shortcut"){
       thumb.innerHTML = folderSVG();
     }else if(item.type==="youtube"){
       const id = youtubeId(item.url);
@@ -329,12 +334,18 @@ function render(path){
       const img = new Image(); img.loading = "lazy"; img.decoding = "async";
       img.src=item.thumb || item.src; thumb.appendChild(img);
     }else{
-      thumb.textContent = "—";
+      thumb.textContent = "-";
     }
 
     const label = document.createElement('div'); label.className="label"; label.textContent = (item.title || name).replace(/\.yt$/,'');
 
-    li.appendChild(thumb); li.appendChild(label); li.appendChild(meta);
+    li.appendChild(thumb);
+    li.appendChild(label);
+    if(item.details){
+      const detail = document.createElement('div'); detail.className = 'details'; detail.textContent = item.details;
+      li.appendChild(detail);
+    }
+    li.appendChild(meta);
     li.addEventListener('dblclick', () => openItem(path, name, item));
     li.addEventListener('keydown', e => { if(e.key==="Enter"){ openItem(path,name,item);} });
 
@@ -393,8 +404,9 @@ function openImage(src){
 function openYouTube(url){
   closeModal();
   const id = youtubeId(url);
-  const safe = id ? `https://www.youtube.com/embed/${id}?autoplay=1` : url;
-  modalBox.innerHTML = `<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="${safe}"></iframe>`;
+  const origin = (window.location.origin && window.location.origin !== 'null' && window.location.origin !== 'file://') ? encodeURIComponent(window.location.origin) : encodeURIComponent('https://www.youtube.com');
+  const safe = id ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${origin}` : url;
+  modalBox.innerHTML = `<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${safe}"></iframe>`;
   modal.classList.add('open');
 }
 
@@ -420,6 +432,22 @@ function linkSVG(){
   return `<svg class="icon-video" viewBox="0 0 64 48" aria-hidden="true">
     <rect x="4" y="10" width="56" height="28" fill="#e9f0ff" stroke="#8aa2ff"/>
     <path d="M22 24h20" stroke="#245edb" stroke-width="4" stroke-linecap="round"/>
+  </svg>`;
+}
+function driveSVG(){
+  return `<svg class="icon-drive" viewBox="0 0 64 48" aria-hidden="true">
+    <rect x="6" y="12" width="52" height="26" fill="#d0d6e4" stroke="#7a838f"/>
+    <rect x="14" y="18" width="36" height="12" fill="#f8fbff" stroke="#b0b8c4"/>
+    <circle cx="24" cy="34" r="2" fill="#6c7785"/>
+    <circle cx="32" cy="34" r="2" fill="#6c7785"/>
+    <circle cx="40" cy="34" r="2" fill="#6c7785"/>
+  </svg>`;
+}
+function discSVG(){
+  return `<svg class="icon-disc" viewBox="0 0 64 48" aria-hidden="true">
+    <circle cx="32" cy="24" r="18" fill="#f0f3ff" stroke="#7a83d6"/>
+    <circle cx="32" cy="24" r="6" fill="#c7ccf4" stroke="#5a64b6"/>
+    <rect x="20" y="8" width="24" height="6" fill="#d8dcef" stroke="#5a64b6"/>
   </svg>`;
 }
 
@@ -454,6 +482,11 @@ document.querySelectorAll('.leftpane .quicklink[data-path]').forEach(a=>{
 
   const picturesFolder = pictureFolder(pictureNames, PICTURES_BASE);
 
+  picturesFolder.children["Cards"] = {
+    type: "folder",
+    children: {}
+  };
+
   FS = {
     type: "folder",
     title: "My Documents",
@@ -470,9 +503,25 @@ document.querySelectorAll('.leftpane .quicklink[data-path]').forEach(a=>{
       "My PC": {
         type:"folder",
         children: {
-          "Pictures (shortcut)": {type:"shortcut", to:"/Pictures"},
-          "Videos (shortcut)":   {type:"shortcut", to:"/Videos"},
-          "ApacheSpace":         {type:"weblink", href:"https://apachespace.com", title:"ApacheSpace"}
+          "Pictures": {type:"shortcut", to:"/Pictures"},
+          "Videos":   {type:"shortcut", to:"/Videos"},
+          "Cards":    {type:"shortcut", to:"/Pictures/Cards"},
+          "Local Disk (C:)": {
+            type:"folder",
+            icon:"drive",
+            details:"120 GB free of 256 GB",
+            children: {
+              "Program Files": {type:"folder", children:{}},
+              "Users": {type:"folder", children:{}},
+              "Windows": {type:"folder", children:{}}
+            }
+          },
+          "CD Drive (D:)": {
+            type:"folder",
+            icon:"disc",
+            details:"No disc inserted",
+            children: {}
+          }
         }
       }
     }
