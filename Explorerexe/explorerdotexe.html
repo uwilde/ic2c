@@ -42,9 +42,7 @@
     font-weight:bold; color:#003; min-height:24px;
   }
   .xpbtn:active{background:linear-gradient(#dcdcdc,#fdfdfd)}
-  .xpbtn[disabled]{
-    opacity:.45; filter:grayscale(100%); cursor:not-allowed;
-  }
+  .xpbtn[disabled]{opacity:.45; filter:grayscale(100%); cursor:not-allowed;}
   .xpico{width:18px;height:18px;display:inline-block}
 
   .address{display:flex; align-items:center; gap:6px; margin-left:auto; width:55%}
@@ -59,17 +57,6 @@
     border-right:1px solid var(--xp-border);
     padding:8px; overflow:auto;
   }
-  .modal .close{
-    position:absolute; top:10px; right:16px;
-    padding:4px 10px; cursor:pointer; user-select:none;
-    background:linear-gradient(#fefefe,#e8e8e8);
-    border:1px solid #555; border-right-color:#333; border-bottom-color:#333;
-    border-radius:14px; font-weight:bold; color:#111;
-    box-shadow: inset 0 0 0 1px #fff, 0 1px 0 rgba(0,0,0,.25);
-  }
-  .modal .close:hover{ background:linear-gradient(#ffffff,#f3f3f3); }
-  .modal .close:active{ background:linear-gradient(#e8e8e8,#fefefe); transform: translateY(1px); }
-    
   .leftpane h4{margin:8px 0 6px 4px; color:#102a5c}
   .quicklink{display:block;padding:6px 8px;margin:2px 0;border-radius:3px;color:#102a5c;text-decoration:none}
   .quicklink:hover{background:rgba(255,255,255,.7);cursor:pointer;}
@@ -109,41 +96,11 @@
   .modal img{display:block; max-width:90vw; max-height:90vh}
   .modal iframe{display:block; width:min(90vw,960px); height:min(80vh,540px); border:0}
 
-
-  /* Tiny icons */
+  /* Tiny icons (100% for folder/drive/disc) */
   .icon-folder,.icon-video,.icon-drive,.icon-disc{width:20px;height:16px}
-  @media (max-width: 768px){
-    .address{width:48%}
-    :root{ --pane-width: 200px; }
-  }
-  .thumb .icon-folder{
-    width:100%;
-    height:100%;
-    display:block;    
-  }  
-  .thumb .icon-drive {
-    width:100%;
-    height:100%;
-    display:block;     
-  }    
-  .thumb .icon-disc {
-    width:100%;
-    height:100%;
-    display:block;     
-  }    
-
-  .tile:has(.icon-folder) .thumb{
-    background:transparent;
-    border:0;
-  }  
-  .tile:has(.icon-drive) .thumb{
-    background:transparent;
-    border:0;
-  }    
-  .tile:has(.icon-disc) .thumb{
-    background:transparent;
-    border:0;
-  }      
+  @media (max-width: 768px){ .address{width:48%} :root{ --pane-width: 200px; } }
+  .thumb .icon-folder,.thumb .icon-drive,.thumb .icon-disc{width:100%;height:100%;display:block}
+  .tile:has(.icon-folder) .thumb,.tile:has(.icon-drive) .thumb,.tile:has(.icon-disc) .thumb{background:transparent;border:0}
 </style>
 </head>
 <body>
@@ -154,7 +111,6 @@
         <!-- Back -->
         <button class="xpbtn" id="backBtn" title="Back">
           <span class="xpico" aria-hidden="true">
-            <!-- XP green left arrow -->
             <svg viewBox="0 0 24 24"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ce07a"/><stop offset="1" stop-color="#26a326"/></linearGradient></defs>
               <circle cx="12" cy="12" r="11" fill="url(#g)" stroke="#0c6e0c"/>
               <path d="M13 7l-5 5 5 5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -186,7 +142,7 @@
 
       <div class="address">
         <span class="addrlabel">Address:</span>
-        <div class="addrbox" id="addressBox">My Documents\Pictures</div>
+        <div class="addrbox" id="addressBox"></div>
       </div>
     </div>
 
@@ -197,10 +153,11 @@
         <nav id="quicklinks"></nav>
 
         <h4>Other Places</h4>
-        <a class="quicklink" data-path="/">🗂️ Documents</a>
-        <a class="quicklink" data-path="/Pictures">🖼️ Pictures</a>
-        <a class="quicklink" data-path="/Videos">🎬 Videos</a>
-        <a class="quicklink" data-path="/My PC">💻 My PC</a>
+        <!-- Updated to new structure -->
+        <a class="quicklink" data-path="/Local Disk (C:)/Users">🗂️ Users</a>
+        <a class="quicklink" data-path="/Local Disk (C:)/Users/Corky/Documents/Pictures">🖼️ Pictures</a>
+        <a class="quicklink" data-path="/Local Disk (C:)/Users/Corky/Documents/Videos">🎬 Videos</a>
+        <a class="quicklink" data-path="/">💻 My PC</a>
       </aside>
 
       <main class="rightpane">
@@ -218,13 +175,17 @@
 
 <script>
 /* ========= Where your pictures live + defaults ========= */
-const PICTURES_BASE = "pictures/"; // adjust to "../pictures/" if needed
+const PICTURES_BASE = "pictures/";
 const DEFAULT_PICTURES = [
   "myrtle.png",
   "boner.png",
   "bigboner.png",
   "entrado.png",
-  "53945hg.png"
+  "53945hg.png",
+  "Corky-Basic.png",
+  "Entrado-Legenday.png",
+  "Corky-Basic_1.png",
+  "Entrado-Legenday_1.png"
 ];
 
 /* ========= Build a folder object from a filename list ========= */
@@ -237,10 +198,7 @@ function pictureFolder(files, base = PICTURES_BASE) {
   return { type: "folder", children };
 }
 
-/* ========= Try to load pictures/index.json (array of filenames) =========
-Example /pictures/index.json:
-["myrtle.png","boner.png","bigboner.png","entrado.png","53945hg.png","new1.jpg"]
-*/
+/* ========= Try to load pictures/index.json (array of filenames) ========= */
 async function loadPictureList() {
   const url = PICTURES_BASE + "index.json";
   const res = await fetch(url, { cache: "no-store" });
@@ -250,14 +208,29 @@ async function loadPictureList() {
   return data;
 }
 
-/* ================= In-memory filesystem (Pictures injected at boot) ================= */
+/* ================= In-memory filesystem ================= */
 let FS = null;
 
 /* ===== Quick Links (left pane) ===== */
 const QUICKLINKS = [
-  { label:"📁 Pictures", path:"/Pictures" },
-  { label:"🎬 Videos", path:"/Videos" },
-  { label:"💻 My PC", path:"/My PC" },
+  
+  {
+    label: "📁 Documents",
+    path: "/Local Disk (C:)/Users/Corky/Documents"
+  },
+  {
+    label: "🖼️ Pictures",
+    path: "/Local Disk (C:)/Users/Corky/Documents/Pictures"
+  },
+  {
+    label: "🎬 Videos",
+    path: "/Local Disk (C:)/Users/Corky/Documents/Videos"
+  },
+  {
+    label: "💻 My PC",
+    path: "/"
+  }
+
 ];
 
 /* ===== Router / Navigation ===== */
@@ -267,38 +240,28 @@ const crumbsEl = document.getElementById('breadcrumbs');
 const modal = document.getElementById('modal');
 const modalBox = document.getElementById('modalBox');
 
-
-
 const backBtn = document.getElementById('backBtn');
 const fwdBtn  = document.getElementById('fwdBtn');
 const upBtn   = document.getElementById('upBtn');
 
 const historyStack = []; let forwardStack = [];
 
-
 /* ===== Modal ===== */
 const modalClose = document.getElementById('modalClose');
-
 function closeModal(){
-  // If an <iframe> video is playing, blank it to stop playback, then clear the box
   const ifr = modalBox.querySelector('iframe');
-  if (ifr) {
-    try { ifr.src = 'about:blank'; } catch(e){}
-  }
-  // If you later use <video>, pause it too
+  if (ifr) { try { ifr.src = 'about:blank'; } catch(e){} }
   modalBox.querySelectorAll('video').forEach(v => { try { v.pause(); v.currentTime = 0; } catch(e){} });
-
   modalBox.innerHTML = '';
   modal.classList.remove('open');
 }
-
 modalClose.onclick = closeModal;
 modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
 window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('open')) closeModal(); });
 
-
 function setHash(path){ location.hash = encodeURIComponent(path); }
-function getHash(){ return decodeURIComponent(location.hash.replace(/^#/, '') || "/Pictures"); }
+/* Default path now: Apindows\Local Disk (C:)\Users\Corky\Documents */
+function getHash(){ return decodeURIComponent(location.hash.replace(/^#/, '') || "/Local Disk (C:)/Users/Corky/Documents"); }
 
 function getNode(path){
   if (!FS) return null;
@@ -327,16 +290,16 @@ function render(path){
   const node = getNode(path) || FS;
   if (!node) return;
 
-  // Address bar (XP-style backslashes)
-  addrBox.textContent = "My Documents" + (path==="/" ? "" : ("\\" + path.split('/').filter(Boolean).join('\\')));
+  /* Address bar (XP backslashes); nothing for root */
+  addrBox.textContent = (path === "/") ? "" : ("\\" + path.split('/').filter(Boolean).join('\\'));
 
-  // Breadcrumbs
+  /* Breadcrumbs: root label → Apindows */
   const parts = path.split('/').filter(Boolean);
   let acc = "";
-  crumbsEl.innerHTML = '<a href="#" data-path="/">My Documents</a>' +
+  crumbsEl.innerHTML = '<a href="#" data-path="/">Apindows</a>' +
     parts.map(p => { acc += "/" + p; return ' \\ <a href="#" data-path="'+acc+'">'+p+'</a>'; }).join('');
 
-  // Grid
+  /* Grid */
   gridEl.innerHTML = "";
   const items = node.children || {};
   Object.entries(items).forEach(([name, item]) => {
@@ -374,13 +337,27 @@ function render(path){
       li.appendChild(detail);
     }
     li.appendChild(meta);
-    li.addEventListener('dblclick', () => openItem(path, name, item));
-    li.addEventListener('keydown', e => { if(e.key==="Enter"){ openItem(path,name,item);} });
+
+    if (item.type === "folder") {
+      const target = (path.replace(/\/$/,'') + "/" + name).replace(/\/{2,}/g, "/");
+      li.addEventListener('dblclick', () => navigateTo(target));
+      li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
+    } else if (item.type === "shortcut") {
+      const target = (item.to || "/").replace(/\/{2,}/g, "/");
+      li.addEventListener('dblclick', () => navigateTo(target));
+      li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
+    } else if (item.type === "weblink") {
+      li.addEventListener('dblclick', () => window.open(item.href, "_blank", "noopener"));
+      li.addEventListener('keydown', e => { if (e.key === "Enter") window.open(item.href, "_blank", "noopener"); });
+    } else {
+      li.addEventListener('dblclick', () => openItem(path, name, item));
+      li.addEventListener('keydown', e => { if (e.key === "Enter") openItem(path, name, item); });
+    }
 
     gridEl.appendChild(li);
   });
 
-  // crumb clicks
+  /* crumb clicks */
   crumbsEl.querySelectorAll('a[data-path]').forEach(a=>{
     a.addEventListener('click', (e)=>{ e.preventDefault(); navigateTo(a.dataset.path); });
   });
@@ -419,16 +396,12 @@ function up(){ const p = parentPath(getHash()); navigateTo(p || "/"); }
 
 backBtn.onclick = back; fwdBtn.onclick = forward; upBtn.onclick = up;
 
-/* ===== Modal ===== */
-
-modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('open'); });
-
+/* ===== Modal helpers ===== */
 function openImage(src){
   closeModal();
   modalBox.innerHTML = `<img src="${src}" alt="Image" />`;
   modal.classList.add('open');
 }
-
 function openYouTube(url){
   closeModal();
   const id = youtubeId(url);
@@ -437,12 +410,7 @@ function openYouTube(url){
   modalBox.innerHTML = `<iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen src="${safe}"></iframe>`;
   modal.classList.add('open');
 }
-
-window.addEventListener('hashchange', () => { 
-  closeModal();
-  render(getHash());
-});
-/* ===== Helpers ===== */
+window.addEventListener('hashchange', () => { closeModal(); render(getHash()); });
 function youtubeId(url){ const m = url.match(/(?:youtu\.be\/|v=|embed\/)([A-Za-z0-9_-]{6,})/); return m ? m[1] : null; }
 function folderSVG(){
   return `<svg class="icon-folder" viewBox="0 0 64 48" aria-hidden="true">
@@ -490,70 +458,217 @@ function discSVG(){
   });
 })();
 
-document.querySelectorAll('.leftpane .quicklink[data-path]').forEach(a=>{
-  a.addEventListener('click', (e)=>{
-    e.preventDefault();
-    const p = a.getAttribute('data-path');
-    if (p) navigateTo(p);
-  });
-});
 
-/* ===== Boot: build FS (with index.json fallback), then render ===== */
+/* ===== Make all "Other Places" links work (event delegation) ===== */
+(function enableOtherPlacesLinks(){
+  const pane = document.querySelector('.leftpane');
+  if (!pane) return;
+  pane.addEventListener('click', (e) => {
+    const a = e.target.closest('a.quicklink[data-path]');
+    if (!a) return;
+    e.preventDefault();
+    navigateTo(a.dataset.path || '/');
+  });
+})();
+
+/* ===== Boot: build FS in new Apindows layout, then render ===== */
 (async function boot(){
   let pictureNames = DEFAULT_PICTURES;
   try {
     const list = await loadPictureList();
     if (Array.isArray(list) && list.length) pictureNames = list;
-  } catch (e) {
-    // No index.json or invalid — use defaults
-  }
+  } catch (e) { /* fall back to defaults */ }
 
+  // Build Pictures folder from list
   const picturesFolder = pictureFolder(pictureNames, PICTURES_BASE);
+  // Ensure Cards subfolder is preserved
+  picturesFolder.children["Cards"] = picturesFolder.children["Cards"] || { type: "folder", children: {} };
+  // Add two known card images if present
+  picturesFolder.children["Cards"].children["Corky-Basic.png"] = { type: "image", src: "pictures/Corky-Basic.png", title: "Corky-Basic" };
+  picturesFolder.children["Cards"].children["Entrado-Legenday.png"] = { type: "image", src: "pictures/Entrado-Legenday.png", title: "Entrado-Legenday" };
 
-  picturesFolder.children["Cards"] = {
-    type: "folder",
-    children: {}
-  };
-
+  /* === New FS root: Apindows === */
   FS = {
-    type: "folder",
-    title: "My Documents",
-    children: {
-      "Pictures": picturesFolder,
-      "Videos": {
-        type:"folder",
-        children: {
-          "Surprise.yt": {type:"youtube", url:"https://www.youtube.com/watch?v=dQw4w9WgXcQ", title:"Surprise Video"},
-          "YouCanRun.yt": {type:"youtube", url:"https://youtu.be/8jF94CmIYe0?si=2xDiKmDITrEJTRP9", title:"You can run, but..."},
-          "Big Buck Bunny.yt": {type:"youtube", url:"https://youtu.be/aqz-KE-bpKQ", title:"Demo"}
-        }
-      },
-      "My PC": {
-        type:"folder",
-        children: {
-          "Pictures": {type:"shortcut", to:"/Pictures"},
-          "Videos":   {type:"shortcut", to:"/Videos"},
-          "Cards":    {type:"shortcut", to:"/Pictures/Cards"},
-          "Local Disk (C:)": {
-            type:"folder",
-            icon:"drive",
-            details:"120 GB free of 256 GB",
-            children: {
-              "Program Files": {type:"folder", children:{}},
-              "Users": {type:"folder", children:{}},
-              "Windows": {type:"folder", children:{}}
+  type: "folder",
+  title: "Apindows",
+  children: {
+    "Local Disk (C:)": {
+      type: "folder",
+      icon: "drive",
+      details: "120 GB free of 256 GB",
+      children: {
+        "Apython2.1.2": {
+          type: "folder",
+          children: {}
+        },
+        "Boot": {
+          type: "folder",
+          children: {}
+        },
+        "Program Files": {
+          type: "folder",
+          children: {
+            "AIM": {
+              type: "folder",
+              children: {}
+            },
+            "APACHE": {
+              type: "folder",
+              children: {}
+            },
+            "Apindows Paint 95": {
+              type: "folder",
+              children: {}
+            },
+            "CoinAMP Media Player": {
+              type: "folder",
+              children: {}
+            },
+            "Interwebs": {
+              type: "folder",
+              children: {}
+            },
+            "Kazaa": {
+              type: "folder",
+              children: {}
+            },
+            "Spider Solitare": {
+              type: "folder",
+              children: {}
+            },
+            "StarBlaster": {
+              type: "folder",
+              children: {}
             }
-          },
-          "CD Drive (D:)": {
-            type:"folder",
-            icon:"disc",
-            details:"No disc inserted",
-            children: {}
+          }
+        },
+        "Users": {
+          type: "folder",
+          children: {
+            "Corky": {
+              type: "folder",
+              children: {
+                "Documents": {
+                  type: "folder",
+                  children: {
+                    "Pictures": {
+                      type: "folder",
+                      children: {
+                        "myrtle.png": {
+                          type: "image",
+                          src: "pictures/myrtle.png",
+                          title: "myrtle"
+                        },
+                        "boner.png": {
+                          type: "image",
+                          src: "pictures/boner.png",
+                          title: "boner"
+                        },
+                        "bigboner.png": {
+                          type: "image",
+                          src: "pictures/bigboner.png",
+                          title: "bigboner"
+                        },
+                        "entrado.png": {
+                          type: "image",
+                          src: "pictures/entrado.png",
+                          title: "entrado"
+                        },
+                        "53945hg.png": {
+                          type: "image",
+                          src: "pictures/53945hg.png",
+                          title: "53945hg"
+                        },
+                        "Cards": {
+                          type: "folder",
+                          children: {
+                            "Corky-Basic_1.png": {
+                              type: "image",
+                              src: "pictures/Corky-Basic_1.png",
+                              title: "Corky-Basic_1"
+                            },
+                            "Entrado-Legenday_1.png": {
+                              type: "image",
+                              src: "pictures/Entrado-Legenday_1.png",
+                              title: "Entrado-Legenday_1"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "Videos": {
+                      type: "folder",
+                      children: {
+                        "Surprise.yt": {
+                          type: "youtube",
+                          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                          title: "Surprise Video"
+                        },
+                        "YouCanRun.yt": {
+                          type: "youtube",
+                          url: "https://youtu.be/8jF94CmIYe0?si=2xDiKmDITrEJTRP9",
+                          title: "You can run, but..."
+                        },
+                        "Big Buck Bunny.yt": {
+                          type: "youtube",
+                          url: "https://youtu.be/aqz-KE-bpKQ",
+                          title: "Demo"
+                        }
+                      }
+                    }
+                  }
+                },
+                "Downloads": {
+                  type: "folder",
+                  children: {}
+                }
+              }
+            },
+            "Boner": {
+              type: "folder",
+              children: {}
+            }
+          }
+        },
+        "temp": {
+          type: "folder",
+          children: {}
+        },
+        "Apindows": {
+          type: "folder",
+          children: {
+            "Boot": {
+              type: "folder",
+              children: {}
+            },
+            "Fonts": {
+              type: "folder",
+              children: {}
+            },
+            "Marecrosoft.NET": {
+              type: "folder",
+              children: {}
+            },
+            "Marecrosoft": {
+              type: "folder",
+              children: {}
+            },
+            "System32": {
+              type: "folder",
+              children: {}
+            }
           }
         }
       }
+    },
+    "CD Drive (D:)": {
+      type: "folder",
+      icon: "disc",
+      details: "No disc inserted",
+      children: {}
     }
-  };
+  }
+};
 
   // Start / hash routing only after FS is ready
   window.addEventListener('hashchange', ()=> render(getHash()));
