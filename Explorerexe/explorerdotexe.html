@@ -95,7 +95,41 @@
   .modal-box{background:#000; max-width:90vw; max-height:90vh; border:2px solid #fff; box-shadow:0 0 0 1px #000}
   .modal img{display:block; max-width:90vw; max-height:90vh}
   .modal iframe{display:block; width:min(90vw,960px); height:min(80vh,540px); border:0}
-
+	.modal .close{
+		position:absolute;
+		top:18px;
+		right:400px;
+		z-index:3;
+		padding:6px 10px;
+		border:1px solid #6b6b6b;
+		border-right-color:#3d3d3d; 
+		border-bottom-color:#3d3d3d;
+		background:linear-gradient(#fdfdfd,#dcdcdc);
+		box-shadow: inset 0 0 0 1px #fff, inset 0 0 0 2px #f4f4f4, 0 2px 6px rgba(0,0,0,.35);
+		border-radius:999px;
+		color:#012;
+		font-weight:700;
+		cursor:pointer;
+		transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+	}
+	.modal .close::before{
+		content:"✕";
+		display:inline-block;
+		margin-right:6px;
+	}
+	.modal .close:hover{
+		background:linear-gradient(#ffffff,#e7e7e7);
+		box-shadow: inset 0 0 0 1px #fff, inset 0 0 0 2px #f4f4f4, 0 3px 10px rgba(0,0,0,.45);
+		transform: translateY(-1px);
+	}
+	.modal .close:active{
+		background:linear-gradient(#dcdcdc,#fdfdfd);
+		transform: translateY(0);
+	}
+	.modal .close:focus{
+		outline: 2px solid #9db3f9;
+		outline-offset: 2px;
+	}
   /* Tiny icons (100% for folder/drive/disc) */
   .icon-folder,.icon-video,.icon-drive,.icon-disc{width:20px;height:16px}
   @media (max-width: 768px){ .address{width:48%} :root{ --pane-width: 200px; } }
@@ -339,21 +373,21 @@ function render(path){
     }
     li.appendChild(meta);
 
-    if (item.type === "folder") {
-      const target = (path.replace(/\/$/,'') + "/" + name).replace(/\/{2,}/g, "/");
-      li.addEventListener('dblclick', () => navigateTo(target));
-      li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
-    } else if (item.type === "shortcut") {
-      const target = (item.to || "/").replace(/\/{2,}/g, "/");
-      li.addEventListener('dblclick', () => navigateTo(target));
-      li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
-    } else if (item.type === "weblink") {
-      li.addEventListener('dblclick', () => window.open(item.href, "_blank", "noopener"));
-      li.addEventListener('keydown', e => { if (e.key === "Enter") window.open(item.href, "_blank", "noopener"); });
-    } else {
-      li.addEventListener('dblclick', () => openItem(path, name, item));
-      li.addEventListener('keydown', e => { if (e.key === "Enter") openItem(path, name, item); });
-    }
+		if (item.type === "folder") {
+			const target = (path.replace(/\/$/,'') + "/" + name).replace(/\/{2,}/g, "/");
+			li.addEventListener('click', () => navigateTo(target));        // was 'dblclick'
+			li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
+		} else if (item.type === "shortcut") {
+			const target = (item.to || "/").replace(/\/{2,}/g, "/");
+			li.addEventListener('click', () => navigateTo(target));        // was 'dblclick'
+			li.addEventListener('keydown', e => { if (e.key === "Enter") navigateTo(target); });
+		} else if (item.type === "weblink") {
+			li.addEventListener('click', () => window.open(item.href, "_blank", "noopener"));   // was 'dblclick'
+			li.addEventListener('keydown', e => { if (e.key === "Enter") window.open(item.href, "_blank", "noopener"); });
+		} else {
+			li.addEventListener('click', () => openItem(path, name, item));                    // was 'dblclick'
+			li.addEventListener('keydown', e => { if (e.key === "Enter") openItem(path, name, item); });
+		}
 
     gridEl.appendChild(li);
   });
@@ -500,7 +534,36 @@ function discSVG(){
       children: {
         "Program Files": {
           type: "folder",
-          children: {}
+          children: {
+            "AIM": {
+              type: "folder",
+              children: {}
+            },
+            "Apache": {
+              type: "folder",
+              children: {}
+            },
+            "CoinAMP Media Player": {
+              type: "folder",
+              children: {}
+            },
+            "Interwebs Browser": {
+              type: "folder",
+              children: {}
+            },
+            "Kazaa": {
+              type: "folder",
+              children: {}
+            },
+            "StarBlaster": {
+              type: "folder",
+              children: {}
+            },
+            "Apindows Paint 95": {
+              type: "folder",
+              children: {}
+            }
+          }
         },
         "Users": {
           type: "folder",
@@ -594,7 +657,11 @@ function discSVG(){
         "Apindows": {
           type: "folder",
           children: {
-            "Apindows32": {
+            "Marecrosoft": {
+              type: "folder",
+              children: {}
+            },
+            "System32": {
               type: "folder",
               children: {}
             }
