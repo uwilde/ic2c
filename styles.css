@@ -2280,3 +2280,29 @@ body.font-large .desktop-icon span{font-size:14px;}
   50%{transform:translate(-50%, -50%) scale(1.1) rotate(180deg); opacity:0.9;}
   100%{transform:translate(-50%, -50%) scale(0.4) rotate(360deg); opacity:0.5;}
 }
+@media (max-width: 900px) {
+  .desktop { position: relative; }
+  .desktop-icons {
+    position: relative;
+    /* optional: stop grid/flex rearranging while dragging */
+    display: block;  /* or keep your layout, but see note below */
+  }
+  .desktop-icon {
+    position: absolute !important;  /* required for left/top dragging */
+    width: 80px;                     /* tune for your design */
+    margin: 0 !important;            /* margins fight absolute positioning */
+  }
+  .desktop-icon img { width: 64px; height: 64px; }
+  .desktop-icon span { font-size: 12px; }
+}
+	@media (max-width: 658px) {
+		/* allow scroll and give a little breathing room */
+		.window-header {
+			width:100vw;
+			height:50px;
+		}
+		#aimWindow, #aimMessageWindow {
+			align-items:center;
+		}
+
+	}
