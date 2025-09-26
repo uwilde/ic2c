@@ -2304,5 +2304,9 @@ body.font-large .desktop-icon span{font-size:14px;}
 		#aimWindow, #aimMessageWindow {
 			align-items:center;
 		}
+		.start-menu {
+			left:0%;
+			bottom:50px;
+		}
 
 	}
