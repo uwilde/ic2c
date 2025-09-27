@@ -10,7 +10,7 @@ gdjs.evtsExt__JointConnector__CreateRevoluteJoints.GDObjectObjects1= [];
 gdjs.evtsExt__JointConnector__CreateRevoluteJoints.GDJointObjects1= [];
 
 
-gdjs.evtsExt__JointConnector__CreateRevoluteJoints.userFunc0x1951d88 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
+gdjs.evtsExt__JointConnector__CreateRevoluteJoints.userFunc0xdda9d0 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
 "use strict";
 const behaviorName = eventsFunctionContext.getBehaviorName("Physics");
 const jointObjects = eventsFunctionContext.getObjects("Joint");
@@ -73,7 +73,7 @@ gdjs.evtsExt__JointConnector__CreateRevoluteJoints.eventsList0 = function(runtim
 gdjs.copyArray(eventsFunctionContext.getObjects("Object"), gdjs.evtsExt__JointConnector__CreateRevoluteJoints.GDObjectObjects1);
 
 const objects = gdjs.evtsExt__JointConnector__CreateRevoluteJoints.GDObjectObjects1;
-gdjs.evtsExt__JointConnector__CreateRevoluteJoints.userFunc0x1951d88(runtimeScene, objects, eventsFunctionContext);
+gdjs.evtsExt__JointConnector__CreateRevoluteJoints.userFunc0xdda9d0(runtimeScene, objects, eventsFunctionContext);
 
 }
 

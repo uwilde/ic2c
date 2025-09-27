@@ -6414,6 +6414,8 @@ gdjs.copyArray(runtimeScene.getObjects("TOPBOUND"), gdjs.INTRO2Code.GDTOPBOUNDOb
 }
 {gdjs.evtsExt__Flash__ToggleEffect.func(runtimeScene, gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDSUNObjects1Objects, "SHOCK", null);
 }
+{gdjs.evtTools.network.enableMetrics(runtimeScene, false);
+}
 }
 
 }

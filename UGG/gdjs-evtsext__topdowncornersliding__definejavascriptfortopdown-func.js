@@ -8,7 +8,7 @@ if (typeof gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown !== "u
 gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown = {};
 
 
-gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown.userFunc0x5f95cc8 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
+gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown.userFunc0x114e260 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
 "use strict";
 // TODO Remove this when afterPositionUpdate is added to the hook interface.
 gdjs.TopDownMovementRuntimeBehavior.prototype.actuallyDoStepPreEvents = gdjs.TopDownMovementRuntimeBehavior.prototype.doStepPreEvents;
@@ -1247,7 +1247,7 @@ gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown.eventsList0 = fun
 {
 
 
-gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown.userFunc0x5f95cc8(runtimeScene, eventsFunctionContext);
+gdjs.evtsExt__TopDownCornerSliding__DefineJavaScriptForTopDown.userFunc0x114e260(runtimeScene, eventsFunctionContext);
 
 }
 
