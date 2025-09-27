@@ -1409,7 +1409,7 @@ function openWindow(windowId) {
         maximizeWindow(windowId, true); // Always maximize when opening on mobile portrait
     } else {
         // Optionally, maximize certain windows by default
-        if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow') {
+        if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow' || windowId === 'uggWindow') {
             maximizeWindow(windowId, true); // Always maximize when opening
         }
     }
@@ -1442,6 +1442,8 @@ function openWindow(windowId) {
             iconSrc = 'images/apache.png';
         } else if (windowId === 'starblasterWindow') {
             iconSrc = 'images/starblaster.png';
+        } else if (windowId === 'uggWindow') {
+            iconSrc = 'images/ugg.png';
         } else if (windowId === 'apacheToob') {
             iconSrc = 'youtube/apache-toob.png';
         } else if (windowId === 'paintWindow') {
@@ -1461,6 +1463,8 @@ function openWindow(windowId) {
             title.innerText = 'Apache';
         } else if (windowId === 'starblasterWindow') {
             title.innerText = 'Starblaster';
+        } else if (windowId === 'uggWindow') {
+            title.innerText = 'UGG';
         } else if (windowId === 'apacheToob') {
             title.innerText = 'A-Toob';
         } else if (windowId === 'paintWindow') {
@@ -2830,7 +2834,7 @@ function adjustIframeScale(windowId) {
 
     if (!iframeWrapper || !iframeContent) return;
 
-    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow' || windowId === 'aimWindow' || windowId === 'aimMessageWindow') {
+    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow' || windowId === 'aimWindow' || windowId === 'aimMessageWindow' || windowId === 'uggWindow') {
         // For apacheToob, make the iframe fill the wrapper without scaling
         iframeContent.style.width = '100%';
         iframeContent.style.height = '100%';
