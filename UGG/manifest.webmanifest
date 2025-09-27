@@ -1,0 +1,30 @@
+{
+  "name": "UGG",
+  "short_name": "UGG",
+  "id": "com.example.platformer",
+  "description": "Platformer style game. Play as UGG, a time travelling caveman as he navigates his way through space and time!",
+  "orientation": "landscape",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "black",
+  "categories": ["games", "entertainment"],
+  "icons": [{
+        "src": "362.png",
+        "sizes": "36x36"
+      },{
+        "src": "482.png",
+        "sizes": "48x48"
+      },{
+        "src": "722.png",
+        "sizes": "72x72"
+      },{
+        "src": "962.png",
+        "sizes": "96x96"
+      },{
+        "src": "1442.png",
+        "sizes": "144x144"
+      },{
+        "src": "1922.png",
+        "sizes": "192x192"
+      }]
+}
