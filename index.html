@@ -16,27 +16,32 @@
                 <span>Apache</span>
             </div>
 
-            <div class="desktop-icon" data-window="starblasterWindow" style="top: 120px; left: 20px;">
+            <div class="desktop-icon" data-window="uggWindow" style="top: 120px; left: 20px;">
+                <img src="images/ugg.png" alt="UGG Icon">
+                <span>UGG</span>
+            </div>
+
+            <div class="desktop-icon" data-window="starblasterWindow" style="top: 220px; left: 20px;">
                 <img src="images/starblaster.png" alt="Starblaster Icon">
                 <span>Starblaster</span>
             </div>
 
-            <div class="desktop-icon" data-window="mediaPlayer" style="top: 220px; left: 20px;">
+            <div class="desktop-icon" data-window="mediaPlayer" style="top: 320px; left: 20px;">
                 <img src="images/media_player.png" alt="Media Player Icon">
                 <span>CoinAMP</span>
             </div>
 
-            <div class="desktop-icon" data-window="apacheToob" style="top: 320px; left: 20px;">
+            <div class="desktop-icon" data-window="apacheToob" style="top: 420px; left: 20px;">
                 <img src="youtube/apache-toob.png" alt="A-Toob">
                 <span>A-Toob</span>
             </div>
             
-            <div class="desktop-icon" data-window="paintWindow" style="top: 420px; left: 20px;">
+            <div class="desktop-icon" data-window="paintWindow" style="top: 520px; left: 20px;">
               <img src="images/paint.svg" alt="Paint Icon">
               <span>Paint</span>
             </div>
 
-            <div class="desktop-icon" data-window="explorerWindow" style="top: 520px; left: 20px;">
+            <div class="desktop-icon" data-window="explorerWindow" style="top: 620px; left: 20px;">
                 <img src="images/folder.png" alt="Explorer Icon">
                 <span>Documents</span>
             </div>
@@ -87,6 +92,7 @@
                     <div class="start-menu-submenu">
                         <ul>
                             <li onclick="toggleWindow('apacheWindow')">Apache</li>
+                            <li onclick="toggleWindow('uggWindow')">UGG</li>
                             <li onclick="toggleWindow('starblasterWindow')">Starblaster</li>
                             <li onclick="toggleMediaPlayer()">CoinAMP Player</li>
                             <li onclick="toggleWindow('apacheToob')">A-Toob</li>
@@ -315,6 +321,24 @@
             <div class="window-content">
                 <div class="iframe-wrapper">
                     <iframe src="apache/apache.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+            <div class="resize-handle resize-handle-bottom-right"></div>
+        </div>
+
+        <!-- UGG Window -->
+        <div id="uggWindow" class="window" data-original-width="960" data-original-height="540">
+            <div class="window-header">
+                <span class="window-title">UGG</span>
+                <div class="window-buttons">
+                    <button class="minimize" onclick="minimizeWindow('uggWindow')">_</button>
+                    <button class="maximize" onclick="maximizeWindow('uggWindow', !document.getElementById('uggWindow').classList.contains('maximized'))">?-?</button>
+                    <button class="close" onclick="closeWindow('uggWindow')">X</button>
+                </div>
+            </div>
+            <div class="window-content">
+                <div class="iframe-wrapper">
+                    <iframe src="UGG/index.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
                 </div>
             </div>
             <div class="resize-handle resize-handle-bottom-right"></div>
