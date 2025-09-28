@@ -8,7 +8,7 @@ if (typeof gdjs.evtsExt__CameraShake__Frequency !== "undefined") {
 gdjs.evtsExt__CameraShake__Frequency = {};
 
 
-gdjs.evtsExt__CameraShake__Frequency.userFunc0x1861808 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
+gdjs.evtsExt__CameraShake__Frequency.userFunc0x18bbd10 = function GDJSInlineCode(runtimeScene, eventsFunctionContext) {
 "use strict";
 const name = eventsFunctionContext.getArgument("Name");
 
@@ -19,7 +19,7 @@ gdjs.evtsExt__CameraShake__Frequency.eventsList0 = function(runtimeScene, events
 {
 
 
-gdjs.evtsExt__CameraShake__Frequency.userFunc0x1861808(runtimeScene, eventsFunctionContext);
+gdjs.evtsExt__CameraShake__Frequency.userFunc0x18bbd10(runtimeScene, eventsFunctionContext);
 
 }
 

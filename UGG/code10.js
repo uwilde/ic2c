@@ -292,7 +292,7 @@ for (var i = 0, k = 0, l = gdjs.Level5Code.GDJumpButtonObjects3.length;i<l;++i) 
 gdjs.Level5Code.GDJumpButtonObjects3.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114092812);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113201428);
 }
 }
 if (isConditionTrue_0) {
@@ -322,7 +322,7 @@ for (var i = 0, k = 0, l = gdjs.Level5Code.GDJumpButtonObjects2.length;i<l;++i) 
 gdjs.Level5Code.GDJumpButtonObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114094204);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113202820);
 }
 }
 if (isConditionTrue_0) {
@@ -397,7 +397,7 @@ gdjs.Level5Code.eventsList1(runtimeScene);
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114103684);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113212300);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -414,7 +414,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114100252);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113208868);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -495,7 +495,7 @@ gdjs.Level5Code.eventsList5(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114099884);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113208500);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -512,7 +512,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114107164);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113215780);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -577,7 +577,7 @@ gdjs.Level5Code.eventsList8(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114108588);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113217204);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -594,7 +594,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114109820);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113218436);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -670,7 +670,7 @@ for (var i = 0, k = 0, l = gdjs.Level5Code.GDUGGObjects3.length;i<l;++i) {
 gdjs.Level5Code.GDUGGObjects3.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114100620);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113209236);
 }
 }
 if (isConditionTrue_0) {
@@ -737,7 +737,7 @@ gdjs.Level5Code.eventsList12(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114111276);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113219892);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -754,7 +754,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114112508);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113221124);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -819,7 +819,7 @@ gdjs.Level5Code.eventsList15(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114114060);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113222676);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -836,7 +836,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114115292);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113223908);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -901,7 +901,7 @@ gdjs.Level5Code.eventsList18(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114116844);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113225460);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -918,7 +918,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114118076);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113226692);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -983,7 +983,7 @@ gdjs.Level5Code.eventsList21(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114119588);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113228204);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -1000,7 +1000,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114120820);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113229436);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -1065,7 +1065,7 @@ gdjs.Level5Code.eventsList24(runtimeScene);} //End of subevents
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114122452);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113231068);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -1082,7 +1082,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114123596);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113232212);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 4, 1);
@@ -1411,7 +1411,7 @@ gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDELEC_95959595PORTAL_95959595PAR
 gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDELEC_95959595PORTAL_95959595PART_959595952Objects2Objects = Hashtable.newFrom({"ELEC_PORTAL_PART_2": gdjs.Level5Code.GDELEC_9595PORTAL_9595PART_95952Objects2});
 gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDUGGObjects2Objects = Hashtable.newFrom({"UGG": gdjs.Level5Code.GDUGGObjects2});
 gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDPortalObjects2Objects = Hashtable.newFrom({"Portal": gdjs.Level5Code.GDPortalObjects2});
-gdjs.Level5Code.asyncCallback114134876 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level5Code.asyncCallback113243492 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level5Code.localVariables);
 {gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "Level2", false);
 }
@@ -1426,7 +1426,7 @@ gdjs.Level5Code.eventsList34 = function(runtimeScene) {
 {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level5Code.localVariables);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.5), (runtimeScene) => (gdjs.Level5Code.asyncCallback114134876(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.5), (runtimeScene) => (gdjs.Level5Code.asyncCallback113243492(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -1524,7 +1524,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114136908);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113245524);
 }
 if (isConditionTrue_0) {
 
@@ -1617,7 +1617,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.object.hitBoxesCollisionTest(gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDUGGObjects2Objects, gdjs.Level5Code.mapOfGDgdjs_9546Level5Code_9546GDPortalObjects2Objects, false, runtimeScene, false);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114132540);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113241156);
 }
 }
 if (isConditionTrue_0) {
@@ -1859,7 +1859,7 @@ gdjs.Level5Code.eventsList50 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114152804);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113261420);
 }
 if (isConditionTrue_0) {
 {runtimeScene.getScene().getVariables().getFromIndex(2).add(1);
@@ -1957,7 +1957,7 @@ gdjs.Level5Code.eventsList55 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114168508);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113277124);
 }
 if (isConditionTrue_0) {
 /* Reuse gdjs.Level5Code.GDPAUSBACKObjects1 */
@@ -2097,7 +2097,7 @@ gdjs.Level5Code.eventsList58 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114176876);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113285492);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("MMENU"), gdjs.Level5Code.GDMMENUObjects1);
@@ -2272,7 +2272,7 @@ gdjs.Level5Code.eventsList62 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114188500);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113297116);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level5Code.GDVOLSLIDEObjects1);
@@ -2292,7 +2292,7 @@ gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level5Code.GDVOLSLIDEOb
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114189716);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113298332);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level5Code.GDVOLSLIDEObjects1);
@@ -2641,7 +2641,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.variable.getVariableNumber(runtimeScene.getScene().getVariables().getFromIndex(2)) == 1;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(114160908);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(113269524);
 }
 }
 if (isConditionTrue_0) {

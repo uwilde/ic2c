@@ -2281,7 +2281,7 @@ gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDNewSprite2Objects3Objects = Has
 gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDNewSpriteObjects4Objects = Hashtable.newFrom({"NewSprite": gdjs.INTRO2Code.GDNewSpriteObjects4});
 gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDSUNObjects4Objects = Hashtable.newFrom({"SUN": gdjs.INTRO2Code.GDSUNObjects4});
 gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDNewSprite2Objects4Objects = Hashtable.newFrom({"NewSprite2": gdjs.INTRO2Code.GDNewSprite2Objects4});
-gdjs.INTRO2Code.asyncCallback108401076 = function (runtimeScene, asyncObjectsList) {
+gdjs.INTRO2Code.asyncCallback107511716 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("TITLE"), gdjs.INTRO2Code.GDTITLEObjects55);
 
@@ -2302,14 +2302,14 @@ const parentAsyncObjectsList = asyncObjectsList;
 const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDTITLEObjects54) asyncObjectsList.addObject("TITLE", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(3), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108401076(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(3), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107511716(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108400332 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107510972 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects54);
 
@@ -2342,14 +2342,14 @@ const parentAsyncObjectsList = asyncObjectsList;
 const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects53) asyncObjectsList.addObject("NewSprite", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108400332(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107510972(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108399564 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107510204 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects53);
 
@@ -2380,14 +2380,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects52) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects52) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108399564(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107510204(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108399204 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107509844 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects52);
 
@@ -2418,14 +2418,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects51) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects51) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108399204(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107509844(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108398436 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107509076 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects51);
 
@@ -2456,14 +2456,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects50) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects50) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108398436(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107509076(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108398076 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107508716 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects50);
 
@@ -2494,14 +2494,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects49) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects49) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108398076(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107508716(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108397308 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107507948 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects49);
 
@@ -2532,14 +2532,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects48) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects48) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108397308(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107507948(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108396452 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107507092 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects48);
 
@@ -2570,14 +2570,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects47) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects47) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108396452(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107507092(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108396188 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107506828 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects47);
 
@@ -2608,14 +2608,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects46) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects46) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108396188(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107506828(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108395372 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107506012 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects46);
 
@@ -2646,14 +2646,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects45) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects45) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108395372(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107506012(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108383780 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107494420 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects45);
 
@@ -2684,14 +2684,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects44) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects44) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108383780(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107494420(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108394700 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107505340 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects44);
 
@@ -2722,14 +2722,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects43) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects43) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108394700(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107505340(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108394180 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107504820 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects43);
 
@@ -2760,14 +2760,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects42) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108394180(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107504820(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108393876 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107504516 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects42);
 
@@ -2792,14 +2792,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects41) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108393876(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107504516(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108393516 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107504156 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects41);
 
@@ -2824,14 +2824,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects40) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108393516(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107504156(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108386668 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107497308 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects40);
 
@@ -2856,14 +2856,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects39) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108386668(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107497308(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108386924 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107497564 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects39);
 
@@ -2888,14 +2888,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects38) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108386924(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107497564(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108391924 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107502564 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects38);
 
@@ -2920,14 +2920,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects37) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108391924(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107502564(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108391612 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107502252 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects37);
 
@@ -2952,14 +2952,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects36) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108391612(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107502252(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108391252 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107501892 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects36);
 
@@ -2984,14 +2984,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects35) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108391252(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107501892(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108390940 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107501580 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects35);
 
@@ -3016,14 +3016,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects34) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108390940(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107501580(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108390580 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107501220 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects34);
 
@@ -3048,14 +3048,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects33) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108390580(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107501220(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108390268 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107500908 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects33);
 
@@ -3080,14 +3080,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects32) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108390268(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107500908(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108389908 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107500548 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects32);
 
@@ -3112,14 +3112,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects31) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108389908(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107500548(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108389596 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107500236 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects31);
 
@@ -3144,14 +3144,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects30) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108389596(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107500236(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108389236 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107499876 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects30);
 
@@ -3176,14 +3176,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects29) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108389236(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107499876(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108388924 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107499564 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects29);
 
@@ -3208,14 +3208,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects28) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108388924(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107499564(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108388564 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107499204 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects28);
 
@@ -3240,14 +3240,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects27) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108388564(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107499204(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108388252 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107498892 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects27);
 
@@ -3272,14 +3272,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects26) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108388252(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107498892(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108387892 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107498532 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects26);
 
@@ -3304,14 +3304,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects25) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108387892(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107498532(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108387580 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107498220 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects25);
 
@@ -3336,14 +3336,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects24) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108387580(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107498220(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108387220 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107497860 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects24);
 
@@ -3368,14 +3368,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects23) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108387220(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107497860(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108380036 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107490676 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects23);
 
@@ -3400,14 +3400,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects22) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108380036(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107490676(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108386340 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107496980 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects22);
 
@@ -3432,14 +3432,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects21) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108386340(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107496980(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108385988 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107496628 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects21);
 
@@ -3464,14 +3464,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects20) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108385988(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107496628(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108385636 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107496276 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects20);
 
@@ -3496,14 +3496,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects19) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108385636(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107496276(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108385284 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107495924 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects19);
 
@@ -3528,14 +3528,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects18) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108385284(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107495924(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108384932 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107495572 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects18);
 
@@ -3560,14 +3560,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects17) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108384932(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107495572(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108384580 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107495220 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects17);
 
@@ -3592,14 +3592,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects16) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108384580(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107495220(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108384180 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107494820 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects16);
 
@@ -3624,14 +3624,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects15) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108384180(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107494820(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108383404 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107494044 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects15);
 
@@ -3656,14 +3656,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects14) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108383404(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107494044(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108383332 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107493972 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects14);
 
@@ -3688,14 +3688,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects13) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108383332(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107493972(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108382772 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107493412 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects13);
 
@@ -3720,14 +3720,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects12) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108382772(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107493412(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108382700 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107493340 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects12);
 
@@ -3752,14 +3752,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects11) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108382700(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107493340(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108382012 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107492652 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects11);
 
@@ -3784,14 +3784,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects10) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108382012(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107492652(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108381532 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107492172 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects10);
 
@@ -3816,14 +3816,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects9) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108381532(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107492172(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108381604 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107492244 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects9);
 
@@ -3848,14 +3848,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects8) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108381604(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107492244(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108380532 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107491172 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects8);
 
@@ -3880,14 +3880,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects7) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108380532(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107491172(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108380900 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107491540 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects7);
 
@@ -3912,14 +3912,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects6) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108380900(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107491540(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108380460 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107491100 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects6);
 
@@ -3944,7 +3944,7 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects5) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108380460(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107491100(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -3958,7 +3958,7 @@ runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108380204);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107490844);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects5);
@@ -3974,7 +3974,7 @@ gdjs.INTRO2Code.eventsList49(runtimeScene, asyncObjectsList);} //End of subevent
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108379596 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107490236 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 
 { //Subevents
@@ -3992,14 +3992,14 @@ const parentAsyncObjectsList = asyncObjectsList;
 const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects4) asyncObjectsList.addObject("NewSprite", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.0012), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108379596(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.0012), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107490236(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108378668 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107489308 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects4);
 
@@ -4031,14 +4031,14 @@ asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects3) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDNewSprite2Objects3) asyncObjectsList.addObject("NewSprite2", obj);
 for (const obj of gdjs.INTRO2Code.GDSUNObjects3) asyncObjectsList.addObject("SUN", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.003), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108378668(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.003), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107489308(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108377572 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107488212 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects3);
 
@@ -4070,14 +4070,14 @@ asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects2) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDNewSprite2Objects2) asyncObjectsList.addObject("NewSprite2", obj);
 for (const obj of gdjs.INTRO2Code.GDSUNObjects2) asyncObjectsList.addObject("SUN", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.005), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108377572(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.005), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107488212(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108377076 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107487716 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects2);
 
@@ -4108,7 +4108,7 @@ asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects1) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDNewSprite2Objects1) asyncObjectsList.addObject("NewSprite2", obj);
 for (const obj of gdjs.INTRO2Code.GDSUNObjects1) asyncObjectsList.addObject("SUN", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.005), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108377076(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.005), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107487716(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4141,7 +4141,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108364012);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107474804);
 }
 }
 if (isConditionTrue_0) {
@@ -4176,7 +4176,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108362668);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107468828);
 }
 }
 if (isConditionTrue_0) {
@@ -4206,7 +4206,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108358588);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107470156);
 }
 }
 if (isConditionTrue_0) {
@@ -4241,7 +4241,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108360412);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107470900);
 }
 }
 if (isConditionTrue_0) {
@@ -4278,7 +4278,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108366508);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107476948);
 }
 }
 if (isConditionTrue_0) {
@@ -4306,7 +4306,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108367428);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107477540);
 }
 }
 if (isConditionTrue_0) {
@@ -4334,7 +4334,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108368324);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107478804);
 }
 }
 if (isConditionTrue_0) {
@@ -4362,7 +4362,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108369068);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107479708);
 }
 }
 if (isConditionTrue_0) {
@@ -4390,7 +4390,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108369972);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107480612);
 }
 }
 if (isConditionTrue_0) {
@@ -4418,7 +4418,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108370876);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107481516);
 }
 }
 if (isConditionTrue_0) {
@@ -4446,7 +4446,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108371780);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107482420);
 }
 }
 if (isConditionTrue_0) {
@@ -4474,7 +4474,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108372684);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107483324);
 }
 }
 if (isConditionTrue_0) {
@@ -4509,7 +4509,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108366716);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107477364);
 }
 }
 if (isConditionTrue_0) {
@@ -4537,7 +4537,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects2.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108374500);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107485140);
 }
 }
 if (isConditionTrue_0) {
@@ -4571,7 +4571,7 @@ for (var i = 0, k = 0, l = gdjs.INTRO2Code.GDNewSpriteObjects1.length;i<l;++i) {
 gdjs.INTRO2Code.GDNewSpriteObjects1.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108375908);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107486548);
 }
 }
 if (isConditionTrue_0) {
@@ -4597,7 +4597,7 @@ gdjs.INTRO2Code.eventsList54(runtimeScene);} //End of subevents
 
 
 };gdjs.INTRO2Code.mapOfGDgdjs_9546INTRO2Code_9546GDNewSpriteObjects1Objects = Hashtable.newFrom({"NewSprite": gdjs.INTRO2Code.GDNewSpriteObjects1});
-gdjs.INTRO2Code.asyncCallback108423844 = function (runtimeScene, asyncObjectsList) {
+gdjs.INTRO2Code.asyncCallback107534484 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("TITLE"), gdjs.INTRO2Code.GDTITLEObjects51);
 
@@ -4618,14 +4618,14 @@ const parentAsyncObjectsList = asyncObjectsList;
 const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDTITLEObjects50) asyncObjectsList.addObject("TITLE", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(3), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108423844(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(3), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107534484(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108422612 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107533252 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects50);
 
@@ -4658,14 +4658,14 @@ const parentAsyncObjectsList = asyncObjectsList;
 const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects49) asyncObjectsList.addObject("NewSprite", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108422612(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107533252(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108422348 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107532988 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects49);
 
@@ -4696,14 +4696,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects48) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects48) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108422348(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107532988(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108421476 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107532116 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects48);
 
@@ -4734,14 +4734,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects47) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects47) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108421476(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107532116(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108421212 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107531852 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects47);
 
@@ -4772,14 +4772,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects46) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects46) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108421212(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107531852(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108420340 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107530980 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects46);
 
@@ -4810,14 +4810,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects45) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects45) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108420340(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107530980(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108420076 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107530716 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects45);
 
@@ -4848,14 +4848,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects44) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects44) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108420076(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107530716(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108419204 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107529844 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects44);
 
@@ -4886,14 +4886,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects43) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects43) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108419204(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107529844(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108418940 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107529580 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects43);
 
@@ -4924,14 +4924,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects42) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects42) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108418940(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107529580(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108418068 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107528708 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects42);
 
@@ -4962,14 +4962,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects41) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects41) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108418068(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107528708(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108417804 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107528444 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects41);
 
@@ -5000,14 +5000,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects40) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects40) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108417804(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107528444(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108416860 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107527500 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects40);
 
@@ -5038,14 +5038,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects39) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects39) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108416860(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107527500(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108416764 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107527404 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("NewSprite"), gdjs.INTRO2Code.GDNewSpriteObjects39);
 
@@ -5076,14 +5076,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects38) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108416764(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107527404(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108416508 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107527148 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects38);
 
@@ -5108,14 +5108,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects37) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108416508(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107527148(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108416148 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107526788 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects37);
 
@@ -5140,14 +5140,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects36) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108416148(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107526788(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108403252 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107513892 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects36);
 
@@ -5172,14 +5172,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects35) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108403252(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107513892(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108403180 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107513820 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects35);
 
@@ -5204,14 +5204,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects34) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108403180(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107513820(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108409268 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107519908 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects34);
 
@@ -5236,14 +5236,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects33) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108409268(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107519908(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108413956 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107524596 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects33);
 
@@ -5268,14 +5268,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects32) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108413956(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107524596(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108413860 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107524500 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects32);
 
@@ -5300,14 +5300,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects31) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108413860(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107524500(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108413604 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107524244 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects31);
 
@@ -5332,14 +5332,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects30) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108413604(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107524244(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108413244 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107523884 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects30);
 
@@ -5364,14 +5364,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects29) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108413244(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107523884(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108412596 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107523236 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects29);
 
@@ -5396,14 +5396,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects28) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108412596(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107523236(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108412500 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107523140 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects28);
 
@@ -5428,14 +5428,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects27) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108412500(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107523140(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108412244 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107522884 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects27);
 
@@ -5460,14 +5460,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects26) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108412244(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107522884(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108411884 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107522524 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects26);
 
@@ -5492,14 +5492,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects25) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108411884(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107522524(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108411236 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107521876 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects25);
 
@@ -5524,14 +5524,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects24) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108411236(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107521876(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108411140 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107521780 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects24);
 
@@ -5556,14 +5556,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects23) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108411140(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107521780(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108410884 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107521524 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects23);
 
@@ -5588,14 +5588,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects22) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108410884(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107521524(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108410524 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107521164 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects22);
 
@@ -5620,14 +5620,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects21) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108410524(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107521164(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108409876 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107520516 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects21);
 
@@ -5652,14 +5652,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects20) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108409876(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107520516(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108409780 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107520420 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects20);
 
@@ -5684,14 +5684,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects19) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108409780(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107520420(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108409524 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107520164 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects19);
 
@@ -5716,14 +5716,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects18) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108409524(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107520164(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108406116 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107516756 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects18);
 
@@ -5748,14 +5748,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects17) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108406116(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107516756(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108408556 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107519196 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects17);
 
@@ -5780,14 +5780,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects16) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108408556(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107519196(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108408244 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107518884 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects16);
 
@@ -5812,14 +5812,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects15) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108408244(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107518884(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108407884 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107518524 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects15);
 
@@ -5844,14 +5844,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects14) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108407884(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107518524(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108407572 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107518212 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects14);
 
@@ -5876,14 +5876,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects13) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108407572(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107518212(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108407212 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107517852 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects13);
 
@@ -5908,14 +5908,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects12) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108407212(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107517852(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108406900 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107517540 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects12);
 
@@ -5940,14 +5940,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects11) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108406900(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107517540(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108406540 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107517180 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects11);
 
@@ -5972,14 +5972,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects10) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108406540(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107517180(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108405772 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107516412 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects10);
 
@@ -6004,14 +6004,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects9) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108405772(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107516412(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108404588 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107515228 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects9);
 
@@ -6036,14 +6036,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects8) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108404588(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107515228(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108405468 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107516108 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects8);
 
@@ -6068,14 +6068,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects7) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108405468(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107516108(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108405108 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107515748 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects7);
 
@@ -6100,14 +6100,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects6) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108405108(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107515748(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108404724 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107515364 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects6);
 
@@ -6132,14 +6132,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects5) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108404724(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107515364(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108403844 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107514484 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects5);
 
@@ -6164,14 +6164,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects4) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108403844(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107514484(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108403972 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107514612 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects4);
 
@@ -6196,14 +6196,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects3) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108403972(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107514612(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108402668 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107513308 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects3);
 
@@ -6228,14 +6228,14 @@ const asyncObjectsList = gdjs.LongLivedObjectsList.from(parentAsyncObjectsList);
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 /* Don't save NewSprite as it will be provided by the parent asyncObjectsList. */
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects2) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108402668(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107513308(runtimeScene, asyncObjectsList)));
 }
 }
 
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108402596 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107513236 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("WHITEOVERLAY2"), gdjs.INTRO2Code.GDWHITEOVERLAY2Objects2);
 
@@ -6259,7 +6259,7 @@ const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 for (const obj of gdjs.INTRO2Code.GDNewSpriteObjects1) asyncObjectsList.addObject("NewSprite", obj);
 for (const obj of gdjs.INTRO2Code.GDWHITEOVERLAY2Objects1) asyncObjectsList.addObject("WHITEOVERLAY2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108402596(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.01), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107513236(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -6276,7 +6276,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.input.isMouseButtonReleased(runtimeScene, "Left");
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108402180);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107512820);
 }
 }
 if (isConditionTrue_0) {
@@ -6297,7 +6297,7 @@ gdjs.INTRO2Code.eventsList105(runtimeScene);} //End of subevents
 }
 
 
-};gdjs.INTRO2Code.asyncCallback108428140 = function (runtimeScene, asyncObjectsList) {
+};gdjs.INTRO2Code.asyncCallback107538780 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
 {gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "MainMenu", false);
 }
@@ -6312,7 +6312,7 @@ gdjs.INTRO2Code.eventsList107 = function(runtimeScene) {
 {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.INTRO2Code.localVariables);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.05), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback108428140(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.05), (runtimeScene) => (gdjs.INTRO2Code.asyncCallback107538780(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -6354,7 +6354,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.runtimeScene.sceneJustBegins(runtimeScene);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108348060);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(107458652);
 }
 }
 if (isConditionTrue_0) {
