@@ -3,10 +3,131 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Apache's Stomp Adventure</title>
+    <title>Apache</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="startScreen" class="start-overlay">
+        <div class="start-window" role="dialog" aria-modal="true">
+            <h1 class="start-title">Apache Adventure</h1>
+            <p class="start-tagline">Insert Quarter to Begin</p>
+            <div class="start-buttons">
+                <button id="startGameButton" class="retro-button">Start</button>
+                <button id="controlsToggleButton" class="retro-button" aria-expanded="false">Controls</button>
+                <button id="collectiblesToggleButton" class="retro-button" aria-expanded="false">Collectables &amp; Junk</button>
+            </div>
+        </div>
+        <div id="controlsOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="controlsHeading" aria-hidden="true">
+            <div class="modal-window">
+                <button class="modal-close" data-close="controlsOverlay" aria-label="Close controls">X</button>
+                <h2 id="controlsHeading">How to Ride</h2>
+                <ul class="retro-list">
+                    <li><span class="key">Arrow Keys</span><span class="desc">Ride left &amp; right</span></li>
+                    <li><span class="key">Space</span><span class="desc">Jump over trouble</span></li>
+                    <li><span class="key">Ctrl</span><span class="desc">Stomp attack</span></li>
+                    <li><span class="key">Esc</span><span class="desc">Pause the action</span></li>
+                    <li><span class="key">Touch</span><span class="desc">Use on-screen buttons on mobile</span></li>
+                    <li><span class="key">Touch</span><span class="desc">Use on-screen buttons on mobile</span></li>
+                </ul>
+            </div>
+        </div>
+        <div id="collectOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="collectHeading" aria-hidden="true">
+            <div class="modal-window">
+                <button class="modal-close" data-close="collectOverlay" aria-label="Close collectables">X</button>
+                <h2 id="collectHeading">Collectables &amp; Junk</h2>
+                <div class="info-pager">
+                    <div id="collectiblesPage" class="info-page">
+                        <div class="info-block">
+                            <h3>Collectibles</h3>
+                            <ul class="item-list">
+                                <li class="item-row">
+                                    <img src="COIN.png" alt="Coin" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Coin</span>
+                                        <span class="item-desc">Boost score &amp; fill APAMBO.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="GOLD_COIN.png" alt="Golden Coin" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Golden Coin</span>
+                                        <span class="item-desc">Extra Life.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="beer.png" alt="Space Brew" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Space Brew</span>
+                                        <span class="item-desc">...</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="POWERUP.png" alt="Power-Up" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Power-Up</span>
+                                        <span class="item-desc">Shields</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="Disco Ball/db1.png" alt="Disco Ball" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Disco Ball</span>
+                                        <span class="item-desc">...</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div id="hazardsPage" class="info-page hidden">
+                        <div class="info-block">
+                            <h3>Hazards</h3>
+                            <ul class="item-list">
+                                <li class="item-row">
+                                    <img src="LOG.png" alt="Log" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Log</span>
+                                        <span class="item-desc">Leap or stomp it.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="ENEMY.png" alt="Coyote" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Bear</span>
+                                        <span class="item-desc">Jump on top to win.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="ENEMYSPACE.png" alt="Space Bandit" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Space Bear</span>
+                                        <span class="item-desc">Only darts knock these out.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="Sheriff Snips/ss1.png" alt="Sheriff Snips" class="item-icon">
+                                    <div>
+                                        <span class="item-name">Sheriff Snips</span>
+                                        <span class="item-desc">Avoid at all costs.</span>
+                                    </div>
+                                </li>
+                                <li class="item-row">
+                                    <img src="ENEMY2.png" alt="UFO" class="item-icon">
+                                    <div>
+                                        <span class="item-name">UFO</span>
+                                        <span class="item-desc">Dodge the beam, live to stomp.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-pagination" role="navigation" aria-label="Collectables pages">
+                    <button id="collectPrevButton" class="retro-button" type="button" aria-controls="collectiblesPage hazardsPage" disabled>Back: Collectibles</button>
+                    <button id="collectNextButton" class="retro-button" type="button" aria-controls="collectiblesPage hazardsPage">Next: Hazards</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <!-- Touch Controls -->
     <div id="touchControls">

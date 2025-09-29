@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Apachichu vs. Narles — Pokémon GBA Layout</title>
+<style>
+  :root{
+    /* FireRed/LeafGreen-ish palette */
+    --bg:#d0e7f2;             /* sky */
+    --panel:#f8f9f7;          /* UI panels */
+    --ink:#0b0b0b;            /* borders */
+    --hp:#4fb759; --hp2:#2a812f; /* HP fill */
+    --mp:#57a9ff; --mp2:#2a6fb3; /* MP fill (custom) */
+    --accent:#2f6af6;         /* selection outline */
+  }
+  *{box-sizing:border-box; image-rendering: pixelated}
+  html,body{height:100%;margin:0;background:#0f0f10;color:var(--ink);font-family:'Press Start 2P',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+  @font-face{font-family:'Press Start 2P';src:local('Press Start 2P'), local('PressStart2P');font-display:swap}
+
+  /* Screen container sized near GBA aspect (240x160 => 3:2) */
+  .root{max-width:960px;margin:0 auto;padding:10px;height:100%;display:flex;align-items:center;justify-content:center}
+  .screen{width:100%;aspect-ratio:3/2;background:var(--bg);border:8px solid #6e7b79;border-radius:14px;position:relative;overflow:hidden;box-shadow:0 0 0 6px #2f3a39,0 12px 40px rgba(0,0,0,.55)}
+
+  /* Battle field */
+  .field{position:absolute;left:12px;right:12px;top:12px;height:calc(100% - 12px - 220px);background:linear-gradient(#a9d9f6 65%, #78a7c1 0);border:4px solid #0c2a36;border-radius:6px;z-index:1}
+  .pad{position:absolute;inset:0;padding:14px}
+
+  .enemy,.player{position:absolute;width:260px;height:240px;display:flex;align-items:flex-end;justify-content:center}
+  .enemy{right:28px;top:14px}
+  .player{left:38px;bottom:18px}
+  .enemy img,.player img{max-width:240px;max-height:240px}
+
+  /* Enemy info (top-left) */
+  .enemyInfo{position:absolute;left:22px;top:18px;width:280px;background:var(--panel);border:4px solid var(--ink);padding:8px;border-radius:6px;z-index:2}
+  .row{display:flex;align-items:center;justify-content:space-between}
+  .lvl::before{content:'Lv'}
+  .hpWrap{margin-top:8px;border:3px solid var(--ink);height:12px;position:relative;background:#dbdbdb}
+  .hpBar{height:100%;background:linear-gradient(var(--hp),var(--hp2));width:100%}
+  .nums{position:absolute;right:6px;top:-18px;font-size:12px}
+
+  /* Player info (bottom-right above HUD) */
+  .playerInfo{position:absolute;right:24px;bottom:300px;width:320px;background:var(--panel);border:4px solid var(--ink);padding:8px;border-radius:6px;z-index:3}
+  .mpWrap{margin-top:6px;border:3px solid var(--ink);height:12px;position:relative;background:#dbdbdb}
+  .mpBar{height:100%;background:linear-gradient(var(--mp),var(--mp2));width:100%}
+
+  /* HUD: bottom area split text + 2x2 menu to mimic GBA */
+  .hud{position:absolute;left:12px;right:12px;bottom:12px;height:200px;display:grid;grid-template-columns:1fr 1fr;gap:12px;z-index:3}
+  .textbox{border:4px solid var(--ink);background:var(--panel);padding:14px;border-radius:6px;display:flex;align-items:flex-start;justify-content:flex-start}
+
+  .menu{border:4px solid var(--ink);background:var(--panel);padding:10px;border-radius:6px;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:10px}
+  .menu button{font:inherit;padding:12px 14px;text-align:left;border:3px solid var(--ink);background:#eef2f1;cursor:pointer;border-radius:4px}
+  .menu button.sel{outline:4px solid var(--accent)}
+
+  /* Fight modal overlay */
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:5}
+  .overlay.show{display:flex}
+  .fightModal{width:88%;max-width:680px;margin-bottom:40px;display:grid;grid-template-columns:1fr 220px;gap:12px}
+  .moves{border:4px solid var(--ink);background:var(--panel);border-radius:6px;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .moves button{font:inherit;padding:12px 10px;text-align:left;border:3px solid var(--ink);background:#eef2f1;cursor:pointer;border-radius:4px}
+  .moves button.sel{outline:4px solid var(--accent)}
+  .moveInfo{border:4px solid var(--ink);background:var(--panel);border-radius:6px;padding:10px;display:grid;grid-template-rows:auto 1fr auto;gap:8px}
+  .moveTitle{font-weight:bold}
+  .moveMeta{font-size:12px}
+  .modalActions{display:flex;justify-content:flex-end}
+  .modalActions button{font:inherit;border:3px solid var(--ink);padding:10px 12px;background:#eef2f1;cursor:pointer;border-radius:4px}
+
+  .hidden{display:none !important}
+  .hit{filter:contrast(150%) saturate(150%)}
+  .rear{animation:rear .34s ease}
+  .step{animation:step .34s ease}
+  .flex{animation:flex .36s ease}
+  @keyframes rear{0%{transform:translateY(0)}50%{transform:translateY(-14px)}100%{transform:translateY(0)}}
+  @keyframes step{0%{transform:translateX(0)}50%{transform:translateX(10px)}100%{transform:translateX(0)}}
+  @keyframes flex{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+  @media (max-width: 720px){
+    .field{height:calc(100% - 12px - 250px)}
+    .hud{grid-template-columns:1fr;height:250px}
+    .playerInfo{right:18px;bottom:260px;width:300px}
+    .enemyInfo{left:16px;top:14px;width:260px}
+    .fightModal{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="root">
+  <div class="screen" id="game">
+    <div class="field">
+      <div class="pad">
+        <div class="enemy"><img id="enemySprite" src="narles.png" alt="Narles"></div>
+        <div class="player"><img id="playerSprite" src="apchichu.png" alt="Apachichu"></div>
+        <div class="enemyInfo">
+          <div class="row"><strong>NARLES</strong><span class="lvl">36</span></div>
+          <div class="hpWrap"><div class="hpBar" id="eHP"></div><span class="nums" id="eHPtxt">HP 100/100</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player vitals -->
+    <div class="playerInfo" id="playerInfo">
+      <div class="row"><strong>APACHICHU</strong><span class="lvl">51</span></div>
+      <div class="hpWrap"><div class="hpBar" id="pHP"></div><span class="nums" id="pHPtxt">HP 120/120</span></div>
+      <div class="mpWrap"><div class="mpBar" id="pMP"></div><span class="nums" id="pMPtxt">MP 40/40</span></div>
+    </div>
+
+    <!-- HUD: text + 2x2 menu -->
+    <div class="hud">
+      <div class="textbox" id="textbox">Apachichu trotted in. Narles cracked his knuckles. Tap/click to continue…</div>
+      <div class="menu" id="mainMenu">
+        <button data-action="FIGHT" class="sel">FIGHT</button>
+        <button data-action="ITEMS">BAG</button>
+        <button data-action="INFO">INFO</button>
+        <button data-action="RUN">RUN</button>
+      </div>
+    </div>
+
+    <!-- Fight overlay -->
+    <div class="overlay" id="fightOverlay" aria-hidden>
+      <div class="fightModal" role="dialog" aria-modal="true">
+        <div class="moves" id="fightMenu"></div>
+        <div class="moveInfo">
+          <div class="moveTitle" id="moveTitle">Select a move</div>
+          <div class="moveDesc" id="moveDesc">Press Enter/Space to use. Esc to cancel.</div>
+          <div class="moveMeta" id="moveMeta">MP — | Damage —</div>
+          <div class="modalActions"><button id="cancelFight">CANCEL</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items (BAG) menu overlay (compact) -->
+    <div class="overlay" id="bagOverlay" aria-hidden>
+      <div class="fightModal" role="dialog" aria-modal="true">
+        <div class="moves" id="itemMenu"></div>
+        <div class="moveInfo">
+          <div class="moveTitle">Bag</div>
+          <div class="moveDesc">Choose an item to use on Apachichu.</div>
+          <div class="modalActions"><button id="closeBag">CLOSE</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/*********** AUDIO ***********/
+class Chiptune{
+  constructor(){this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=0.12;this.master.connect(this.ctx.destination);} 
+  beep(f=440,d=0.12,t='square',v=0.6){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=t;o.frequency.setValueAtTime(f,this.ctx.currentTime);g.gain.value=v;o.connect(g);g.connect(this.master);o.start();o.stop(this.ctx.currentTime+d);} 
+  blip(){[660,880,990].forEach((f,i)=>setTimeout(()=>this.beep(f,0.05,'square',0.5),i*45));} 
+  hit(){[120,150,200,90].forEach((f,i)=>setTimeout(()=>this.beep(f,0.05,'square',0.4),i*40));} 
+  miss(){[220,160,120].forEach((f,i)=>setTimeout(()=>this.beep(f,0.07,'triangle',0.3),i*60));} 
+  heal(){[523,659,784].forEach((f,i)=>setTimeout(()=>this.beep(f,0.09,'square',0.5),i*80));} 
+  lose(){[300,240,180,120,90].forEach((f,i)=>setTimeout(()=>this.beep(f,0.3,'sawtooth',0.4),i*240));} 
+  win(){[392,494,523,659,784].forEach((f,i)=>setTimeout(()=>this.beep(f,0.18,'square',0.5),i*180));}
+  startSong(){if(this._songTimer)return;const p=[{n:[392,523,659,523],t:120},{n:[392,523,659,784],t:120},{n:[392,523,659,523],t:120},{n:[349,466,587,698],t:120},];let s=0;const play=()=>{const c=p[s%p.length];c.n.forEach((f,i)=>setTimeout(()=>this.beep(f,0.09,'square',0.35),i*(60000/(c.t*8))));s++;this._songTimer=setTimeout(play,60000/c.t)};play()} 
+  stopSong(){clearTimeout(this._songTimer);this._songTimer=null;}
+  victoryTheme(){
+    this.stopSong(); // stop any prior loop
+    // Fanfare
+    const fanfare = [659, 784, 988, 1047]; // E5 A5 B5 C6
+    fanfare.forEach((f,i)=>setTimeout(()=>this.beep(f,0.18,'square',0.55), i*180));
+    // Then loop a bright motif
+    setTimeout(()=>this._victoryLoop(), fanfare.length*180 + 220);
+  }
+  _victoryLoop(){
+    if (this._songTimer) clearTimeout(this._songTimer);
+    const pattern = [
+      { n:[659,523,659,784], t:132 },   // E5 C5 E5 G5
+      { n:[659,523,587,988], t:132 }    // E5 C5 D5 B5
+    ];
+    let s = 0;
+    const play = () => {
+      const c = pattern[s % pattern.length];
+      c.n.forEach((f,i)=>setTimeout(()=>this.beep(f,0.09,'square',0.38), i*(60000/(c.t*8))));
+      s++;
+      this._songTimer = setTimeout(play, 60000 / pattern[0].t);
+    };
+    play();
+  }
+
+  // --- NEW: defeat music (one-shot, somber descent) ---
+  defeatTheme(){
+    this.stopSong();
+    const seq = [392, 349, 330, 294, 262]; // G4 F4 E4 D4 C4
+    seq.forEach((f,i)=>setTimeout(()=>this.beep(f,0.35,'triangle',0.35), i*320));
+  }  
+}
+const sfx=new Chiptune();
+
+/*********** STATE ***********/
+const state={ player:{name:'Apachichu',hp:120,hpMax:120,mp:40,mpMax:40,items:{apple:4,juice:1}}, enemy:{name:'Narles',hp:100,hpMax:100}, turn:'player', lock:true, phase:'intro', dialogueIndex:0 };
+const dialogue=[ 'Apachichu: "Nice mustache, buddy. You do curls for those whiskers?"', 'Narles: "Mmmhmmm. I lift only eyebrows."', 'Apachichu: "Prepare to be thoroughly neigh-ed."', 'Narles: "Yup."', 'A battle starts!' ];
+
+/*********** REFS ***********/
+const textbox=document.getElementById('textbox');
+const mainMenu=document.getElementById('mainMenu');
+const fightMenu=document.getElementById('fightMenu');
+const itemMenu=document.getElementById('itemMenu');
+const fightOverlay=document.getElementById('fightOverlay');
+const bagOverlay=document.getElementById('bagOverlay');
+const cancelFight=document.getElementById('cancelFight');
+const closeBag=document.getElementById('closeBag');
+const pHP=document.getElementById('pHP');
+const pMP=document.getElementById('pMP');
+const eHP=document.getElementById('eHP');
+const pHPtxt=document.getElementById('pHPtxt');
+const pMPtxt=document.getElementById('pMPtxt');
+const eHPtxt=document.getElementById('eHPtxt');
+const playerSprite=document.getElementById('playerSprite');
+const enemySprite=document.getElementById('enemySprite');
+const moveTitle=document.getElementById('moveTitle');
+const moveDesc=document.getElementById('moveDesc');
+const moveMeta=document.getElementById('moveMeta');
+
+/*********** MOVES ***********/
+const moves=[
+  {key:'STOMP',label:'STOMP',mp:4,dmg:[10,18],anim:'step',desc:'Hoof to the face.'},
+  {key:'TRANQ',label:'TRANQ',mp:10,dmg:[6,26],anim:'rear',desc:'Sedative spit. Risky.'},
+  {key:'NEIGH',label:'NEIGH',mp:8,dmg:[12,22],anim:'rear',desc:'Thunderous battle cry.'},
+  {key:'NUG',label:'NUG',mp:6,dmg:[8,20],anim:'step',desc:'Toss a golden nug.'}
+];
+const enemyMoves=[
+  {key:'MMM',label:'Mmmhmmm',dmg:[6,14],sprite:'narles2.png',anim:'flex'},
+  {key:'YUP',label:'Yup',dmg:[10,18],sprite:'narles3.png',anim:'step'},
+  {key:'CHECK',label:'Check-it',dmg:[8,16],sprite:'narles2.png',anim:'step'},
+  {key:'FLEX',label:'Death Flex',dmg:[14,26],sprite:'narles3.png',anim:'flex'}
+];
+
+/*********** HELPERS ***********/
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function updateBars(){
+  pHP.style.width=(100*state.player.hp/state.player.hpMax)+'%';
+  pMP.style.width=(100*state.player.mp/state.player.mpMax)+'%';
+  eHP.style.width=(100*state.enemy.hp/state.enemy.hpMax)+'%';
+  pHPtxt.textContent=`HP ${state.player.hp}/${state.player.hpMax}`;
+  pMPtxt.textContent=`MP ${state.player.mp}/${state.player.mpMax}`;
+  eHPtxt.textContent=`HP ${state.enemy.hp}/${state.enemy.hpMax}`;
+}
+function setTextbox(t){ textbox.textContent=t; }
+function setSelected(c,idx){ const btn=[...c.querySelectorAll('button')]; btn.forEach((b,i)=>b.classList.toggle('sel',i===idx)); c.dataset.sel=idx; }
+function currentIndex(c){ return parseInt(c.dataset.sel||'0',10); }
+
+/*********** MENUS ***********/
+function buildMenus(){
+  // Fight
+  fightMenu.innerHTML='';
+  moves.forEach((m,i)=>{
+    const b=document.createElement('button');
+    b.textContent=`${m.label}  (MP ${m.mp})`;
+    b.addEventListener('mouseenter',()=>showMoveInfo(i));
+    b.addEventListener('focus',()=>showMoveInfo(i));
+    b.addEventListener('click',()=>chooseMove(i));
+    fightMenu.appendChild(b);
+  });
+  setSelected(fightMenu,0); showMoveInfo(0);
+
+  // Items
+  itemMenu.innerHTML='';
+  const a=document.createElement('button'); a.id='appleBtn'; a.textContent=`Apple Drank x${state.player.items.apple}  (+12 MP)`; a.onclick=()=>useItem('apple');
+  const j=document.createElement('button'); j.id='juiceBtn'; j.textContent=`Restor'O'Juice x${state.player.items.juice}  (+40 HP)`; j.onclick=()=>useItem('juice');
+  itemMenu.append(a,j);
+  setSelected(itemMenu,0);
+}
+function refreshItemCounts(){
+  document.getElementById('appleBtn').textContent=`Apple Drank x${state.player.items.apple}  (+12 MP)`;
+  document.getElementById('juiceBtn').textContent=`Restor'O'Juice x${state.player.items.juice}  (+40 HP)`;
+}
+function showMoveInfo(i){ const m=moves[i]; moveTitle.textContent=m.label; moveDesc.textContent=m.desc; moveMeta.textContent=`MP ${m.mp} | Damage ${m.dmg[0]}–${m.dmg[1]}`; }
+
+/*********** INTRO ***********/
+function advanceDialogue(){ if(state.phase!=='intro')return; sfx.blip(); if(state.dialogueIndex<dialogue.length){ setTextbox(dialogue[state.dialogueIndex++]); } else { state.phase='battle'; state.lock=false; setTextbox('What will Apachichu do?'); sfx.startSong(); } }
+textbox.addEventListener('click',advanceDialogue);
+
+/*********** INPUT ***********/
+mainMenu.addEventListener('click',e=>{
+  const act=e.target.dataset.action; if(!act||state.lock||state.phase!=='battle')return; sfx.blip();
+  if(act==='FIGHT') openFight();
+  else if(act==='ITEMS') openBag();
+  else if(act==='INFO') setTextbox('Use MP wisely. Press FIGHT to choose a move.');
+  else if(act==='RUN'){ setTextbox('You cannot run from Narles. He says, "Mmmhmmm."'); sfx.miss(); }
+});
+
+window.addEventListener('keydown',e=>{
+  if(state.phase==='intro'&&(e.key==='Enter'||e.key===' ')){advanceDialogue();return;}
+  if(state.phase!=='battle')return;
+  const grid = fightOverlay.classList.contains('show') ? fightMenu :
+               bagOverlay.classList.contains('show')   ? itemMenu  : mainMenu;
+  let idx=currentIndex(grid);
+  if(['ArrowDown','s','S'].includes(e.key)) idx=Math.min(idx+1,grid.querySelectorAll('button').length-1);
+  if(['ArrowUp','w','W'].includes(e.key)) idx=Math.max(idx-1,0);
+  if(['ArrowRight','d','D'].includes(e.key)) idx=Math.min(idx+1,grid.querySelectorAll('button').length-1);
+  if(['ArrowLeft','a','A'].includes(e.key)) idx=Math.max(idx-1,0);
+  setSelected(grid,idx);
+  if(e.key==='Enter'||e.key===' ') grid.querySelectorAll('button')[idx].click();
+  if(e.key==='Escape'||e.key==='Backspace'){
+    if(fightOverlay.classList.contains('show')) closeFight();
+    else if(bagOverlay.classList.contains('show')) closeBagOverlay();
+  }
+});
+
+function openFight(){ fightOverlay.classList.add('show'); fightOverlay.setAttribute('aria-hidden','false'); setSelected(fightMenu,0); showMoveInfo(0); }
+function closeFight(){ fightOverlay.classList.remove('show'); fightOverlay.setAttribute('aria-hidden','true'); }
+cancelFight.addEventListener('click',closeFight);
+
+function openBag(){ bagOverlay.classList.add('show'); bagOverlay.setAttribute('aria-hidden','false'); setSelected(itemMenu,0); }
+function closeBagOverlay(){ bagOverlay.classList.remove('show'); bagOverlay.setAttribute('aria-hidden','true'); }
+closeBag.addEventListener('click',closeBagOverlay);
+
+/*********** COMBAT ***********/
+function projectile(fromEl,toEl,img){
+  const r1=fromEl.getBoundingClientRect(), r2=toEl.getBoundingClientRect();
+  const p=document.createElement('img'); p.src=img; Object.assign(p.style,{position:'fixed',left:(r1.left+r1.width*0.6)+'px',top:(r1.top+r1.height*0.3)+'px',width:'40px',height:'40px',imageRendering:'pixelated',zIndex:9999});
+  document.body.appendChild(p);
+  const dx=r2.left+r2.width*0.4-(r1.left+r1.width*0.6), dy=r2.top+r2.height*0.5-(r1.top+r1.height*0.3);
+  p.animate([{transform:'translate(0,0)'},{transform:`translate(${dx}px,${dy}px)`}],{duration:350,easing:'linear'}).finished.then(()=>{p.remove(); enemySprite.classList.add('hit'); setTimeout(()=>enemySprite.classList.remove('hit'),220)});
+}
+function chooseMove(i){ if(state.lock||state.phase!=='battle')return; const m=moves[i]; if((state.player.mp??0)<m.mp){ setTextbox('Not enough MP!'); sfx.miss(); return;} closeFight(); actPlayerMove(m); }
+function actPlayerMove(m){ state.lock=true; state.player.mp=(state.player.mp??0)-m.mp; updateBars(); setTextbox(`${state.player.name} used ${m.label}!`); sfx.blip(); playerSprite.classList.add(m.anim); setTimeout(()=>playerSprite.classList.remove(m.anim),340); if(m.key==='NUG') projectile(playerSprite,enemySprite,'nug.png'); setTimeout(()=>{ const miss=0.12, crit=0.16; if(Math.random()<miss){ setTextbox('…but it missed!'); sfx.miss(); return setTimeout(enemyTurn,600);} let dmg=rnd(m.dmg[0],m.dmg[1]); if(Math.random()<crit){ dmg=Math.floor(dmg*1.5); setTextbox('A critical hit!'); } state.enemy.hp=clamp(state.enemy.hp-dmg,0,state.enemy.hpMax); updateBars(); enemySprite.classList.add('hit'); sfx.hit(); setTimeout(()=>enemySprite.classList.remove('hit'),260); if(state.enemy.hp<=0) return win(); setTimeout(enemyTurn,700); },380); }
+function useItem(which){ if(state.lock||state.phase!=='battle')return; if(which==='apple'){ if(state.player.items.apple<=0){ setTextbox('No Apple Drank left!'); sfx.miss(); return;} state.player.items.apple--; state.player.mp=clamp((state.player.mp??0)+12,0,state.player.mpMax); refreshItemCounts(); updateBars(); setTextbox('Apachichu sips Apple Drank! MP +12'); sfx.heal(); } else { if(state.player.items.juice<=0){ setTextbox("No Restor'O'Juice left!"); sfx.miss(); return;} state.player.items.juice--; state.player.hp=clamp(state.player.hp+40,0,state.player.hpMax); refreshItemCounts(); updateBars(); setTextbox("Apachichu guzzles Restor'O'Juice! HP +40"); sfx.heal(); } state.lock=true; setTimeout(()=>{closeBagOverlay(); enemyTurn();},650); }
+function enemyTurn(){ if(state.phase!=='battle')return; const m=enemyMoves[rnd(0,enemyMoves.length-1)]; state.lock=true; setTextbox(`Narles used ${m.label}!`); const old=enemySprite.src; enemySprite.src=m.sprite; enemySprite.classList.add(m.anim); sfx.blip(); setTimeout(()=>enemySprite.classList.remove(m.anim),360); setTimeout(()=>{ const dodge=0.10; if(Math.random()<dodge){ setTextbox('Apachichu dodged it!'); sfx.miss(); enemySprite.src='narles.png'; return endEnemy(); } let dmg=rnd(m.dmg[0],m.dmg[1]); if(m.key==='FLEX'&&Math.random()<0.3) dmg+=8; state.player.hp=clamp(state.player.hp-dmg,0,state.player.hpMax); updateBars(); playerSprite.classList.add('hit'); sfx.hit(); setTimeout(()=>playerSprite.classList.remove('hit'),260); enemySprite.src='narles.png'; if(state.player.hp<=0) return lose(); endEnemy(); },420); }
+const endEnemy=()=>{ state.lock=false; setTextbox('What will Apachichu do?'); };
+function win(){
+  state.phase='end';
+  state.lock=true;
+  setTextbox('Narles fainted! You win.');
+
+  // NEW: change Narles to KO sprite & give a little celebration flex
+  enemySprite.src='narles4.png';
+  enemySprite.classList.add('flex');
+  setTimeout(()=>enemySprite.classList.remove('flex'), 360);
+
+  // Stop battle BGM and play victory music
+  sfx.stopSong();
+  sfx.victoryTheme();
+}
+
+function lose(){
+  state.phase='end';
+  state.lock=true;
+  setTextbox('Apachichu fainted… You blacked out.');
+
+  // Stop battle BGM and play sad defeat music
+  sfx.stopSong();
+  sfx.defeatTheme();
+}
+
+/*********** INIT ***********/
+state.player.mp=40; buildMenus(); updateBars(); setSelected(mainMenu,0); setTextbox('Tap/click to continue…');
+</script>
+</body>
+</html>

@@ -18,6 +18,22 @@ const horse2Image = new Image();
 const bgLayer1 = new Image();
 const bgLayer2 = new Image();
 const bgLayer3 = new Image();
+const beerImage = new Image();
+const spaceBgLayer2 = new Image();
+const spaceBgLayer3 = new Image();
+const apastronautImage = new Image();
+const enemySpaceImage = new Image();
+const logSpaceImage = new Image();
+const horse2SpaceImage = new Image();
+const spaceDecorEntries = [
+  { key: 'moon1', img: new Image(), src: 'space/moon1.png', height: 140 },
+  { key: 'moon2', img: new Image(), src: 'space/moon2.png', height: 168 },
+  { key: 'moon3', img: new Image(), src: 'space/moon3.png', height: 128 },
+  { key: 'meteor', img: new Image(), src: 'space/meteor.png', height: 96 },
+  { key: 'satellite', img: new Image(), src: 'space/satellite.png', height: 110 },
+  { key: 'ufospace', img: new Image(), src: 'space/ufospace.png', height: 120 },
+];
+const earthDecor = { key: 'earth', img: new Image(), src: 'space/earth.png', height: 220 };
 const APPLES_PER_RAMBO = 30;
 // HORSE2 (bonus trigger)
 let horse2s = []; // {platform, offsetX, x, y, width, height}
@@ -30,19 +46,47 @@ const APAMBO_BANNER_DURATION = 1100; // ms (fast flash)
 
 /* Optional boss sprite: if missing, we draw a fallback */
 const ufoImage = new Image();
-
+const discoHorseImage = new Image();
+const discoBgLayer2 = new Image();
+const discoBgLayer3 = new Image();
+const discoBallFrames = Array.from({ length: 17 }, (_, i) => {
+  const img = new Image();
+  img.src = `Disco Ball/db${i + 1}.png`;
+  return img;
+});
+const snipsFrames = Array.from({ length: 13 }, (_, i) => {
+  const img = new Image();
+  img.src = `Sheriff Snips/ss${i + 1}.png`;
+  return img;
+});
 
 const leftButton = document.getElementById('leftButton');
 const rightButton = document.getElementById('rightButton');
 const pauseButton = document.getElementById('pauseButton');
 const jumpButton = document.getElementById('jumpButton');
 const stompButton = document.getElementById('stompButton');
+const startScreen = document.getElementById('startScreen');
+const startGameButton = document.getElementById('startGameButton');
+const controlsToggleButton = document.getElementById('controlsToggleButton');
+const controlsOverlay = document.getElementById('controlsOverlay');
+const collectOverlay = document.getElementById('collectOverlay');
+const collectiblesToggleButton = document.getElementById('collectiblesToggleButton');
+const collectiblesPage = document.getElementById('collectiblesPage');
+const hazardsPage = document.getElementById('hazardsPage');
+const collectPrevButton = document.getElementById('collectPrevButton');
+const collectNextButton = document.getElementById('collectNextButton');
+
+if (startGameButton) {
+  startGameButton.disabled = true;
+}
 
 let logSpawnTimer = 0;
 let enemySpawnTimer = 0;
 let coinSpawnTimer = 0;
 let platformSpawnTimer = 0;
 let powerUpSpawnTimer = 0;
+let beers = [];
+let nextBeerAt = 0;
 
 /* Boss timers */
 let bossSpawnTimer = 0;              // counts up; when past threshold, spawn a boss
@@ -54,6 +98,9 @@ let nextBeamSoundAt = 0;
 
 let gameState = 'playing';
 let imagesLoaded = 0;
+let gameReady = false;
+let gameStarted = false;
+let collectOverlayPage = 'collectibles';
 
 let invincibleUntil = 0;      // ms timestamp when invincibility ends
 let powerUpCooldownUntil = 0;    // ms timestamp to throttle powerUp spawns
@@ -74,6 +121,18 @@ powerUpImage.src = 'POWERUP.png';
 bgLayer1.src = 'BG_LAYER1.png';
 bgLayer2.src = 'BG_LAYER2.png';
 bgLayer3.src = 'BG_LAYER3.png';
+discoHorseImage.src = 'discapache.png';
+discoBgLayer2.src = 'DISCO_BG_LAYER2.png';
+discoBgLayer3.src = 'DISCO_BG_LAYER3.png';
+beerImage.src = 'beer.png';
+spaceBgLayer2.src = 'SPACE_BG_LAYER2.png';
+spaceBgLayer3.src = 'SPACE_BG_LAYER2.png';
+apastronautImage.src = 'apastronaut.png';
+enemySpaceImage.src = 'ENEMYSPACE.png';
+logSpaceImage.src = 'LOGSPACE.png';
+horse2SpaceImage.src = 'HORSE2SPACE.png';
+spaceDecorEntries.forEach(entry => { entry.img.src = entry.src; });
+earthDecor.img.src = earthDecor.src;
 
 /* Wait for images before starting */
 [
@@ -82,16 +141,18 @@ bgLayer3.src = 'BG_LAYER3.png';
 ].forEach(img => img.onload = () => {
   imagesLoaded++;
   if (imagesLoaded === 11) {
-    lastTime = performance.now();
-    animationId = requestAnimationFrame(gameLoop);
-
+    gameReady = true;
+    if (startGameButton) startGameButton.disabled = false;
+    if (gameStarted) {
+      startMainLoop();
+    }
   }
 });
 
 /* Sounds (your existing files) */
 /* ===== 8-bit Audio: Music + SFX (WebAudio) ===== */
 const AudioKit = (() => {
-  let ctx, masterGain, started = false, muted = false;
+  let ctx, masterGain, started = false, muted = false, snipLoop = null;
 
   // --- util ---
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -370,6 +431,44 @@ const AudioKit = (() => {
     chug(rootMidi+12, t0, dur*0.88, 0.12); // added octave for fuller, heavier sound
   }
 
+  function discoBass(midi, t0, dur=0.36, vol=0.34) {
+    const { out, stop } = pulseOsc(midiToHz(midi), 0.24, t0);
+    const pre = ctx.createGain(); pre.gain.value = vol;
+    out.connect(pre);
+    const env = envADSR(pre, t0, 0.004, 0.06, 0.4, 0.14, 1.0, 0.22);
+    env.out.connect(masterGain);
+    stop(t0 + dur); env.release(t0 + dur - 0.05);
+  }
+
+  function discoCompChord(rootMidi, t0, dur=0.28) {
+    const tones = [rootMidi, rootMidi + 4, rootMidi + 7];
+    tones.forEach((m, i) => {
+      const voice = pulseOsc(midiToHz(m), 0.18 + i * 0.05, t0);
+      const pre = ctx.createGain(); pre.gain.value = 0.22;
+      voice.out.connect(pre);
+      const env = envADSR(pre, t0, 0.003, 0.07, 0.2, 0.14, 0.9, 0.2);
+      env.out.connect(masterGain);
+      voice.stop(t0 + dur); env.release(t0 + dur - 0.04);
+    });
+  }
+
+  function discoLead(midi, t0, dur=0.26, vol=0.24) {
+    const { out, stop, addVibrato } = pulseOsc(midiToHz(midi), 0.32, t0);
+    const pre = ctx.createGain(); pre.gain.value = vol;
+    out.connect(pre);
+    const killVib = addVibrato(6.2, 5);
+    const env = envADSR(pre, t0, 0.002, 0.05, 0.22, 0.16, 1.0, 0.24);
+    env.out.connect(masterGain);
+    stop(t0 + dur); env.release(t0 + dur - 0.03);
+    setTimeout(() => { try { killVib(); } catch(e){} }, (dur * 1000) | 0);
+  }
+
+  function discoClap(t0) {
+    snare(t0);
+    hat(t0, true);
+  }
+
+
   /* ------------ SONG DEFINITIONS ------------- */
   // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
   const SONG_MAIN = {
@@ -411,12 +510,31 @@ const AudioKit = (() => {
     drums:  metalDrums
   };
 
+
+  const discoDrums = [
+    'KH', 'H', 'KH', 'H',
+    'KSH', 'H', 'KO', 'H',
+    'KH', 'H', 'KH', 'H',
+    'KSH', 'H', 'KO', 'H'
+  ];
+
+  const SONG_DISCO = {
+    name: 'disco',
+    bpm: 118,
+    patternLen: 16,
+    chords: [57,0,0,0, 60,0,0,0, 62,0,0,0, 59,0,0,0],
+    bass:   [45,0,47,0, 48,0,50,0, 43,0,45,0, 40,0,43,0],
+    riff:   [0,81,0,84, 0,86,0,84, 0,81,0,79, 0,76,0,79],
+    drums:  discoDrums
+  };
+
   let CURRENT_SONG = SONG_MAIN;
   let songTimer = null, songStep = 0;
 
   function scheduleStep(song, stepIdx, t0) {
     const spb = 60 / song.bpm;
     const beatDur = spb;         // quarter note
+    const stepDur = song.name === 'metal' ? beatDur / 4 : (song.name === 'disco' ? beatDur / 2 : beatDur);
     const noteDur = spb * 0.9;   // lead/chords gate
 
     // Determine current harmony root
@@ -428,6 +546,21 @@ const AudioKit = (() => {
     const b = song.bass ? song.bass[stepIdx % song.patternLen] : 0;
     const l = song.lead ? song.lead[stepIdx % song.patternLen] : 0;
     const d = song.drums ? song.drums[stepIdx % song.patternLen] : '';
+
+    if (song.name === 'disco') {
+      if (b) discoBass(b, t0, stepDur * 0.95);
+      if (chordRoot && stepIdx % 4 === 0) discoCompChord(chordRoot, t0, beatDur * 0.35);
+      const riffNote = song.riff ? song.riff[stepIdx % song.patternLen] : 0;
+      if (riffNote) discoLead(riffNote, t0, stepDur * 0.82);
+      if (d) {
+        if (d.includes('K')) kick(t0);
+        if (d.includes('S')) discoClap(t0);
+        if (d.includes('H')) hat(t0, false);
+        if (d.includes('O')) hat(t0, true);
+      }
+      return;
+    }
+
 
     // --- MAIN THEME layers ---
     if (song.name === 'main') {
@@ -494,7 +627,7 @@ const AudioKit = (() => {
     CURRENT_SONG = song;
     songStep = 0;
     const spb = 60 / song.bpm;
-    const stepDur = (song.name === 'metal') ? spb / 4 : spb; // finer grid for metal
+    const stepDur = song.name === 'metal' ? spb / 4 : (song.name === 'disco' ? spb / 2 : spb); // finer grid for metal
     const tickMs = Math.max(40, Math.min(140, (stepDur * 1000) / 4));
     let nextStepTime = ctx.currentTime + 0.08;
     const lookAhead = 0.05;
@@ -511,6 +644,7 @@ const AudioKit = (() => {
 
   function startSong(){ _startSequencer(SONG_MAIN); }
   function playMetal(){ _startSequencer(SONG_METAL); }
+  function playDisco(){ _startSequencer(SONG_DISCO); }
   function stopSong(){ if (songTimer){ clearInterval(songTimer); songTimer=null; } }
   // --- public ---
   function init() {
@@ -556,10 +690,56 @@ const AudioKit = (() => {
     if (masterGain) masterGain.gain.value = muted ? 0 : 0.8;
   }
 
+  function startSnipLoop() {
+    if (!ctx) init();
+    if (!ctx || snipLoop) return;
+    const osc = ctx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.value = 760;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    osc.connect(gain).connect(masterGain);
+    const tick = () => {
+      const t = ctx.currentTime;
+      gain.gain.cancelScheduledValues(t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.28, t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0008, t + 0.13);
+    };
+    const interval = setInterval(tick, 140);
+    osc.start();
+    tick();
+    snipLoop = { osc, gain, interval };
+  }
+
+  function stopSnipLoop() {
+    if (!snipLoop) return;
+    clearInterval(snipLoop.interval);
+    if (ctx) {
+      const t = ctx.currentTime;
+      try {
+        snipLoop.gain.gain.cancelScheduledValues(t);
+        snipLoop.gain.gain.setValueAtTime(snipLoop.gain.gain.value, t);
+        snipLoop.gain.gain.linearRampToValueAtTime(0, t + 0.08);
+        snipLoop.osc.stop(t + 0.1);
+      } catch (e) {
+        try { snipLoop.osc.stop(); } catch (err) {}
+      }
+    } else {
+      try { snipLoop.osc.stop(); } catch (e) {}
+    }
+    snipLoop = null;
+  }
+
   return {
     init,
     readyFromGesture, startSong, stopSong, setMuted, toggleMute(){ setMuted(!muted); },
-		playMetal,
+
+    playMetal,
+
+    playDisco,
+    startSnipLoop,
+    stopSnipLoop,
     sfx: SFX,
     get started(){ return started; },
   };
@@ -651,8 +831,27 @@ let platforms = [];
 let powerUps = [];
 let keys = {};
 let goldCoins = [];
+let discoBall = null;
+let snips = null;
+let nextSnipsAt = 0;
+let ufoSurvivalCount = 0;
+let spawnDiscoBallNext = true;
+let discoModeUntil = 0;
+let discoModeStartedAt = 0;
+let discoMusicOn = false;
+let difficultyMultiplier = 1;
 
-let gameSpeed = 200;
+let spaceState = 'normal'; // 'normal' | 'entering' | 'active' | 'exiting'
+let spaceModeUntil = 0;
+let spaceTransitionStart = 0;
+let spaceTransitionProgress = 0;
+let spaceVisualApplied = false;
+let spaceEnteredAt = 0;
+
+
+
+let baseGameSpeed = 200;
+let gameSpeed = baseGameSpeed;
 let frame = 0;
 let level = 1;
 let isPaused = false;
@@ -669,15 +868,204 @@ let nextDartAt = 0;             // ms timestamp for next auto-shot
 const RAMBO_DURATION = 5500;    // 5.5s
 const DART_INTERVAL = 120;      // rapid fire cadence (ms)
 const DART_SPEED = 520;         // px/s
+const DISCO_BALL_FRAME_TIME = 0.06;
+const DISCO_BALL_SCROLL_FACTOR = 0.645;
+const DISCO_BALL_BOB_AMPLITUDE = 6;
+const DISCO_BALL_SPARKLES_PER_SEC = 9;
+const DISCO_BALL_SPARKLE_LIFE = 0.45;
+const DISCO_BALL_SIZE = 72;
+const DISCO_MODE_DURATION = 30000;
+const DISCO_LIGHT_BEAMS = 6;
+const DISCO_LIGHT_ALPHA = 0.32;
+
+const SNIPS_SPAWN_INTERVAL = 65000;
+const SNIPS_SPAWN_JITTER = 12000;
+const SNIPS_DURATION = 24000;
+const SNIPS_FRAME_TIME = 0.08;
+const SNIPS_SPEED = 120;
+const SNIPS_ENTRY_SCROLL_FACTOR = 0.65;
+const SNIPS_EXIT_SPEED = 220;
+
+const SPACE_MODE_DURATION = 45000;
+const SPACE_TRANSITION_DURATION = 1500;
+const SPACE_RESPAWN_GRACE_MS = 2500;
+const BEER_RESPAWN_BASE_MS = 56000;
+const BEER_RESPAWN_JITTER_MS = 22000;
+const SPACE_COIN_INTERVAL = 3.4;
+const SPACE_LOG_INTERVAL = 3.6;
+const SPACE_ENEMY_INTERVAL = 4.2;
+const SPACE_FLOAT_AMPLITUDE_LOG = 18;
+const SPACE_FLOAT_AMPLITUDE_ENEMY = 26;
+const SPACE_FLOAT_AMPLITUDE_HORSE2 = 24;
+const SPACE_FLOAT_SPEED_MIN = 0.9;
+const SPACE_FLOAT_SPEED_MAX = 1.6;
+const SPACE_HORSE2_COOLDOWN_MS = 11000;
+const SPACE_STAR_COUNT = 130;
+const SPACE_STAR_SCROLL_FACTOR = 0.18;
+const SPACE_DECOR_MIN_INTERVAL = 6200;
+const SPACE_DECOR_MAX_INTERVAL = 14200;
+const SPACE_DECOR_SCROLL_MIN = 0.28;
+const SPACE_DECOR_SCROLL_MAX = 0.52;
+
+nextSnipsAt = performance.now() + SNIPS_SPAWN_INTERVAL + Math.random() * SNIPS_SPAWN_JITTER;
+
+nextBeerAt = performance.now() + BEER_RESPAWN_BASE_MS + Math.random() * BEER_RESPAWN_JITTER_MS;
+
 let darts = [];                 // active projectiles
+
 let apamboMusicOn = false;
 let audioBootstrapped = false;
 let audioWasRunning = false;
 let userAudioActivated = false;
+let spaceStars = [];
+let spaceDecorations = [];
+let spaceDecorNextSpawnAt = 0;
+let spaceEarthSpawned = false;
+
+function setCollectOverlayPage(page) {
+  collectOverlayPage = page === 'hazards' ? 'hazards' : 'collectibles';
+  if (collectiblesPage) {
+    collectiblesPage.classList.toggle('hidden', collectOverlayPage !== 'collectibles');
+  }
+  if (hazardsPage) {
+    hazardsPage.classList.toggle('hidden', collectOverlayPage !== 'hazards');
+  }
+  if (collectPrevButton) {
+    const isDisabled = collectOverlayPage === 'collectibles';
+    collectPrevButton.disabled = isDisabled;
+    collectPrevButton.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+  }
+  if (collectNextButton) {
+    const isDisabled = collectOverlayPage === 'hazards';
+    collectNextButton.disabled = isDisabled;
+    collectNextButton.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+  }
+}
+
+function resetCollectOverlayPager() {
+  setCollectOverlayPage('collectibles');
+}
+
+function showOverlay(overlay) {
+  if (!overlay) return;
+  overlay.classList.remove('hidden');
+  overlay.setAttribute('aria-hidden', 'false');
+}
+
+function hideOverlay(overlay) {
+  if (!overlay) return;
+  overlay.classList.add('hidden');
+  overlay.setAttribute('aria-hidden', 'true');
+  if (overlay === controlsOverlay && controlsToggleButton) {
+    controlsToggleButton.setAttribute('aria-expanded', 'false');
+  }
+  if (overlay === collectOverlay) {
+    resetCollectOverlayPager();
+    if (collectiblesToggleButton) {
+      collectiblesToggleButton.setAttribute('aria-expanded', 'false');
+    }
+  }
+}
+
+if (controlsToggleButton) {
+  controlsToggleButton.setAttribute('aria-expanded', 'false');
+}
+if (collectiblesToggleButton) {
+  collectiblesToggleButton.setAttribute('aria-expanded', 'false');
+}
+if (controlsOverlay) {
+  controlsOverlay.setAttribute('aria-hidden', 'true');
+}
+if (collectOverlay) {
+  collectOverlay.setAttribute('aria-hidden', 'true');
+}
+
+resetCollectOverlayPager();
+
+if (controlsToggleButton && controlsOverlay) {
+  controlsToggleButton.addEventListener('click', () => {
+    const isOpen = !controlsOverlay.classList.contains('hidden');
+    if (isOpen) {
+      hideOverlay(controlsOverlay);
+      return;
+    }
+    hideOverlay(collectOverlay);
+    showOverlay(controlsOverlay);
+    controlsToggleButton.setAttribute('aria-expanded', 'true');
+  });
+}
+
+if (collectiblesToggleButton && collectOverlay) {
+  collectiblesToggleButton.addEventListener('click', () => {
+    const isOpen = !collectOverlay.classList.contains('hidden');
+    if (isOpen) {
+      hideOverlay(collectOverlay);
+      return;
+    }
+    hideOverlay(controlsOverlay);
+    resetCollectOverlayPager();
+    showOverlay(collectOverlay);
+    collectiblesToggleButton.setAttribute('aria-expanded', 'true');
+  });
+}
+
+if (collectPrevButton) {
+  collectPrevButton.addEventListener('click', () => {
+    setCollectOverlayPage('collectibles');
+  });
+}
+
+if (collectNextButton) {
+  collectNextButton.addEventListener('click', () => {
+    setCollectOverlayPage('hazards');
+  });
+}
+
+if (startGameButton) {
+  startGameButton.addEventListener('click', () => {
+    startGameButton.disabled = true;
+    if (startScreen) {
+      startScreen.classList.add('hidden');
+    }
+    hideOverlay(controlsOverlay);
+    hideOverlay(collectOverlay);
+    gameStarted = true;
+    ensureAudioActive();
+    if (gameReady) {
+      startMainLoop();
+    }
+  });
+}
+
+document.querySelectorAll('.modal-close').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const closeTarget = e.currentTarget.getAttribute('data-close');
+    if (closeTarget) {
+      hideOverlay(document.getElementById(closeTarget));
+    }
+  });
+});
+
+[controlsOverlay, collectOverlay].forEach(overlay => {
+  if (!overlay) return;
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      hideOverlay(overlay);
+    }
+  });
+});
 
 
 /* ---------- Input ---------- */
 document.addEventListener('keydown', e => {
+  if (!gameStarted) {
+    if (e.code === 'Escape') {
+      hideOverlay(controlsOverlay);
+      hideOverlay(collectOverlay);
+    }
+    return;
+  }
   keys[e.code] = true;
 
   if (e.code === 'ControlLeft' && !horse.stomping) {
@@ -685,7 +1073,7 @@ document.addEventListener('keydown', e => {
     horse.stompCount = 0;
   }
 
-  if (e.code === 'Space' && horse.onGround) {
+  if (e.code === 'Space' && horse.onGround && !isSpaceModeVisual()) {
 		ensureAudioActive();
     horse.isJumping = true;
     horse.velocityY = -350;
@@ -697,24 +1085,43 @@ document.addEventListener('keydown', e => {
 	if (e.code === 'Escape') {
 		isPaused = !isPaused;
 		if (!isPaused) {
-			lastTime = performance.now();
-			animationId = requestAnimationFrame(gameLoop);
+			startMainLoop();
 
-			// choose proper track on resume
-			const inApambo = performance.now() < ramboUntil;
+			const now = performance.now();
+			const discoActive = isDiscoModeActive();
+			const inApambo = now < ramboUntil;
+
 			AudioKit.stopSong();
-			if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
-			else          { AudioKit.startSong(); apamboMusicOn = false; }
+			discoMusicOn = false;
+			apamboMusicOn = false;
 
+			if (discoActive) {
+				AudioKit.playDisco();
+				discoMusicOn = true;
+			} else if (inApambo) {
+				AudioKit.playMetal();
+				apamboMusicOn = true;
+			} else {
+				AudioKit.startSong();
+			}
+			if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
+				ensureAudioActive();
+				AudioKit.startSnipLoop();
+			}
 		} else {
 			cancelAnimationFrame(animationId);
 			drawPauseOverlay();
-			AudioKit.stopSong();   // ← stop when pausing
+			AudioKit.stopSong();
+			if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+				AudioKit.stopSnipLoop();
+			}
 		}
 	}
 });
 
+
 document.addEventListener('keyup', e => {
+  if (!gameStarted) return;
   keys[e.code] = false;
   if (e.code === 'ControlLeft') {
     horse.stomping = false;
@@ -724,11 +1131,40 @@ document.addEventListener('keyup', e => {
 
 function isInvincible() {
   // treat either timer as invincibility (powerup OR post-hit i-frames)
-  return performance.now() < Math.max(invincibleUntil, hurtUntil);
+  return performance.now() < Math.max(invincibleUntil, hurtUntil) || isSpaceTransitioning();
+}
+
+function isSpaceModeActive() {
+  return spaceState === 'active';
+}
+
+function isSpaceModeVisual() {
+  return spaceState === 'active' || spaceState === 'exiting' || (spaceState === 'entering' && spaceVisualApplied);
+}
+
+function isSpaceTransitioning() {
+  return spaceState === 'entering' || spaceState === 'exiting';
 }
 
 /* ---------- Spawners ---------- */
 function createLog() {
+  if (isSpaceModeActive()) {
+    const baseY = Math.max(48, Math.random() * (canvas.height - 160) + 40);
+    logs.push({
+      x: canvas.width,
+      y: baseY,
+      baseY,
+      width: 64,
+      height: 64,
+      stomped: 0,
+      isBlocking: true,
+      space: true,
+      floatPhase: Math.random() * Math.PI * 2,
+      floatSpeed: SPACE_FLOAT_SPEED_MIN + Math.random() * (SPACE_FLOAT_SPEED_MAX - SPACE_FLOAT_SPEED_MIN),
+      floatAmplitude: SPACE_FLOAT_AMPLITUDE_LOG
+    });
+    return;
+  }
   logs.push({ x: canvas.width, y: GROUND_Y, width: 64, height: 64, stomped: 0, isBlocking: true });
 }
 
@@ -743,6 +1179,22 @@ function spawnGoldCoin(x, y) {
   });
 }
 function createEnemy() {
+  if (isSpaceModeActive()) {
+    const baseY = Math.max(56, Math.random() * (canvas.height - 168) + 48);
+    enemies.push({
+      x: canvas.width,
+      y: baseY,
+      baseY,
+      width: 64,
+      height: 64,
+      space: true,
+      floatPhase: Math.random() * Math.PI * 2,
+      floatSpeed: SPACE_FLOAT_SPEED_MIN + Math.random() * (SPACE_FLOAT_SPEED_MAX - SPACE_FLOAT_SPEED_MIN),
+      floatAmplitude: SPACE_FLOAT_AMPLITUDE_ENEMY,
+      driftMultiplier: 0.85 + Math.random() * 0.2
+    });
+    return;
+  }
   const enemyY = GROUND_Y; // start on the ground
   enemies.push({
     x: canvas.width, y: enemyY, width: 64, height: 64,
@@ -753,8 +1205,513 @@ function createEnemy() {
 }
 
 function createCoin() {
+  if (isSpaceModeActive()) {
+    spawnSpaceCoins();
+    return;
+  }
   coins.push({ x: canvas.width, y: Math.random() * 200 + 100, width: 32, height: 32, collected: false });
 }
+
+function spawnSpaceCoins() {
+  const baseX = canvas.width;
+  const baseY = Math.random() * (canvas.height - 180) + 60;
+  const pattern = Math.random();
+  const count = 8 + Math.floor(Math.random() * 8);
+
+  const addCoin = (offsetX, offsetY) => {
+    coins.push({
+      x: baseX + offsetX,
+      y: clamp(baseY + offsetY, 32, canvas.height - 96),
+      width: 32,
+      height: 32,
+      collected: false,
+      space: true,
+      floatPhase: Math.random() * Math.PI * 2,
+      floatSpeed: 0.6 + Math.random() * 0.6,
+      floatAmplitude: 14 + Math.random() * 9
+    });
+  };
+
+  if (pattern < 0.33) {
+    for (let i = 0; i < count; i++) {
+      const angle = i * 0.55;
+      addCoin(i * 36, Math.sin(angle) * 48);
+    }
+  } else if (pattern < 0.66) {
+    const slope = Math.random() < 0.5 ? 1 : -1;
+    for (let i = 0; i < count; i++) {
+      const dy = slope * i * 18 + Math.sin(i * 0.4) * 22;
+      addCoin(i * 34, dy);
+    }
+  } else {
+    const radius = 24 + Math.random() * 24;
+    for (let i = 0; i < count; i++) {
+      const t = (i / count) * Math.PI * 2;
+      addCoin(Math.cos(t) * radius + i * 18, Math.sin(t) * radius);
+    }
+  }
+}
+
+function spawnSpaceHorse2() {
+  const baseY = Math.random() * (canvas.height - HORSE2_H - 80) + 40;
+  horse2s.push({
+    platform: null,
+    offsetX: 0,
+    x: canvas.width + 40,
+    y: baseY,
+    baseY,
+    width: HORSE2_W,
+    height: HORSE2_H,
+    space: true,
+    floatPhase: Math.random() * Math.PI * 2,
+    floatSpeed: SPACE_FLOAT_SPEED_MIN + Math.random() * (SPACE_FLOAT_SPEED_MAX - SPACE_FLOAT_SPEED_MIN),
+    floatAmplitude: SPACE_FLOAT_AMPLITUDE_HORSE2
+  });
+}
+
+function generateSpaceStars() {
+  spaceStars = [];
+  for (let i = 0; i < SPACE_STAR_COUNT; i++) {
+    const radius = 0.6 + Math.random() * 1.6;
+    spaceStars.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius,
+      baseAlpha: 0.28 + Math.random() * 0.42,
+      twinklePhase: Math.random() * Math.PI * 2,
+      twinkleSpeed: 0.9 + Math.random() * 1.8
+    });
+  }
+}
+
+function scheduleNextSpaceDecoration() {
+  spaceDecorNextSpawnAt = performance.now() + SPACE_DECOR_MIN_INTERVAL + Math.random() * (SPACE_DECOR_MAX_INTERVAL - SPACE_DECOR_MIN_INTERVAL);
+}
+
+function spawnSpaceDecoration(entry = null) {
+  const pick = entry || spaceDecorEntries[Math.floor(Math.random() * spaceDecorEntries.length)];
+  const img = pick.img;
+  let width;
+  let height;
+  if (img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+    width = img.naturalWidth;
+    height = img.naturalHeight;
+  } else {
+    height = pick.height;
+    width = Math.max(32, height);
+  }
+  const margin = 90;
+  const y = clamp(Math.random() * (canvas.height - margin * 2 - height) + margin, 30, canvas.height - height - margin);
+  spaceDecorations.push({
+    key: pick.key,
+    img,
+    x: canvas.width + 60 + Math.random() * 120,
+    y,
+    baseY: y,
+    width,
+    height,
+    scrollFactor: SPACE_DECOR_SCROLL_MIN + Math.random() * (SPACE_DECOR_SCROLL_MAX - SPACE_DECOR_SCROLL_MIN),
+    floatAmplitude: 6 + Math.random() * 18,
+    floatPhase: Math.random() * Math.PI * 2,
+    floatSpeed: 0.25 + Math.random() * 0.65,
+    unique: !!pick.unique
+  });
+}
+
+function spawnSpaceEarth() {
+  const img = earthDecor.img;
+  const height = earthDecor.height;
+  let width = Math.max(64, height);
+  if (img && img.complete && img.naturalHeight > 0) {
+    const ratio = img.naturalWidth / img.naturalHeight;
+    if (Number.isFinite(ratio) && ratio > 0) {
+      width = Math.max(64, Math.round(height * ratio));
+    }
+  }
+  const y = clamp(canvas.height * 0.28, 20, canvas.height - height - 180);
+  spaceDecorations.push({
+    key: earthDecor.key,
+    img,
+    x: canvas.width * 0.65,
+    y,
+    baseY: y,
+    width,
+    height,
+    scrollFactor: SPACE_DECOR_SCROLL_MIN,
+    floatAmplitude: 8,
+    floatPhase: Math.random() * Math.PI * 2,
+    floatSpeed: 0.22,
+    unique: true
+  });
+  spaceEarthSpawned = true;
+}
+
+function spawnDiscoBall() {
+  if (discoBall) return;
+
+  const baseFrame = discoBallFrames[0];
+  const ratio = (baseFrame && baseFrame.naturalHeight) ? baseFrame.naturalWidth / baseFrame.naturalHeight : 1;
+  const height = DISCO_BALL_SIZE;
+  const width = Math.max(40, Math.round(height * (Number.isFinite(ratio) && ratio > 0 ? ratio : 1)));
+  const minY = 130;
+  const maxY = 220;
+  const baseY = Math.random() * (maxY - minY) + minY;
+
+  discoBall = {
+    x: canvas.width,
+    y: baseY,
+    baseY,
+    width,
+    height,
+    frame: 0,
+    frameTimer: 0,
+    bobTime: 0,
+    sparkles: [],
+    collected: false,
+  };
+}
+function collectDiscoBall() {
+  if (!discoBall) return;
+  discoBall.collected = true;
+  ensureAudioActive();
+  if (AudioKit && AudioKit.sfx && typeof AudioKit.sfx.powerup === 'function') {
+    AudioKit.sfx.powerup();
+  }
+  discoBall = null;
+  activateDiscoMode();
+}
+
+function scheduleNextBeer(extraMs = 0) {
+  const delay = BEER_RESPAWN_BASE_MS + Math.random() * BEER_RESPAWN_JITTER_MS + extraMs;
+  nextBeerAt = performance.now() + delay;
+}
+
+function spawnBeer() {
+  const height = 48;
+  let width = 36;
+  if (beerImage && beerImage.naturalWidth > 0 && beerImage.naturalHeight > 0) {
+    const ratio = beerImage.naturalWidth / beerImage.naturalHeight;
+    if (Number.isFinite(ratio) && ratio > 0) {
+      width = Math.max(16, Math.round(height * ratio));
+    }
+  }
+  const y = GROUND_Y - height;
+  beers.push({
+    x: canvas.width,
+    y,
+    width,
+    height,
+    collected: false
+  });
+  nextBeerAt = Number.POSITIVE_INFINITY;
+}
+
+function handleBeerCollected() {
+  ensureAudioActive();
+  if (collectSound && typeof collectSound.play === 'function') {
+    collectSound.play();
+  }
+  triggerSpaceMode();
+}
+
+function triggerSpaceMode() {
+  const now = performance.now();
+  const alreadyActive = spaceState === 'active' || spaceState === 'entering';
+  if (alreadyActive) {
+    spaceModeUntil = now + SPACE_MODE_DURATION;
+    return;
+  }
+  spaceModeUntil = now + SPACE_MODE_DURATION;
+  startSpaceTransitionIn();
+}
+
+function startSpaceTransitionIn() {
+  spaceState = 'entering';
+  spaceTransitionStart = performance.now();
+  spaceTransitionProgress = 0;
+  spaceVisualApplied = false;
+  horse2CooldownUntil = performance.now() + 1200;
+  nextBeerAt = Number.POSITIVE_INFINITY;
+}
+
+function startSpaceTransitionOut() {
+  if (spaceState !== 'active') return;
+  spaceState = 'exiting';
+  spaceTransitionStart = performance.now();
+  spaceTransitionProgress = 1;
+}
+
+function applySpaceVisuals(enable) {
+  if (enable) {
+    logs = [];
+    enemies = [];
+    platforms = [];
+    horse2s = [];
+    coins = [];
+    goldCoins = [];
+    powerUps = [];
+    if (snips) { despawnSnips(false); }
+    if (boss) { boss = null; bossSpawnTimer = 0; }
+    discoModeUntil = 0;
+    discoMusicOn = false;
+    horse.isJumping = false;
+    horse.onGround = false;
+    horse.velocityY = 0;
+    generateSpaceStars();
+    spaceDecorations = [];
+    spaceDecorNextSpawnAt = 0;
+    spaceEarthSpawned = false;
+  } else {
+    logs = [];
+    enemies = [];
+    horse2s = [];
+    coinSpawnTimer = 0;
+    logSpawnTimer = 0;
+    enemySpawnTimer = 0;
+    platformSpawnTimer = 0;
+    horse.y = Math.min(horse.y, GROUND_Y);
+    horse.velocityY = 0;
+    horse.onGround = horse.y === GROUND_Y;
+    horse.isJumping = false;
+    spaceStars = [];
+    spaceDecorations = [];
+    spaceDecorNextSpawnAt = 0;
+    spaceEarthSpawned = false;
+  }
+}
+
+function updateSpaceMode(dt) {
+  const now = performance.now();
+
+  if (spaceState === 'entering') {
+    const progress = clamp((now - spaceTransitionStart) / SPACE_TRANSITION_DURATION, 0, 1);
+    spaceTransitionProgress = progress;
+    if (!spaceVisualApplied && progress >= 0.5) {
+      spaceVisualApplied = true;
+      applySpaceVisuals(true);
+    }
+    if (progress >= 1) {
+      spaceState = 'active';
+      spaceEnteredAt = now;
+      spaceModeUntil = now + SPACE_MODE_DURATION;
+      spaceTransitionProgress = 1;
+    }
+  } else if (spaceState === 'active') {
+    spaceTransitionProgress = 1;
+    if (now >= spaceModeUntil) {
+      startSpaceTransitionOut();
+    }
+  } else if (spaceState === 'exiting') {
+    const progress = clamp((now - spaceTransitionStart) / SPACE_TRANSITION_DURATION, 0, 1);
+    spaceTransitionProgress = 1 - progress;
+    if (progress >= 1) {
+      applySpaceVisuals(false);
+      spaceState = 'normal';
+      spaceTransitionProgress = 0;
+      spaceVisualApplied = false;
+      scheduleNextBeer(SPACE_RESPAWN_GRACE_MS);
+      nextSnipsAt = performance.now() + 2200 + Math.random() * 1600;
+    }
+  } else {
+    spaceTransitionProgress = 0;
+  }
+}
+
+function drawSpaceTransitionOverlay() {
+  if (!isSpaceTransitioning()) return;
+  const easing = spaceState === 'entering' ? spaceTransitionProgress : (1 - spaceTransitionProgress);
+  const eased = easing * easing * (3 - 2 * easing);
+  ctx.save();
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.85 * eased})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+function updateSpaceStars(dt) {
+  if (!spaceStars.length) return;
+  const scroll = gameSpeed * SPACE_STAR_SCROLL_FACTOR * dt;
+  for (const star of spaceStars) {
+    star.twinklePhase += star.twinkleSpeed * dt;
+    star.x -= scroll;
+    if (star.x < -4) {
+      star.x = canvas.width + Math.random() * 30;
+      star.y = Math.random() * canvas.height;
+      star.radius = 0.6 + Math.random() * 1.6;
+      star.baseAlpha = 0.28 + Math.random() * 0.42;
+      star.twinklePhase = Math.random() * Math.PI * 2;
+      star.twinkleSpeed = 0.9 + Math.random() * 1.8;
+    }
+  }
+}
+
+function updateSpaceDecorations(dt) {
+  if (!spaceDecorations.length) return;
+  for (let i = spaceDecorations.length - 1; i >= 0; i--) {
+    const deco = spaceDecorations[i];
+    deco.floatPhase += deco.floatSpeed * dt;
+    deco.y = deco.baseY + Math.sin(deco.floatPhase) * deco.floatAmplitude;
+    deco.x -= gameSpeed * deco.scrollFactor * dt;
+    if (deco.x + deco.width < -240) {
+      spaceDecorations.splice(i, 1);
+      continue;
+    }
+  }
+}
+
+function updateSpaceScenery(dt) {
+  if (!isSpaceModeVisual()) return;
+  updateSpaceStars(dt);
+  updateSpaceDecorations(dt);
+
+  if (isSpaceModeActive()) {
+    if (!spaceEarthSpawned) {
+      spawnSpaceEarth();
+      scheduleNextSpaceDecoration();
+    }
+    if (performance.now() >= spaceDecorNextSpawnAt) {
+      spawnSpaceDecoration();
+      scheduleNextSpaceDecoration();
+    }
+  }
+}
+function activateDiscoMode() {
+  const now = performance.now();
+  const alreadyActive = now < discoModeUntil;
+
+  discoModeUntil = now + DISCO_MODE_DURATION;
+
+  if (!alreadyActive) {
+    discoModeStartedAt = now;
+    ensureAudioActive();
+    AudioKit.stopSong();
+    AudioKit.playDisco();
+    discoMusicOn = true;
+    apamboMusicOn = false;
+  }
+}
+
+function spawnSnips() {
+  const baseFrame = snipsFrames[0];
+  const targetHeight = 64;
+  let width = 52;
+  if (baseFrame && baseFrame.naturalWidth > 0 && baseFrame.naturalHeight > 0) {
+    const ratio = baseFrame.naturalWidth / baseFrame.naturalHeight;
+    if (Number.isFinite(ratio) && ratio > 0) {
+      width = Math.max(36, Math.round(targetHeight * ratio));
+    }
+  }
+  const now = performance.now();
+  snips = {
+    x: canvas.width + width + 40,
+    y: GROUND_Y,
+    width,
+    height: targetHeight,
+    frame: 0,
+    frameTimer: 0,
+    speed: Math.max(SNIPS_SPEED, gameSpeed * 0.82),
+    despawnAt: now + SNIPS_DURATION,
+    leaving: false,
+    spawnedAt: now,
+    entryComplete: false,
+    direction: -1,
+  };
+  nextSnipsAt = Number.POSITIVE_INFINITY;
+  ensureAudioActive();
+  if (AudioKit && typeof AudioKit.startSnipLoop === 'function') {
+    AudioKit.startSnipLoop();
+  }
+}
+
+function despawnSnips(resetTimer = true) {
+  if (!snips) return;
+  snips = null;
+  if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+    AudioKit.stopSnipLoop();
+  }
+  if (resetTimer) {
+    nextSnipsAt = performance.now() + SNIPS_SPAWN_INTERVAL + Math.random() * SNIPS_SPAWN_JITTER;
+  }
+}
+
+function recalcGameSpeed() {
+  gameSpeed = baseGameSpeed * difficultyMultiplier;
+}
+
+function updateSnips(dt) {
+  if (!snips) return;
+  snips.frameTimer += dt;
+  if (snips.frameTimer >= SNIPS_FRAME_TIME) {
+    snips.frameTimer -= SNIPS_FRAME_TIME;
+    snips.frame = (snips.frame + 1) % snipsFrames.length;
+  }
+
+  const now = performance.now();
+  const scroll = gameSpeed * dt;
+  const entryScrollFactor = snips.entryComplete ? 0 : SNIPS_ENTRY_SCROLL_FACTOR;
+  snips.x -= scroll * entryScrollFactor;
+
+  if (snips.leaving) {
+    snips.x -= SNIPS_EXIT_SPEED * dt;
+    if (snips.x + snips.width < -240) {
+      despawnSnips(true);
+    }
+    return;
+  }
+
+  const minX = 52;
+  const maxX = canvas.width - snips.width - 40;
+  if (!snips.entryComplete && snips.x <= maxX) {
+    snips.entryComplete = true;
+    snips.x = clamp(snips.x, minX, maxX);
+  }
+
+  if (snips.entryComplete) {
+    const patrolSpeed = Math.max(snips.speed * 0.58, gameSpeed * 0.6);
+    snips.x += snips.direction * patrolSpeed * dt;
+    if (snips.x <= minX) {
+      snips.x = minX;
+      snips.direction = 1;
+    } else if (snips.x >= maxX) {
+      snips.x = maxX;
+      snips.direction = -1;
+    }
+    snips.x = clamp(snips.x, minX, maxX);
+  }
+
+  snips.y = GROUND_Y;
+
+  if (!isInvincible() && snips && rectsOverlap(horse, snips)) {
+    loseLife();
+    if (gameState !== 'playing' || !snips) {
+      return;
+    }
+  }
+
+  if (!snips.leaving && snips.x > canvas.width + 200) snips.x = canvas.width + 200;
+
+  if (now >= snips.despawnAt) {
+    snips.leaving = true;
+    return;
+  }
+}
+
+function drawSnips() {
+  if (!snips) return;
+  const frame = snipsFrames[snips.frame % snipsFrames.length];
+  const x = Math.round(snips.x);
+  const y = Math.round(snips.y);
+
+  ctx.save();
+  ctx.translate(x, y);
+  if (frame && frame.complete && frame.naturalWidth > 0) {
+    ctx.drawImage(frame, 0, 0, snips.width, snips.height);
+  } else {
+    ctx.fillStyle = '#b36b3c';
+    ctx.fillRect(0, 0, snips.width, snips.height);
+  }
+  ctx.restore();
+}
+
 
 function createPlatform() {
   // keep platforms comfortably above ground so HORSE2 never sits "on" the ground band
@@ -820,6 +1777,28 @@ function willLandOnTop(actor, platform, dt) {
 
 /* ---------- Updates ---------- */
 function updateHorse(dt) {
+  if (isSpaceModeActive()) {
+    let vx = 0;
+    let vy = 0;
+    if (keys['ArrowLeft'])  vx -= horse.speed;
+    if (keys['ArrowRight']) vx += horse.speed;
+    if (keys['ArrowUp'])    vy -= horse.speed * 0.85;
+    if (keys['ArrowDown'])  vy += horse.speed * 0.85;
+
+    horse.x += vx * dt;
+    horse.y += vy * dt;
+    horse.x = clamp(horse.x, 0, canvas.width - horse.width);
+    horse.y = clamp(horse.y, 32, canvas.height - horse.height - 24);
+
+    horse.velocityY = 0;
+    horse.isJumping = false;
+    horse.onGround = false;
+    horse.jumpHoldTime = 0;
+
+    if (horse.stomping) horse.trampleAngle = Math.sin(performance.now() / 50) * 30;
+    horse.invincible = performance.now() < invincibleUntil;
+    return;
+  }
   // Horizontal
   if (keys['ArrowLeft'])  horse.x -= horse.speed * dt;
   if (keys['ArrowRight']) horse.x += horse.speed * dt;
@@ -877,12 +1856,18 @@ function updateHorse(dt) {
 function updateLogs(dt) {
   for (let i = logs.length - 1; i >= 0; i--) {
     const log = logs[i];
-    log.x -= gameSpeed * dt;
+    if (log.space) {
+      log.floatPhase += log.floatSpeed * dt;
+      log.y = log.baseY + Math.sin(log.floatPhase) * log.floatAmplitude;
+      log.x -= gameSpeed * 0.88 * dt;
+    } else {
+      log.x -= gameSpeed * dt;
+    }
 
     if (log.x + log.width < 0) { logs.splice(i, 1); continue; }
 
     if (rectsOverlap(horse, log)) {
-      if (horse.isJumping) {
+      if (!log.space && horse.isJumping) {
         log.isBlocking = false; // you can clip through while airborne (existing design)
       } else if (horse.stomping && log.isBlocking) {
         log.stomped++;
@@ -899,6 +1884,19 @@ function updateLogs(dt) {
 function updateEnemies(dt) {
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
+    if (e.space) {
+      e.floatPhase += e.floatSpeed * dt;
+      e.y = e.baseY + Math.sin(e.floatPhase) * e.floatAmplitude;
+      e.x -= gameSpeed * e.driftMultiplier * dt;
+
+      if (e.x + e.width < -160) { enemies.splice(i, 1); continue; }
+
+      if (rectsOverlap(horse, e) && !isInvincible()) {
+        loseLife();
+        if (gameState !== 'playing') return;
+      }
+      continue;
+    }
     if (!e.isJumping) e.y = GROUND_Y;
 
     // Movement (keep what you had before)
@@ -943,7 +1941,13 @@ function updateEnemies(dt) {
 function updateCoins(dt) {
   for (let i = coins.length - 1; i >= 0; i--) {
     const c = coins[i];
-    c.x -= gameSpeed * 0.645 * dt;
+    if (c.space) {
+      c.x -= gameSpeed * 0.52 * dt;
+      c.floatPhase += c.floatSpeed * dt;
+      c.y = clamp(c.y + Math.sin(c.floatPhase) * 18 * dt, 24, canvas.height - 90);
+    } else {
+      c.x -= gameSpeed * 0.645 * dt;
+    }
     if (c.x + c.width < 0) { coins.splice(i, 1); continue; }
     if (!c.collected && rectsOverlap(horse, c)) {
       c.collected = true;
@@ -959,6 +1963,23 @@ function updateCoins(dt) {
       }
 			ensureAudioActive();
       collectSound.play();
+    }
+  }
+}
+
+function updateBeers(dt) {
+  for (let i = beers.length - 1; i >= 0; i--) {
+    const beer = beers[i];
+    beer.x -= gameSpeed * dt;
+    if (beer.x + beer.width < 0) {
+      beers.splice(i, 1);
+      scheduleNextBeer();
+      continue;
+    }
+    if (!beer.collected && rectsOverlap(horse, beer)) {
+      beer.collected = true;
+      beers.splice(i, 1);
+      handleBeerCollected();
     }
   }
 }
@@ -994,6 +2015,23 @@ function updateHorse2s(dt) {
   for (let i = horse2s.length - 1; i >= 0; i--) {
     const h2 = horse2s[i];
 
+    if (h2.space) {
+      h2.floatPhase += h2.floatSpeed * dt;
+      h2.y = h2.baseY + Math.sin(h2.floatPhase) * h2.floatAmplitude;
+      h2.x -= gameSpeed * 0.78 * dt;
+
+      if (h2.x + h2.width < -160) {
+        horse2s.splice(i, 1);
+        continue;
+      }
+
+      if (rectsOverlap(horse, h2) && horse.stomping) {
+        horse2s.splice(i, 1);
+        triggerApamboBanner();
+      }
+      continue;
+    }
+
     // Ride along with platform
     if (!h2.platform) { horse2s.splice(i, 1); continue; }
     h2.x = h2.platform.x + h2.offsetX;
@@ -1017,7 +2055,8 @@ function updateHorse2s(dt) {
 
 function drawHorse2s() {
   for (const h2 of horse2s) {
-    ctx.drawImage(horse2Image, h2.x, h2.y, h2.width, h2.height);
+    const img = h2.space ? horse2SpaceImage : horse2Image;
+    ctx.drawImage(img, h2.x, h2.y, h2.width, h2.height);
   }
 }
 
@@ -1027,9 +2066,14 @@ function triggerApamboBanner() {
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
   // immediately set APAMBO so the meter & darts are ready when banner clears
   ramboUntil = performance.now() + RAMBO_DURATION;
-	AudioKit.stopSong();
-	AudioKit.playMetal();
-	apamboMusicOn = true;
+  if (isDiscoModeActive()) {
+    apamboMusicOn = false;
+  } else {
+    AudioKit.stopSong();
+    AudioKit.playMetal();
+    apamboMusicOn = true;
+    discoMusicOn = false;
+  }
   nextDartAt = 0; // fire ASAP
 }
 
@@ -1070,9 +2114,10 @@ function drawApamboBanner() {
 /* ---------- Boss (UFO + tractor beam) ---------- */
 function spawnBoss() {
   const w = 148, h = 92;
+  const baseY = 68;
   boss = {
     x: canvas.width + 120,
-    y: 92,
+    y: baseY,
     w, h,
     vx: -160,
     state: 'enter',
@@ -1083,6 +2128,8 @@ function spawnBoss() {
     maxBeams: 3 + Math.floor(Math.random() * 2),
     beamsFired: 0,
     aliveTime: 0,
+    survivalHandled: false,
+    baseY,
 
     // patrol
     patrolSpeed: 130,
@@ -1110,6 +2157,23 @@ function spawnBoss() {
   };
 }
 
+function handleBossSurvival() {
+  if (gameState !== 'playing') return;
+
+  ufoSurvivalCount++;
+  difficultyMultiplier = Math.min(2.5, 1 + ufoSurvivalCount * 0.05);
+  recalcGameSpeed();
+
+  if (spawnDiscoBallNext) {
+    if (!discoBall) {
+      spawnDiscoBall();
+      spawnDiscoBallNext = false;
+    }
+  } else {
+    spawnDiscoBallNext = true;
+  }
+}
+
 function updateBoss(dt) {
   if (!boss) return;
 
@@ -1124,7 +2188,7 @@ function updateBoss(dt) {
     }
   } else if (boss.state === 'hover') {
     // gentle bob
-    boss.y = 92 + Math.sin(performance.now() / 450) * 7;
+    boss.y = boss.baseY + Math.sin(performance.now() / 450) * 7;
 
     // patrol
     boss.x += boss.patrolDir * boss.patrolSpeed * dt;
@@ -1144,6 +2208,10 @@ function updateBoss(dt) {
         spawnGoldCoin(boss.x + boss.w / 2, GROUND_Y);
         boss.droppedGold = true;
       }
+      if (!boss.survivalHandled) {
+        handleBossSurvival();
+        boss.survivalHandled = true;
+      }
     }
   } else if (boss.state === 'beam') {
     // patrol while beaming
@@ -1151,7 +2219,7 @@ function updateBoss(dt) {
     if (boss.x <= boss.patrolLeft) { boss.x = boss.patrolLeft; boss.patrolDir = 1; }
     if (boss.x >= boss.patrolRight()) { boss.x = boss.patrolRight(); boss.patrolDir = -1; }
 
-    boss.y = 92 + Math.sin(performance.now() / 450) * 7;
+    boss.y = boss.baseY + Math.sin(performance.now() / 450) * 7;
 
     // wilder beam
     boss.fx.noisePhase += dt * 2.2;
@@ -1293,9 +2361,10 @@ function drawBoss() {
     const topY = y + h * 0.52;
     const bottomY = canvas.height;
     if (!(bottomY - topY > 1)) {
-       drawBeamFX();
+      drawBeamFX();
     } else {
-		}
+
+
 
     // pulsating width + slight sinusoidal edge wobble
     const pulse = 1 + Math.sin(performance.now() / 120) * 0.1 + boss.fx.flicker * 0.08;
@@ -1343,6 +2412,7 @@ function drawBoss() {
     // particles/sparkles
     drawBeamFX();
   }
+}
 
   /* ====== UFO BODY (assembled, outlined, shaded) ====== */
   if (ufoImage.complete && ufoImage.naturalWidth > 0) {
@@ -1522,6 +2592,60 @@ function drawBeamFX() {
   ctx.restore();
 }
 
+function updateDiscoBall(dt) {
+  if (!discoBall) return;
+
+  discoBall.x -= gameSpeed * DISCO_BALL_SCROLL_FACTOR * dt;
+  discoBall.bobTime += dt;
+  discoBall.y = discoBall.baseY + Math.sin(discoBall.bobTime * 3.6) * DISCO_BALL_BOB_AMPLITUDE;
+
+  discoBall.frameTimer += dt;
+  if (discoBall.frameTimer >= DISCO_BALL_FRAME_TIME) {
+    discoBall.frameTimer -= DISCO_BALL_FRAME_TIME;
+    discoBall.frame = (discoBall.frame + 1) % discoBallFrames.length;
+  }
+
+  if (discoBall.sparkles.length > 28) {
+    discoBall.sparkles = discoBall.sparkles.slice(-28);
+  }
+
+  if (Math.random() < DISCO_BALL_SPARKLES_PER_SEC * dt) {
+    discoBall.sparkles.push({
+      angle: Math.random() * Math.PI * 2,
+      life: 0,
+      maxLife: DISCO_BALL_SPARKLE_LIFE * (0.7 + Math.random() * 0.6),
+      radius: discoBall.width * 0.45 + Math.random() * 12,
+      spin: (Math.random() - 0.5) * 3.2
+    });
+  }
+
+  for (let i = discoBall.sparkles.length - 1; i >= 0; i--) {
+    const s = discoBall.sparkles[i];
+    s.life += dt;
+    if (s.life >= s.maxLife) {
+      discoBall.sparkles.splice(i, 1);
+    } else {
+      s.angle += s.spin * dt;
+    }
+  }
+
+  const hitbox = {
+    x: discoBall.x + discoBall.width * 0.2,
+    y: discoBall.y + discoBall.height * 0.2,
+    width: discoBall.width * 0.6,
+    height: discoBall.height * 0.6,
+  };
+
+  if (!discoBall.collected && rectsOverlap(horse, hitbox)) {
+    collectDiscoBall();
+    return;
+  }
+
+  if (discoBall.x + discoBall.width < 0) {
+    discoBall = null;
+  }
+}
+
 function updateGoldCoins(dt) {
   for (let i = goldCoins.length - 1; i >= 0; i--) {
     const g = goldCoins[i];
@@ -1614,19 +2738,34 @@ function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
 function syncMusicToState() {
-
-  const inApambo = performance.now() < ramboUntil;
+  const now = performance.now();
+  const inApambo = now < ramboUntil;
+  const inDisco = isDiscoModeActive();
 
   AudioKit.stopSong();
 
-  if (gameState === 'playing') {
-
-    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
-
-    else          { AudioKit.startSong(); apamboMusicOn = false; }
-
+  if (gameState !== 'playing') {
+    apamboMusicOn = false;
+    discoMusicOn = false;
+    return;
   }
 
+  if (inDisco) {
+    AudioKit.playDisco();
+    discoMusicOn = true;
+    apamboMusicOn = false;
+    return;
+  }
+
+  discoMusicOn = false;
+
+  if (inApambo) {
+    AudioKit.playMetal();
+    apamboMusicOn = true;
+  } else {
+    AudioKit.startSong();
+    apamboMusicOn = false;
+  }
 }
 
 
@@ -1646,10 +2785,15 @@ function rectsOverlap(a, b) {
          a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
+function isDiscoModeActive() {
+  return performance.now() < discoModeUntil;
+}
+
+
 function loseLife() {
   const now = performance.now();
-  // hard guard — if invincible for any reason, ignore
-  if (now < Math.max(invincibleUntil, hurtUntil)) return;
+  // ignore damage when invulnerability timers or space transitions are active
+  if (now < Math.max(invincibleUntil, hurtUntil) || isSpaceTransitioning()) return;
 
   // set invulnerability *first*, so any subsequent checks this frame see it
   hurtUntil       = now + HURT_DURATION_MS;
@@ -1691,12 +2835,52 @@ function drawBackground(dt) {
   if (bgLayer2X <= -canvas.width) bgLayer2X = 0;
   if (bgLayer3X <= -canvas.width) bgLayer3X = 0;
 
-  ctx.drawImage(bgLayer1, bgLayer1X, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgLayer1, bgLayer1X + canvas.width, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgLayer2, bgLayer2X, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgLayer2, bgLayer2X + canvas.width, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgLayer3, bgLayer3X, 0, canvas.width, canvas.height);
-  ctx.drawImage(bgLayer3, bgLayer3X + canvas.width, 0, canvas.width, canvas.height);
+  const spaceVisual = isSpaceModeVisual();
+  const discoActive = !spaceVisual && isDiscoModeActive();
+
+  const layer1Img = spaceVisual ? spaceBgLayer2 : bgLayer1;
+  const layer2Img = spaceVisual ? spaceBgLayer2 : (discoActive && discoBgLayer2.complete && discoBgLayer2.naturalWidth ? discoBgLayer2 : bgLayer2);
+  const layer3Img = spaceVisual ? spaceBgLayer3 : (discoActive && discoBgLayer3.complete && discoBgLayer3.naturalWidth ? discoBgLayer3 : bgLayer3);
+
+  ctx.drawImage(layer1Img, bgLayer1X, 0, canvas.width, canvas.height);
+  ctx.drawImage(layer1Img, bgLayer1X + canvas.width, 0, canvas.width, canvas.height);
+  ctx.drawImage(layer2Img, bgLayer2X, 0, canvas.width, canvas.height);
+  ctx.drawImage(layer2Img, bgLayer2X + canvas.width, 0, canvas.width, canvas.height);
+  ctx.drawImage(layer3Img, bgLayer3X, 0, canvas.width, canvas.height);
+  ctx.drawImage(layer3Img, bgLayer3X + canvas.width, 0, canvas.width, canvas.height);
+
+  if (discoActive) {
+    drawDiscoLights();
+  }
+}
+
+function drawSpaceStars() {
+  if (!isSpaceModeVisual() || !spaceStars.length) return;
+  ctx.save();
+  for (const star of spaceStars) {
+    const alpha = clamp(star.baseAlpha + Math.sin(star.twinklePhase) * 0.3, 0.05, 1);
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function drawSpaceDecorations() {
+  if (!isSpaceModeVisual() || !spaceDecorations.length) return;
+  ctx.save();
+  ctx.globalAlpha = 0.96;
+  for (const deco of spaceDecorations) {
+    const img = deco.img;
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, deco.x, deco.y, deco.width, deco.height);
+    }
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function drawHorse() {
@@ -1708,8 +2892,17 @@ function drawHorse() {
   // flicker while invincible (existing)
   if (horse.invincible && Math.floor(Date.now() / 100) % 2) ctx.globalAlpha = 0.6;
 
-  // choose sprite (APAMBO during rambo)
-  const img = (performance.now() < ramboUntil) ? apamboImage : horseImage;
+  // choose sprite; space overrides other modes
+  let img;
+  if (isSpaceModeVisual() && apastronautImage.complete && apastronautImage.naturalWidth) {
+    img = apastronautImage;
+  } else if (isDiscoModeActive() && discoHorseImage.complete && discoHorseImage.naturalWidth) {
+    img = discoHorseImage;
+  } else if (performance.now() < ramboUntil) {
+    img = apamboImage;
+  } else {
+    img = horseImage;
+  }
   ctx.drawImage(img, -horse.width / 2, -horse.height / 2, horse.width, horse.height);
 
   // red flash overlay while hurt
@@ -1726,8 +2919,115 @@ function drawHorse() {
 }
 
 
-function drawLogs()      { logs.forEach(l => ctx.drawImage(logImage, l.x, l.y, l.width, l.height)); }
-function drawEnemies()   { enemies.forEach(e => ctx.drawImage(enemyImage, e.x, e.y, e.width, e.height)); }
+function drawLogs() {
+  for (const l of logs) {
+    const img = l.space ? logSpaceImage : logImage;
+    ctx.drawImage(img, l.x, l.y, l.width, l.height);
+  }
+}
+function drawEnemies() {
+  for (const e of enemies) {
+    const img = e.space ? enemySpaceImage : enemyImage;
+    ctx.drawImage(img, e.x, e.y, e.width, e.height);
+  }
+}
+function drawDiscoBall() {
+  if (!discoBall) return;
+
+  const frame = discoBallFrames[discoBall.frame % discoBallFrames.length];
+  const x = discoBall.x;
+  const y = discoBall.y;
+  const w = discoBall.width;
+  const h = discoBall.height;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+
+  ctx.save();
+  const glowRadius = Math.max(w, h) * 0.75;
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowRadius);
+  glow.addColorStop(0, 'rgba(255,255,255,0.45)');
+  glow.addColorStop(1, 'rgba(255,215,0,0)');
+  ctx.fillStyle = glow;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  ctx.arc(cx, cy, glowRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  if (frame && frame.complete && frame.naturalWidth) {
+    ctx.drawImage(frame, x, y, w, h);
+  } else {
+    ctx.fillStyle = '#d0d0ff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, w / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
+  for (const s of discoBall.sparkles) {
+    const progress = s.life / s.maxLife;
+    const alpha = Math.max(0, 1 - progress);
+    const radius = s.radius * (0.6 + 0.4 * Math.sin(progress * Math.PI));
+    const sx = cx + Math.cos(s.angle) * radius;
+    const sy = cy + Math.sin(s.angle) * radius * 0.7;
+    const size = 3 + 3 * (1 - Math.abs(Math.sin(progress * Math.PI)));
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - size);
+    ctx.lineTo(sx + size, sy);
+    ctx.lineTo(sx, sy + size);
+    ctx.lineTo(sx - size, sy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawDiscoLights() {
+  if (!isDiscoModeActive()) return;
+
+  const elapsed = performance.now() - discoModeStartedAt;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < DISCO_LIGHT_BEAMS; i++) {
+    const phase = elapsed / 320 + i * 0.65;
+    const center = canvas.width * (0.5 + 0.45 * Math.sin(phase));
+    const hue = (elapsed / 8 + i * 55) % 360;
+    const alpha = Math.max(0.18, Math.min(0.6, DISCO_LIGHT_ALPHA * (0.7 + 0.3 * Math.cos(phase * 1.7))));
+    ctx.fillStyle = `hsla(${Math.floor(hue)}, 82%, 62%, ${alpha.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.moveTo(center, 0);
+    ctx.lineTo(center - canvas.width * 0.28, canvas.height);
+    ctx.lineTo(center + canvas.width * 0.28, canvas.height);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  const sparkleCount = 12;
+  for (let i = 0; i < sparkleCount; i++) {
+    const t = elapsed / 150 + i * 2.1;
+    const sx = (Math.sin(t * 1.3 + i) * 0.5 + 0.5) * canvas.width;
+    const sy = (Math.cos(t * 1.9 + i * 0.8) * 0.4 + 0.55) * canvas.height;
+    const size = 4 + 3 * Math.sin(t * 2.7);
+    const alpha = 0.25 + 0.25 * (1 + Math.sin(t * 3.4));
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - size);
+    ctx.lineTo(sx + size, sy);
+    ctx.lineTo(sx, sy + size);
+    ctx.lineTo(sx - size, sy);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawCoins()     { coins.forEach(c => ctx.drawImage(coinImage, c.x, c.y, c.width, c.height)); }
 function drawGoldCoins() {
   for (const g of goldCoins) {
@@ -1744,7 +3044,17 @@ function drawGoldCoins() {
   }
 }
 function drawPlatforms() { platforms.forEach(p => ctx.drawImage(platformImage, p.x, p.y, p.width, p.height)); }
-function drawPowerUps()  { powerUps.forEach(p => ctx.drawImage(powerUpImage, p.x, p.y, p.width, p.height)); }
+function drawPowerUps() {
+  for (const p of powerUps) {
+    ctx.drawImage(powerUpImage, p.x, p.y, p.width, p.height);
+  }
+}
+
+function drawBeers() {
+  for (const beer of beers) {
+    ctx.drawImage(beerImage, beer.x, beer.y, beer.width, beer.height);
+  }
+}
 
 function spawnDart() {
   // muzzle position: tweak offsets to match your APAMBO gun
@@ -1852,6 +3162,15 @@ function gameOver() {
   const hs = +localStorage.getItem('highScore') || 0;
   if (horse.score > hs) localStorage.setItem('highScore', horse.score);
   AudioKit.stopSong();
+  apamboMusicOn = false;
+  discoMusicOn = false;
+  discoModeUntil = 0;
+  discoModeStartedAt = 0;
+  if (snips) { despawnSnips(false); }
+  nextSnipsAt = performance.now() + SNIPS_SPAWN_INTERVAL + Math.random() * SNIPS_SPAWN_JITTER;
+  difficultyMultiplier = 1;
+  baseGameSpeed = 200;
+  recalcGameSpeed();
 }
 
 canvas.addEventListener('click', (event) => {
@@ -1882,27 +3201,51 @@ function resetGame() {
     jumpHoldTime: 0, maxJumpHoldTime: 0.3
   };
   logs = []; enemies = []; coins = []; platforms = []; powerUps = []; keys = {};
-  gameSpeed = 200; frame = 0; level = 1; isPaused = false;
+  discoBall = null;
+  if (snips) { despawnSnips(false); }
+  snips = null;
+  nextSnipsAt = performance.now() + SNIPS_SPAWN_INTERVAL + Math.random() * SNIPS_SPAWN_JITTER;
+  beers = [];
+  scheduleNextBeer();
+  spaceState = 'normal';
+  spaceModeUntil = 0;
+  spaceTransitionStart = 0;
+  spaceTransitionProgress = 0;
+  spaceVisualApplied = false;
+  spaceEnteredAt = 0;
+  spaceStars = [];
+  spaceDecorations = [];
+  spaceDecorNextSpawnAt = 0;
+  spaceEarthSpawned = false;
+  ufoSurvivalCount = 0;
+  spawnDiscoBallNext = true;
+  discoModeUntil = 0;
+  discoModeStartedAt = 0;
+  discoMusicOn = false;
+  difficultyMultiplier = 1;
+  baseGameSpeed = 200;
+  recalcGameSpeed();
+  frame = 0; level = 1; isPaused = false;
   bgLayer1X = bgLayer2X = bgLayer3X = 0;
   boss = null; bossSpawnTimer = 0;
-  lastTime = performance.now();
-  animationId = requestAnimationFrame(gameLoop);
+  apamboMusicOn = false;
+  startMainLoop();
   AudioKit.startSong();
 }
 
 /* ---------- Touch controls (unchanged) ---------- */
-leftButton.addEventListener('pointerdown', e => { e.preventDefault(); keys['ArrowLeft'] = true; });
-leftButton.addEventListener('pointerup',   e => { e.preventDefault(); keys['ArrowLeft'] = false; });
+leftButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowLeft'] = true; });
+leftButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowLeft'] = false; });
 
-rightButton.addEventListener('pointerdown', e => { e.preventDefault(); keys['ArrowRight'] = true; });
-rightButton.addEventListener('pointerup',   e => { e.preventDefault(); keys['ArrowRight'] = false; });
+rightButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowRight'] = true; });
+rightButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowRight'] = false; });
 
 pauseButton.addEventListener('pointerup', e => {
   e.preventDefault();
+  if (!gameStarted) return;
   isPaused = !isPaused;
   if (!isPaused) {
-    lastTime = performance.now();
-    animationId = requestAnimationFrame(gameLoop);
+    startMainLoop();
 
     const inApambo = performance.now() < ramboUntil;
     AudioKit.stopSong();
@@ -1918,7 +3261,8 @@ pauseButton.addEventListener('pointerup', e => {
 
 jumpButton.addEventListener('pointerdown', e => {
   e.preventDefault();
-  if (horse.onGround) {
+  if (!gameStarted) return;
+  if (horse.onGround && !isSpaceModeVisual()) {
 		ensureAudioActive();
     horse.isJumping = true;
     horse.velocityY = -350;
@@ -1931,11 +3275,18 @@ jumpButton.addEventListener('pointerdown', e => {
 });
 jumpButton.addEventListener('pointerup', e => {
   e.preventDefault();
+  if (!gameStarted) return;
   keys['Space'] = false;
 });
 
-stompButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!horse.stomping) { horse.stomping = true; horse.stompCount = 0; } });
-stompButton.addEventListener('pointerup',   e => { e.preventDefault(); horse.stomping = false; horse.trampleAngle = 0; });
+stompButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; if (!horse.stomping) { horse.stomping = true; horse.stompCount = 0; } });
+stompButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; horse.stomping = false; horse.trampleAngle = 0; });
+
+function startMainLoop() {
+  cancelAnimationFrame(animationId);
+  lastTime = performance.now();
+  animationId = requestAnimationFrame(gameLoop);
+}
 
 /* ---------- Loop ---------- */
 let lastTime = 0;
@@ -1948,26 +3299,55 @@ function gameLoop(ts) {
   ensureAudioActive();
 
 
-{
-  const inApambo = performance.now() < ramboUntil;
+  updateSpaceMode(dt);
 
-  // Entering APAMBO → start METAL
-  if (inApambo && !apamboMusicOn) {
-    AudioKit.playMetal();
-    apamboMusicOn = true;
+  const now = performance.now();
+  const discoActive = isDiscoModeActive();
+  const inApambo = now < ramboUntil;
+
+  if (discoActive) {
+    if (!discoMusicOn) {
+      AudioKit.stopSong();
+      AudioKit.playDisco();
+      discoMusicOn = true;
+      apamboMusicOn = false;
+    }
+  } else {
+    if (discoMusicOn) {
+      discoMusicOn = false;
+      AudioKit.stopSong();
+      if (inApambo) {
+        AudioKit.playMetal();
+        apamboMusicOn = true;
+      } else {
+        AudioKit.startSong();
+        apamboMusicOn = false;
+      }
+    } else {
+      if (inApambo && !apamboMusicOn) {
+        AudioKit.playMetal();
+        apamboMusicOn = true;
+      }
+      if (!inApambo && apamboMusicOn) {
+        AudioKit.startSong();
+        apamboMusicOn = false;
+      }
+    }
   }
-
-  // Exiting APAMBO → go back to MAIN
-  if (!inApambo && apamboMusicOn) {
-    AudioKit.startSong();
-    apamboMusicOn = false;
-  }
-}
-
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (gameState === 'playing') {
+    const nowMs = performance.now();
+    const inSpace = isSpaceModeActive() || isSpaceTransitioning();
+    if (!inSpace && !snips && nowMs >= nextSnipsAt) {
+      const bossActive = !!boss;
+      const ufoLeavingSoon = bossActive && boss.state === 'leave' && boss.stateTimer <= 2;
+      if (!bossActive || ufoLeavingSoon) {
+        spawnSnips();
+      }
+    }
+
     // Spawn timers
     logSpawnTimer += dt;
     enemySpawnTimer += dt;
@@ -1976,65 +3356,93 @@ function gameLoop(ts) {
     powerUpSpawnTimer += dt;
     bossSpawnTimer += dt;
 
-    if (logSpawnTimer >= 2.5)        { createLog();      logSpawnTimer = 0; }
-    if (enemySpawnTimer >= 3.1)      { createEnemy();    enemySpawnTimer = 0; }
-    if (coinSpawnTimer >= 1.5)       { createCoin();     coinSpawnTimer = 0; }
-    if (platformSpawnTimer >= 3.3)   { createPlatform(); platformSpawnTimer = 0; }
-    if (
-      powerUpSpawnTimer >= 12 &&                        // base interval (a bit rarer)
-      performance.now() >= powerUpCooldownUntil &&         // cooldown gate
-      powerUps.length === 0 &&                          // only one powerUp on screen
-      performance.now() >= invincibleUntil              // don't spawn while invincible
-    ) {
-      createPowerUp();
+    if (inSpace) {
+      if (logSpawnTimer >= SPACE_LOG_INTERVAL) { createLog(); logSpawnTimer = 0; }
+      if (enemySpawnTimer >= SPACE_ENEMY_INTERVAL) { createEnemy(); enemySpawnTimer = 0; }
+      if (coinSpawnTimer >= SPACE_COIN_INTERVAL) { createCoin(); coinSpawnTimer = 0; }
+
+      platformSpawnTimer = 0;
       powerUpSpawnTimer = 0;
-      // set a soft cooldown so it can’t re-appear right away unless you want it to
-      powerUpCooldownUntil = performance.now() + 20000;    // 20s
+
+      const hasSpaceHorse2 = horse2s.some(h => h.space);
+      if (!hasSpaceHorse2 && performance.now() >= horse2CooldownUntil) {
+        spawnSpaceHorse2();
+        horse2CooldownUntil = performance.now() + SPACE_HORSE2_COOLDOWN_MS + Math.random() * 4000;
+      }
+    } else {
+      if (logSpawnTimer >= 2.5)        { createLog();      logSpawnTimer = 0; }
+      if (enemySpawnTimer >= 3.1)      { createEnemy();    enemySpawnTimer = 0; }
+      if (coinSpawnTimer >= 1.5)       { createCoin();     coinSpawnTimer = 0; }
+      if (platformSpawnTimer >= 3.3)   { createPlatform(); platformSpawnTimer = 0; }
+      if (
+        powerUpSpawnTimer >= 12 &&
+        performance.now() >= powerUpCooldownUntil &&
+        powerUps.length === 0 &&
+        performance.now() >= invincibleUntil
+      ) {
+        createPowerUp();
+        powerUpSpawnTimer = 0;
+        powerUpCooldownUntil = performance.now() + 20000;
+      }
+
+      if (beers.length === 0 && performance.now() >= nextBeerAt) {
+        spawnBeer();
+      }
     }
 
     // Spawn boss every ~25–35s (randomized), only if none active
-    if (!boss && bossSpawnTimer >= 45 + Math.random() * 20) {
+    if (!inSpace && !boss && bossSpawnTimer >= 45 + Math.random() * 20) {
       spawnBoss();
       bossSpawnTimer = 0;
     }
+
+    updateSpaceScenery(dt);
 
     // Updates
     updateHorse(dt);
     updateLogs(dt);
     updateEnemies(dt);
     updateCoins(dt);
+    updateDiscoBall(dt);
     updateGoldCoins(dt);
     updatePlatforms(dt);
     updatePowerUps(dt);
+    updateBeers(dt);
     updateHorse2s(dt);
+    updateSnips(dt);
     updateBoss(dt);
     if (!isNum(horse.x) || !isNum(horse.y) || !isNum(horse.velocityY)) {
       resetHorsePosition();
     }
 
     // Auto-fire while APAMBO is active
-    const now = performance.now();
-    if (now < ramboUntil) {
-      if (now >= nextDartAt) {
+    if (nowMs < ramboUntil) {
+      if (nowMs >= nextDartAt) {
 				ensureAudioActive();
         spawnDart();
         AudioKit.sfx.dart();
-        nextDartAt = now + DART_INTERVAL;
+        nextDartAt = nowMs + DART_INTERVAL;
       }
     }
     updateDarts(dt);
 
     // Draw
     drawBackground(dt);
+    drawSpaceStars();
+    drawSpaceDecorations();
     drawPlatforms();
     drawCoins();
+    drawDiscoBall();
     drawGoldCoins();
+    drawBeers();
     drawPowerUps();
     drawLogs();
     drawHorse2s();
     drawEnemies();
+    drawSnips();
     drawBoss();
     drawHorse();
+    drawSpaceTransitionOverlay();
     drawScore();
     drawDarts();
     drawRamboMeter();
@@ -2045,9 +3453,12 @@ function gameLoop(ts) {
     }
 
     // Level speed-up
-    if (horse.score >= level * 100) { level++; gameSpeed += 0.5; }
+    if (horse.score >= level * 100) { level++; baseGameSpeed += 0.5; recalcGameSpeed(); }
   } else if (gameState === 'gameover') {
+    updateSpaceScenery(dt);
     drawBackground(dt);
+    drawSpaceStars();
+    drawSpaceDecorations();
     drawGameOverScreen();
   }
 
@@ -2127,3 +3538,35 @@ window.addEventListener('message', (event) => {
   if (data.type !== DESKTOP_MEDIA_MESSAGE) return;
   handleDesktopMediaCommand(data.action);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
