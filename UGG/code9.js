@@ -66,7 +66,7 @@ gdjs.BLACKCode.GDPATALK2Objects1= [];
 gdjs.BLACKCode.GDPATALK2Objects2= [];
 
 
-gdjs.BLACKCode.asyncCallback113185844 = function (runtimeScene, asyncObjectsList) {
+gdjs.BLACKCode.asyncCallback99162732 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.BLACKCode.localVariables);
 {gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "BOSS_1", false);
 }
@@ -81,7 +81,7 @@ gdjs.BLACKCode.eventsList0 = function(runtimeScene) {
 {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.BLACKCode.localVariables);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(1), (runtimeScene) => (gdjs.BLACKCode.asyncCallback113185844(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(1), (runtimeScene) => (gdjs.BLACKCode.asyncCallback99162732(runtimeScene, asyncObjectsList)));
 }
 }
 

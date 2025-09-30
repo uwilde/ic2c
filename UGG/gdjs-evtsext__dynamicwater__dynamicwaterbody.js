@@ -755,7 +755,7 @@ for (var i = 0, k = 0, l = gdjs.evtsExt__DynamicWater__DynamicWaterBody.DynamicW
 gdjs.evtsExt__DynamicWater__DynamicWaterBody.DynamicWaterBody.prototype.WaterBodyAndCollisionContext.GDObjectObjects3.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = eventsFunctionContext.getOnceTriggers().triggerOnce(102845364);
+{isConditionTrue_0 = eventsFunctionContext.getOnceTriggers().triggerOnce(80830076);
 }
 }
 if (isConditionTrue_0) {
@@ -3895,7 +3895,7 @@ gdjs.evtsExt__DynamicWater__DynamicWaterBody.DynamicWaterBody.prototype.onDestro
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = eventsFunctionContext.getOnceTriggers().triggerOnce(102912876);
+{isConditionTrue_0 = eventsFunctionContext.getOnceTriggers().triggerOnce(80933940);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(eventsFunctionContext.getObjects("Object"), gdjs.evtsExt__DynamicWater__DynamicWaterBody.DynamicWaterBody.prototype.onDestroyContext.GDObjectObjects1);

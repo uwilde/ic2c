@@ -10,7 +10,7 @@ gdjs.evtsExt__JointConnector__CreateRopeJoints.GDObjectObjects1= [];
 gdjs.evtsExt__JointConnector__CreateRopeJoints.GDJointObjects1= [];
 
 
-gdjs.evtsExt__JointConnector__CreateRopeJoints.userFunc0x19f6770 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
+gdjs.evtsExt__JointConnector__CreateRopeJoints.userFunc0x6a99248 = function GDJSInlineCode(runtimeScene, objects, eventsFunctionContext) {
 "use strict";
 const behaviorName = eventsFunctionContext.getBehaviorName("Physics");
 const jointObjects = eventsFunctionContext.getObjects("Joint");
@@ -63,7 +63,7 @@ gdjs.evtsExt__JointConnector__CreateRopeJoints.eventsList0 = function(runtimeSce
 gdjs.copyArray(eventsFunctionContext.getObjects("Object"), gdjs.evtsExt__JointConnector__CreateRopeJoints.GDObjectObjects1);
 
 const objects = gdjs.evtsExt__JointConnector__CreateRopeJoints.GDObjectObjects1;
-gdjs.evtsExt__JointConnector__CreateRopeJoints.userFunc0x19f6770(runtimeScene, objects, eventsFunctionContext);
+gdjs.evtsExt__JointConnector__CreateRopeJoints.userFunc0x6a99248(runtimeScene, objects, eventsFunctionContext);
 
 }
 

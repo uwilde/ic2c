@@ -1088,7 +1088,7 @@ for (var i = 0, k = 0, l = gdjs.Level2Code.GDJumpButtonObjects3.length;i<l;++i) 
 gdjs.Level2Code.GDJumpButtonObjects3.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110248452);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129600404);
 }
 }
 if (isConditionTrue_0) {
@@ -1118,7 +1118,7 @@ for (var i = 0, k = 0, l = gdjs.Level2Code.GDJumpButtonObjects2.length;i<l;++i) 
 gdjs.Level2Code.GDJumpButtonObjects2.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110242420);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129601796);
 }
 }
 if (isConditionTrue_0) {
@@ -1195,7 +1195,7 @@ gdjs.Level2Code.eventsList3 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110313100);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129606708);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1212,7 +1212,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110337884);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129608076);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1280,7 +1280,7 @@ gdjs.Level2Code.eventsList6 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109838244);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129610868);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1297,7 +1297,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110273868);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129612308);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1365,7 +1365,7 @@ gdjs.Level2Code.eventsList9 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109924460);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129615092);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1382,7 +1382,7 @@ if (isConditionTrue_0) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109925492);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129616532);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\STEPPING IN LEAVES2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1450,7 +1450,7 @@ gdjs.Level2Code.eventsList12 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110190156);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129619180);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1469,7 +1469,7 @@ gdjs.Level2Code.eventsList13 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110202108);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129621276);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1488,7 +1488,7 @@ gdjs.Level2Code.eventsList14 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110211196);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129623396);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1507,7 +1507,7 @@ gdjs.Level2Code.eventsList15 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110200108);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129625508);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "5de189bcb6bd33d94771d296ecd55fd6ecebdcc3307a129c73cfe930f048ad58_Run_01.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1526,7 +1526,7 @@ gdjs.Level2Code.eventsList16 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110221636);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129627604);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1545,7 +1545,7 @@ gdjs.Level2Code.eventsList17 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109771828);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129629572);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1564,7 +1564,7 @@ gdjs.Level2Code.eventsList18 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109772068);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129631668);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1583,7 +1583,7 @@ gdjs.Level2Code.eventsList19 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109749852);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129633764);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "89861edef331b324f30593acea986999440a5eefa8d292cd207f2d980faed402_Run_02.wav", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1846,7 +1846,7 @@ gdjs.Level2Code.eventsList21 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109891540);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129636620);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1865,7 +1865,7 @@ gdjs.Level2Code.eventsList22 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110115332);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129638388);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1894,7 +1894,7 @@ gdjs.Level2Code.eventsList23 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110114676);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129640508);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1913,7 +1913,7 @@ gdjs.Level2Code.eventsList24 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109828828);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129642292);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1932,7 +1932,7 @@ gdjs.Level2Code.eventsList25 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109831452);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129644060);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1951,7 +1951,7 @@ gdjs.Level2Code.eventsList26 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109833676);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129645948);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1970,7 +1970,7 @@ gdjs.Level2Code.eventsList27 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109831980);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129647540);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -1989,7 +1989,7 @@ gdjs.Level2Code.eventsList28 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110058188);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129649308);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2008,7 +2008,7 @@ gdjs.Level2Code.eventsList29 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110061044);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129651076);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2027,7 +2027,7 @@ gdjs.Level2Code.eventsList30 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110063276);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129652908);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2046,7 +2046,7 @@ gdjs.Level2Code.eventsList31 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110059868);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129654676);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2065,7 +2065,7 @@ gdjs.Level2Code.eventsList32 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110060148);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129656444);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2084,7 +2084,7 @@ gdjs.Level2Code.eventsList33 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109842140);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129658212);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2103,7 +2103,7 @@ gdjs.Level2Code.eventsList34 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109845004);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129659980);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2122,7 +2122,7 @@ gdjs.Level2Code.eventsList35 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109848004);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129661772);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2141,7 +2141,7 @@ gdjs.Level2Code.eventsList36 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109848860);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129663564);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2160,7 +2160,7 @@ gdjs.Level2Code.eventsList37 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109843172);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129665356);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2179,7 +2179,7 @@ gdjs.Level2Code.eventsList38 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109699876);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129667148);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2198,7 +2198,7 @@ gdjs.Level2Code.eventsList39 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109702068);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129668940);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2217,7 +2217,7 @@ gdjs.Level2Code.eventsList40 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109704260);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129670732);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2236,7 +2236,7 @@ gdjs.Level2Code.eventsList41 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110062092);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129672524);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2255,7 +2255,7 @@ gdjs.Level2Code.eventsList42 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109700036);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129674316);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2274,7 +2274,7 @@ gdjs.Level2Code.eventsList43 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109704692);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129676108);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2293,7 +2293,7 @@ gdjs.Level2Code.eventsList44 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109931140);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129677900);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2312,7 +2312,7 @@ gdjs.Level2Code.eventsList45 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109933332);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129679692);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2331,7 +2331,7 @@ gdjs.Level2Code.eventsList46 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109935524);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129681484);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2350,7 +2350,7 @@ gdjs.Level2Code.eventsList47 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109929276);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129683276);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running1.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -2369,7 +2369,7 @@ gdjs.Level2Code.eventsList48 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109931588);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129685068);
 }
 if (isConditionTrue_0) {
 {gdjs.evtTools.sound.playSound(runtimeScene, "assets\\SOUND FX\\IMPACT\\SLICED\\STEPPING LEAVES\\slappy barefoot-running2.mp3", false, gdjs.evtTools.sound.getGlobalVolume(runtimeScene) / 5, 1);
@@ -3231,7 +3231,7 @@ for (var i = 0, k = 0, l = gdjs.Level2Code.GDUGGObjects3.length;i<l;++i) {
 gdjs.Level2Code.GDUGGObjects3.length = k;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110313812);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129604188);
 }
 }
 if (isConditionTrue_0) {
@@ -3562,7 +3562,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.runtimeScene.sceneJustBegins(runtimeScene);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109942780);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129687156);
 }
 }
 if (isConditionTrue_0) {
@@ -3659,7 +3659,7 @@ gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDELEC_95959595PORTAL_95959595PAR
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDELEC_95959595PORTAL_95959595PART_959595952Objects1Objects = Hashtable.newFrom({"ELEC_PORTAL_PART_2": gdjs.Level2Code.GDELEC_9595PORTAL_9595PART_95952Objects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects = Hashtable.newFrom({"UGG": gdjs.Level2Code.GDUGGObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDPortalObjects1Objects = Hashtable.newFrom({"Portal": gdjs.Level2Code.GDPortalObjects1});
-gdjs.Level2Code.asyncCallback109955428 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129708268 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 {gdjs.evtTools.runtimeScene.replaceScene(runtimeScene, "Level3", false);
 }
@@ -3674,7 +3674,7 @@ gdjs.Level2Code.eventsList56 = function(runtimeScene) {
 {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.5), (runtimeScene) => (gdjs.Level2Code.asyncCallback109955428(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.5), (runtimeScene) => (gdjs.Level2Code.asyncCallback129708268(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -3767,7 +3767,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.object.hitBoxesCollisionTest(gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects, gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDPortalObjects1Objects, false, runtimeScene, false);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109960852);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129703052);
 }
 }
 if (isConditionTrue_0) {
@@ -3969,7 +3969,7 @@ gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDROCK_959595953Objects1Objects =
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDROCK_959595954Objects1Objects = Hashtable.newFrom({"ROCK_4": gdjs.Level2Code.GDROCK_95954Objects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDNewSpriteObjects1Objects = Hashtable.newFrom({"NewSprite": gdjs.Level2Code.GDNewSpriteObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDROCK_959595954Objects1Objects = Hashtable.newFrom({"ROCK_4": gdjs.Level2Code.GDROCK_95954Objects1});
-gdjs.Level2Code.asyncCallback109971708 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129724452 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 gdjs.Level2Code.localVariables.length = 0;
 }
@@ -3982,7 +3982,7 @@ gdjs.Level2Code.eventsList65 = function(runtimeScene) {
 {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.25), (runtimeScene) => (gdjs.Level2Code.asyncCallback109971708(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.25), (runtimeScene) => (gdjs.Level2Code.asyncCallback129724452(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4019,7 +4019,7 @@ gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDFALLING_95959595PLATFORM_959595
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDNewSpriteObjects1Objects = Hashtable.newFrom({"NewSprite": gdjs.Level2Code.GDNewSpriteObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects = Hashtable.newFrom({"UGG": gdjs.Level2Code.GDUGGObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDFALLING_95959595PLATFORM_959595951Objects1Objects = Hashtable.newFrom({"FALLING_PLATFORM_1": gdjs.Level2Code.GDFALLING_9595PLATFORM_95951Objects1});
-gdjs.Level2Code.asyncCallback109874300 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129743828 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("FALLING_PLATFORM_1"), gdjs.Level2Code.GDFALLING_9595PLATFORM_95951Objects2);
 
@@ -4039,7 +4039,7 @@ gdjs.Level2Code.eventsList66 = function(runtimeScene) {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
 for (const obj of gdjs.Level2Code.GDFALLING_9595PLATFORM_95951Objects1) asyncObjectsList.addObject("FALLING_PLATFORM_1", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback109874300(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback129743828(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4048,7 +4048,7 @@ runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3)
 
 };gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects = Hashtable.newFrom({"UGG": gdjs.Level2Code.GDUGGObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDFALLING_95959595PLATFORM_959595952Objects1Objects = Hashtable.newFrom({"FALLING_PLATFORM_2": gdjs.Level2Code.GDFALLING_9595PLATFORM_95952Objects1});
-gdjs.Level2Code.asyncCallback109879372 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129748380 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("FALLING_PLATFORM_2"), gdjs.Level2Code.GDFALLING_9595PLATFORM_95952Objects2);
 
@@ -4068,7 +4068,7 @@ gdjs.Level2Code.eventsList67 = function(runtimeScene) {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
 for (const obj of gdjs.Level2Code.GDFALLING_9595PLATFORM_95952Objects1) asyncObjectsList.addObject("FALLING_PLATFORM_2", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback109879372(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback129748380(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4077,7 +4077,7 @@ runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3)
 
 };gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects = Hashtable.newFrom({"UGG": gdjs.Level2Code.GDUGGObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDFALLING_95959595PLATFORM_959595953Objects1Objects = Hashtable.newFrom({"FALLING_PLATFORM_3": gdjs.Level2Code.GDFALLING_9595PLATFORM_95953Objects1});
-gdjs.Level2Code.asyncCallback109884444 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129752932 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("FALLING_PLATFORM_3"), gdjs.Level2Code.GDFALLING_9595PLATFORM_95953Objects2);
 
@@ -4097,7 +4097,7 @@ gdjs.Level2Code.eventsList68 = function(runtimeScene) {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
 for (const obj of gdjs.Level2Code.GDFALLING_9595PLATFORM_95953Objects1) asyncObjectsList.addObject("FALLING_PLATFORM_3", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback109884444(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback129752932(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4106,7 +4106,7 @@ runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3)
 
 };gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDUGGObjects1Objects = Hashtable.newFrom({"UGG": gdjs.Level2Code.GDUGGObjects1});
 gdjs.Level2Code.mapOfGDgdjs_9546Level2Code_9546GDFALLING_95959595PLATFORM_959595954Objects1Objects = Hashtable.newFrom({"FALLING_PLATFORM_4": gdjs.Level2Code.GDFALLING_9595PLATFORM_95954Objects1});
-gdjs.Level2Code.asyncCallback109866908 = function (runtimeScene, asyncObjectsList) {
+gdjs.Level2Code.asyncCallback129757692 = function (runtimeScene, asyncObjectsList) {
 asyncObjectsList.restoreLocalVariablesContainers(gdjs.Level2Code.localVariables);
 gdjs.copyArray(asyncObjectsList.getObjects("FALLING_PLATFORM_4"), gdjs.Level2Code.GDFALLING_9595PLATFORM_95954Objects2);
 
@@ -4126,7 +4126,7 @@ gdjs.Level2Code.eventsList69 = function(runtimeScene) {
 const asyncObjectsList = new gdjs.LongLivedObjectsList();
 asyncObjectsList.backupLocalVariablesContainers(gdjs.Level2Code.localVariables);
 for (const obj of gdjs.Level2Code.GDFALLING_9595PLATFORM_95954Objects1) asyncObjectsList.addObject("FALLING_PLATFORM_4", obj);
-runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback109866908(runtimeScene, asyncObjectsList)));
+runtimeScene.getAsyncTasksManager().addTask(gdjs.evtTools.runtimeScene.wait(0.3), (runtimeScene) => (gdjs.Level2Code.asyncCallback129757692(runtimeScene, asyncObjectsList)));
 }
 }
 
@@ -4148,7 +4148,7 @@ gdjs.Level2Code.eventsList71 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109871428);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129768172);
 }
 if (isConditionTrue_0) {
 {runtimeScene.getScene().getVariables().get("PAUSE").add(1);
@@ -4243,7 +4243,7 @@ gdjs.Level2Code.eventsList76 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109716508);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129791084);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level2Code.GDVOLSLIDEObjects1);
@@ -4263,7 +4263,7 @@ gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level2Code.GDVOLSLIDEOb
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109882092);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129792540);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("VOLSLIDE"), gdjs.Level2Code.GDVOLSLIDEObjects1);
@@ -4295,7 +4295,7 @@ gdjs.Level2Code.eventsList78 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109730692);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129800228);
 }
 if (isConditionTrue_0) {
 /* Reuse gdjs.Level2Code.GDPAUSBACKObjects1 */
@@ -4435,7 +4435,7 @@ gdjs.Level2Code.eventsList81 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110082244);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129812076);
 }
 if (isConditionTrue_0) {
 gdjs.copyArray(runtimeScene.getObjects("MMENU"), gdjs.Level2Code.GDMMENUObjects1);
@@ -4661,7 +4661,7 @@ gdjs.Level2Code.eventsList88 = function(runtimeScene) {
 
 let isConditionTrue_0 = false;
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108418924);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129887308);
 }
 if (isConditionTrue_0) {
 /* Reuse gdjs.Level2Code.GDPivot_9595NutObjects1 */
@@ -5648,7 +5648,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.variable.getVariableNumber(runtimeScene.getScene().getVariables().get("PAUSE")) == 1;
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(109726108);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129780868);
 }
 }
 if (isConditionTrue_0) {
@@ -6289,7 +6289,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.runtimeScene.sceneJustBegins(runtimeScene);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(110078860);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129842332);
 }
 }
 if (isConditionTrue_0) {
@@ -6529,7 +6529,7 @@ isConditionTrue_0 = false;
 isConditionTrue_0 = gdjs.evtTools.runtimeScene.sceneJustBegins(runtimeScene);
 if (isConditionTrue_0) {
 isConditionTrue_0 = false;
-{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(108414988);
+{isConditionTrue_0 = runtimeScene.getOnceTriggers().triggerOnce(129883228);
 }
 }
 if (isConditionTrue_0) {
