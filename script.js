@@ -244,6 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Initial load
       if (iframe) navigate('youtube/atoob.html', true);
     }
+    setupApacheTouchControls();
 });
 
 
@@ -859,7 +860,137 @@ function applyEnergySettings(silent = false) {
   if (!silent) {
     let message = 'Energy plan: monitor will stay caffeinated.';
     if (SETTINGS_STATE.lowPower && SETTINGS_STATE.shutOff) {
-      message = `Standby after ${SETTINGS_STATE.standbyMinutes} minutes, shutdown after ${SETTINGS_STATE.shutdownMinutes}. Power company terrified.`;
+
+const HORIZONTAL_AXIS_DEADZONE = 0.25;
+const horizontalControlState = {
+  keyboardLeft: false,
+  keyboardRight: false,
+  pointerLeft: false,
+  pointerRight: false,
+  joystickLeft: false,
+  joystickRight: false,
+};
+
+function syncHorizontalKeys() {
+  keys['ArrowLeft'] = horizontalControlState.keyboardLeft ||
+    horizontalControlState.pointerLeft ||
+    horizontalControlState.joystickLeft;
+  keys['ArrowRight'] = horizontalControlState.keyboardRight ||
+    horizontalControlState.pointerRight ||
+    horizontalControlState.joystickRight;
+}
+
+function isJoystickEngaged() {
+  return horizontalControlState.joystickLeft || horizontalControlState.joystickRight;
+}
+
+function startStompFromControl() {
+  if (!gameStarted) return;
+  if (!horse.stomping) {
+    horse.stomping = true;
+    horse.stompCount = 0;
+  }
+}
+
+function stopStompFromControl(options = {}) {
+  if (!gameStarted) return;
+  const respectManual = options.respectManual !== false;
+  if (respectManual && keys['ControlLeft']) {
+    return;
+  }
+  if (respectManual && isJoystickEngaged()) {
+    return;
+  }
+  horse.stomping = false;
+  horse.trampleAngle = 0;
+}
+
+function startJumpFromControl() {
+  if (!gameStarted) return;
+  if (horse.onGround && !isSpaceModeVisual()) {
+    ensureAudioActive();
+    horse.isJumping = true;
+    horse.velocityY = -350;
+    horse.jumpHoldTime = 0;
+    horse.onGround = false;
+    jumpSound.play();
+  }
+  keys['Space'] = true;
+}
+
+function endJumpFromControl() {
+  if (!gameStarted) return;
+  keys['Space'] = false;
+}
+
+function setPointerHorizontal(direction, active) {
+  if (!gameStarted) return;
+  if (direction === 'left') {
+    horizontalControlState.pointerLeft = active;
+  } else {
+    horizontalControlState.pointerRight = active;
+  }
+  syncHorizontalKeys();
+}
+
+function setHorizontalAxisFromJoystick(value) {
+  if (!gameStarted) return;
+  const leftActive = value < -HORIZONTAL_AXIS_DEADZONE;
+  const rightActive = value > HORIZONTAL_AXIS_DEADZONE;
+  horizontalControlState.joystickLeft = leftActive;
+  horizontalControlState.joystickRight = rightActive;
+  syncHorizontalKeys();
+  if (leftActive || rightActive) {
+    startStompFromControl();
+  } else {
+    stopStompFromControl();
+  }
+}
+
+function togglePauseFromControl() {
+  if (!gameStarted) return;
+  isPaused = !isPaused;
+  if (!isPaused) {
+    startMainLoop();
+    ensureAudioActive();
+    const now = performance.now();
+    const discoActive = isDiscoModeActive();
+    const inApambo = now < ramboUntil;
+    AudioKit.stopSong();
+    discoMusicOn = false;
+    apamboMusicOn = false;
+    if (discoActive) {
+      AudioKit.playDisco();
+      discoMusicOn = true;
+    } else if (inApambo) {
+      AudioKit.playMetal();
+      apamboMusicOn = true;
+    } else {
+      AudioKit.startSong();
+    }
+    if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
+      AudioKit.startSnipLoop();
+    }
+  } else {
+    cancelAnimationFrame(animationId);
+    drawPauseOverlay();
+    AudioKit.stopSong();
+    if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+      AudioKit.stopSnipLoop();
+    }
+  }
+}
+
+function registerExternalControls() {
+  window.apacheControls = {
+    setHorizontalAxis: setHorizontalAxisFromJoystick,
+    pressJump: startJumpFromControl,
+    releaseJump: endJumpFromControl,
+    togglePause: togglePauseFromControl,
+  };
+}
+
+registerExternalControls();      message = `Standby after ${SETTINGS_STATE.standbyMinutes} minutes, shutdown after ${SETTINGS_STATE.shutdownMinutes}. Power company terrified.`;
     } else if (SETTINGS_STATE.lowPower) {
       message = `Low-power standby after ${SETTINGS_STATE.standbyMinutes} minutes. Dim the lights.`;
     } else if (SETTINGS_STATE.shutOff) {
@@ -1215,7 +1346,7 @@ function bringToFront(windowElement) {
     allWindows.forEach(win => {
         win.style.zIndex = '500';
     });
-    windowElement.style.zIndex = '1000';
+    windowElement.style.zIndex = '10050';
 }
 
 // Functions to handle opening and closing of windows
@@ -1523,9 +1654,9 @@ function maximizeWindow(windowId, maximize = true) {
         // Maximize the window
         windowElement.classList.add('maximized');
         if (windowId === 'paintWindow') {
-            const taskbarHeight = 40;
-            const maxPaintWidth = 832;
-            const maxPaintHeight = 651;
+            const taskbarHeight = 0;
+            const maxPaintWidth = 972;
+            const maxPaintHeight = 791;
             const availableWidth = window.innerWidth;
             const availableHeight = Math.max(window.innerHeight - taskbarHeight, 0);
             const paintWidth = Math.min(maxPaintWidth, availableWidth);
@@ -1540,7 +1671,7 @@ function maximizeWindow(windowId, maximize = true) {
             windowElement.style.top = '0';
             windowElement.style.left = '0';
             windowElement.style.width = '100%';
-            windowElement.style.height = 'calc(100% - 40px)'; // Subtract taskbar height
+            windowElement.style.height = '100%'; // Subtract taskbar height
         }
     } else {
         // Restore to a smaller, default size
@@ -3106,4 +3237,191 @@ window.addEventListener('message', (event) => {
 
 
 
+
+
+function setupApacheTouchControls() {
+  const apacheWindow = document.getElementById('apacheWindow');
+  if (!apacheWindow) {
+    return;
+  }
+
+  const iframe = apacheWindow.querySelector('iframe');
+  const joystick = document.getElementById('apacheJoystick');
+  const joystickHandle = document.getElementById('apacheJoystickHandle');
+  const jumpButton = document.getElementById('apacheJumpButton');
+  const pauseButton = document.getElementById('apachePauseButton');
+
+  if (!iframe || !joystick || !joystickHandle || !jumpButton || !pauseButton) {
+    return;
+  }
+
+  let joystickPointerId = null;
+  let joystickBounds = null;
+  let lastAxisValue = 0;
+
+  const state = {
+    axis: 0,
+    jumpPressed: false,
+  };
+
+  function getControls() {
+    const frameWindow = iframe.contentWindow;
+    if (!frameWindow || !frameWindow.apacheControls) {
+      return null;
+    }
+    return frameWindow.apacheControls;
+  }
+
+  function applyAxis(value) {
+    state.axis = value;
+    const controls = getControls();
+    if (controls && typeof controls.setHorizontalAxis === 'function') {
+      controls.setHorizontalAxis(value);
+    }
+  }
+
+  function pressJump() {
+    state.jumpPressed = true;
+    const controls = getControls();
+    if (controls && typeof controls.pressJump === 'function') {
+      controls.pressJump();
+    }
+  }
+
+  function releaseJump() {
+    state.jumpPressed = false;
+    const controls = getControls();
+    if (controls && typeof controls.releaseJump === 'function') {
+      controls.releaseJump();
+    }
+  }
+
+  function togglePause() {
+    const controls = getControls();
+    if (controls && typeof controls.togglePause === 'function') {
+      controls.togglePause();
+    }
+  }
+
+  function syncWithGame() {
+    const controls = getControls();
+    if (!controls) {
+      return;
+    }
+    if (typeof controls.setHorizontalAxis === 'function') {
+      controls.setHorizontalAxis(state.axis);
+    }
+    if (state.jumpPressed && typeof controls.pressJump === 'function') {
+      controls.pressJump();
+    }
+  }
+
+  iframe.addEventListener('load', () => {
+    setTimeout(syncWithGame, 60);
+  });
+
+  function updateHandle(clientX, clientY) {
+    if (!joystickBounds) {
+      return;
+    }
+    const radius = joystickBounds.width / 2;
+    const maxOffset = radius * 0.6;
+    const centerX = joystickBounds.left + radius;
+    const centerY = joystickBounds.top + radius;
+
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+
+    const distance = Math.hypot(dx, dy);
+    const scale = distance > 0 ? Math.min(distance, maxOffset) / distance : 0;
+    const offsetX = dx * scale;
+    const offsetY = dy * scale;
+
+    joystickHandle.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+    const normalizedX = dx / radius;
+    const axisValue = Math.abs(normalizedX) > 0.2 ? Math.max(-1, Math.min(1, normalizedX)) : 0;
+
+    if (axisValue !== lastAxisValue) {
+      lastAxisValue = axisValue;
+      applyAxis(axisValue);
+    }
+  }
+
+  function resetJoystick() {
+    joystickPointerId = null;
+    joystickBounds = null;
+    lastAxisValue = 0;
+    joystickHandle.style.transform = 'translate(0px, 0px)';
+    applyAxis(0);
+  }
+
+  joystick.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    joystickPointerId = event.pointerId;
+    joystickBounds = joystick.getBoundingClientRect();
+    if (typeof joystick.setPointerCapture === 'function') {
+      joystick.setPointerCapture(joystickPointerId);
+    }
+    updateHandle(event.clientX, event.clientY);
+  });
+
+  joystick.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== joystickPointerId) {
+      return;
+    }
+    event.preventDefault();
+    updateHandle(event.clientX, event.clientY);
+  });
+
+  function releaseJoystick(event) {
+    if (event.pointerId !== joystickPointerId) {
+      return;
+    }
+    event.preventDefault();
+    if (typeof joystick.releasePointerCapture === 'function') {
+      joystick.releasePointerCapture(event.pointerId);
+    }
+    resetJoystick();
+  }
+
+  joystick.addEventListener('pointerup', releaseJoystick);
+  joystick.addEventListener('pointercancel', releaseJoystick);
+  joystick.addEventListener('pointerleave', releaseJoystick);
+
+  function bindPressable(button, pressFn, releaseFn) {
+    button.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      if (typeof button.setPointerCapture === 'function') {
+        button.setPointerCapture(event.pointerId);
+      }
+      pressFn();
+    });
+
+    const finish = (event) => {
+      if (typeof button.releasePointerCapture === 'function') {
+        button.releasePointerCapture(event.pointerId);
+      }
+      event.preventDefault();
+      releaseFn();
+    };
+
+    button.addEventListener('pointerup', finish);
+    button.addEventListener('pointercancel', finish);
+    button.addEventListener('pointerleave', finish);
+  }
+
+  bindPressable(jumpButton, pressJump, releaseJump);
+
+  pauseButton.addEventListener('pointerup', (event) => {
+    event.preventDefault();
+    togglePause();
+  });
+
+  pauseButton.addEventListener('click', (event) => {
+    event.preventDefault();
+  });
+
+  syncWithGame();
+}
 

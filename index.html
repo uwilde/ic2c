@@ -318,9 +318,22 @@
                     <button class="close" onclick="closeWindow('apacheWindow')">X</button>
                 </div>
             </div>
-            <div class="window-content">
+            <div class="window-content apache-window-content">
                 <div class="iframe-wrapper">
                     <iframe src="apache/apache.html" class="iframe-content" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+                <div class="apache-touch-overlay" aria-hidden="false">
+                    <div class="apache-touch-left">
+                        <div class="apache-joystick" id="apacheJoystick">
+                            <div class="apache-joystick-base"></div>
+                            <div class="apache-joystick-handle" id="apacheJoystickHandle"></div>
+                        </div>
+                    </div>
+                    <div class="apache-touch-right">
+                        <button id="apachePauseButton" class="apache-touch-button" type="button">Pause</button>                    
+                        <button id="apacheJumpButton" class="apache-touch-button" type="button">Jump</button>
+                        
+                    </div>
                 </div>
             </div>
             <div class="resize-handle resize-handle-bottom-right"></div>
