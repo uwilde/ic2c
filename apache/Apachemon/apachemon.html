@@ -33,15 +33,15 @@
 
   /* Enemy info (top-left) */
   .enemyInfo{position:absolute;left:22px;top:18px;width:280px;background:var(--panel);border:4px solid var(--ink);padding:8px;border-radius:6px;z-index:2}
-  .row{display:flex;align-items:center;justify-content:space-between}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}
   .lvl::before{content:'Lv'}
   .hpWrap{margin-top:8px;border:3px solid var(--ink);height:12px;position:relative;background:#dbdbdb}
   .hpBar{height:100%;background:linear-gradient(var(--hp),var(--hp2));width:100%}
   .nums{position:absolute;right:6px;top:-18px;font-size:12px}
 
   /* Player info (bottom-right above HUD) */
-  .playerInfo{position:absolute;right:24px;bottom:300px;width:320px;background:var(--panel);border:4px solid var(--ink);padding:8px;border-radius:6px;z-index:3}
-  .mpWrap{margin-top:6px;border:3px solid var(--ink);height:12px;position:relative;background:#dbdbdb}
+  .playerInfo{position:absolute;right:24px;bottom:246px;width:320px;background:var(--panel);border:4px solid var(--ink);padding:8px;border-radius:6px;z-index:3}
+  .mpWrap{margin-top:16px;border:3px solid var(--ink);height:12px;position:relative;background:#dbdbdb}
   .mpBar{height:100%;background:linear-gradient(var(--mp),var(--mp2));width:100%}
 
   /* HUD: bottom area split text + 2x2 menu to mimic GBA */
@@ -81,11 +81,222 @@
     .enemyInfo{left:16px;top:14px;width:260px}
     .fightModal{grid-template-columns:1fr;}
   }
+  
+  *{ user-select:none; -webkit-user-select:none; -ms-user-select:none; }
+  body{ -webkit-tap-highlight-color:transparent }
+
+  /* Attention pulse for the textbox during intro */
+  .textbox.attn{
+    position:relative;
+    animation:pulseBox 1.2s ease-in-out infinite;
+    box-shadow:0 0 0 0 rgba(47,106,246,.45);
+    outline:4px solid rgba(47,106,246,.35);
+  }
+
+  /* Blinking hint in the bottom-right corner of the textbox */
+  .textbox.attn::after{
+    content:"tap/click to continue ▸";
+    position:absolute; right:12px; bottom:10px;
+    font-size:12px; opacity:.9;
+    animation:blinkHint 1s steps(2,end) infinite;
+  }
+
+  /* Keyframes */
+  @keyframes pulseBox{
+    0%,100%{ box-shadow:0 0 0 0 rgba(47,106,246,.45) }
+    50%{ box-shadow:0 0 16px 4px rgba(47,106,246,.35) }
+  }
+  @keyframes blinkHint{ 0%{opacity:0} 50%{opacity:1} }  
+  
+  /* --- BATTLE TRANSITION (bars + quick fade) --- */
+  .encounter{
+    position:absolute; inset:0; z-index:9999;
+    display:none; pointer-events:none; background:transparent;
+    opacity:0; /* default hidden */
+  }
+  .encounter.show{
+    display:grid;
+    grid-template-rows:repeat(12,1fr);
+    background:#000;
+    opacity:1;
+    transition:opacity 140ms ease;
+  }
+  .encounter .bar{ background:#fff; transform:translateX(100%); }
+  .encounter .bar.r{ transform:translateX(-100%) }
+
+  @keyframes barIn{
+    0%{ transform:translateX(var(--from,100%)) }
+    100%{ transform:translateX(0%) }
+  }
+  @keyframes barOut{
+    0%{ transform:translateX(0%) }
+    100%{ transform:translateX(var(--to,-100%)) }
+  }
+  .encounter.show .bar{
+    animation:
+      barIn 220ms ease forwards,
+      barOut 260ms ease 240ms forwards;
+  }
+
+  /* --- DISPLACEMENT “warble” applied to the whole game --- */
+  .screen.displace > :not(#encounter){
+    animation:displace 420ms ease;
+    will-change:transform, filter;
+  }
+  @keyframes displace{
+    0%   { transform:translate3d(0,0,0) skewX(0deg) scale(1); filter:none; }
+    15%  { transform:translate3d(2px,0,0) skewX(-2deg) scale(1.005); }
+    30%  { transform:translate3d(-2px,1px,0) skewX(2deg)  scale(1.008); }
+    45%  { transform:translate3d(1px,-1px,0) skewX(-1deg) }
+    60%  { transform:translate3d(-1px,0,0) skewX(1deg) }
+    100% { transform:translate3d(0,0,0,0.5) skewX(0deg) scale(1); filter:none; }
+  }
+  
+  .screen.displace::before{
+    content:"";
+    position:absolute; inset:0; z-index:4; pointer-events:none;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,.06) 0px, rgba(0,0,0,.06) 2px,
+      transparent 2px, transparent 4px
+    );
+    animation:scan 420ms linear;
+  }
+  @keyframes scan{
+    0%{ background-position:0 0 }
+    100%{ background-position:0 12px }
+  }  
+  
+  /* =========================
+     PERSISTENT SCREEN FX
+     ========================= */
+
+  .screen{ position:relative }
+  .screen::before,
+  .screen::after{
+    content:"";
+    position:absolute; inset:0; pointer-events:none; z-index:4;
+    opacity:0; /* off until a mode class is added */
+  }
+
+  .screen.fx-crt{
+    /* slightly punchier contrast and mild bloom feel */
+    filter: contrast(1.08) saturate(1.06) brightness(0.98);
+    transform: perspective(1600px) translateZ(0); /* enables GPU */
+  }
+
+  /* scanlines & phosphor shimmer */
+  .screen.fx-crt::before{
+    opacity:0.25;
+    background:
+      /* very faint RGB slotting (subtle chroma aberration hint) */
+      linear-gradient(to right,
+        rgba(255,0,0,0.03) 0, rgba(255,0,0,0.03) 33.33%,
+        rgba(0,255,0,0.03) 33.34%, rgba(0,255,0,0.03) 66.66%,
+        rgba(0,128,255,0.03) 66.67%, rgba(0,128,255,0.03) 100%
+      ),
+      /* horizontal scanlines */
+      repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,.02) 0px, rgba(0,0,0,.09) 2px,
+        rgba(0,0,0,0) 2px,  rgba(0,0,0,0) 4px
+      );
+    mix-blend-mode: multiply;
+    animation: crt-flicker 1.8s steps(2,end) infinite;
+  }
+
+  /* vignette + mild barrel curvature shadowing */
+  .screen.fx-crt::after{
+    opacity:0.5;
+    background:
+      radial-gradient(120% 85% at 50% 50%,
+        rgba(0,0,0,0) 60%,
+        rgba(0,0,0,.12) 100%
+      );
+    /* a teeny bit of warp illusion by edging darkening */
+    box-shadow: inset 0 0 60px rgba(0,0,0,.25);
+  }
+
+  /* optional: tiny keystone wobble at start of effect */
+  .screen.fx-crt.fx-pop{
+    animation: crt-pop 320ms ease;
+  }
+
+  @keyframes crt-flicker{
+    0%{ opacity:.98 }
+    50%{ opacity:1 }
+    100%{ opacity:.98 }
+  }
+  @keyframes crt-pop{
+    0%   { transform:perspective(1600px) rotateX(.2deg) rotateY(-.25deg) }
+    50%  { transform:perspective(1600px) rotateX(-.2deg) rotateY(.2deg) }
+    100% { transform:perspective(1600px) rotateX(0) rotateY(0) }
+  }
+
+  /* Respect reduced motion: disable flicker/pop */
+  @media (prefers-reduced-motion: reduce){
+    .screen.fx-crt::before{ animation:none }
+    .screen.fx-crt.fx-pop{ animation:none }
+  }
+
+  /* --- GAME BOY MODE --- */
+  .screen.fx-gb{
+    filter: contrast(1.05) saturate(0.85) hue-rotate(-8deg) brightness(1.02);
+  }
+
+  /* GB dot-matrix + greenish tint */
+  .screen.fx-gb::before{
+    opacity:0.6;
+    /* faint pea-green backlight tint */
+    background:
+      linear-gradient(rgba(187,210,142,.35), rgba(187,210,142,.35)),
+      /* dot matrix grid (very subtle) */
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,.12) 0 0.6px, transparent 0.6px),
+      radial-gradient(circle at 0.5px 0.5px, rgba(0,0,0,.06) 0 0.5px, transparent 0.5px);
+    background-size:
+      100% 100%,
+      3px 3px,
+      3px 3px;
+    mix-blend-mode: multiply;
+  }
+
+  /* soft vignette */
+  .screen.fx-gb::after{
+    opacity:1;
+    background:
+      radial-gradient(120% 85% at 50% 50%,
+        rgba(0,0,0,0) 62%,
+        rgba(0,0,0,.10) 100%
+      );
+  }
+
+  /* === Result Popup === */
+  .resultOverlay{
+    position:absolute; inset:0; z-index:99999;
+    display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,.55);
+  }
+  .resultOverlay.show{ display:flex; }
+  .resultBox{
+    width:min(680px,90%); background:var(--panel); color:var(--ink);
+    border:6px solid var(--ink); border-radius:10px; padding:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.6);
+  }
+  .resultTitle{ font-weight:700; margin-bottom:10px; }
+  .resultMsg{ line-height:1.5; margin-bottom:16px; }
+  .resultActions{ display:flex; justify-content:flex-end; }
+  .resultActions button{
+    font:inherit; border:3px solid var(--ink); padding:10px 14px;
+    background:#eef2f1; cursor:pointer; border-radius:6px;
+  }
+
+    
 </style>
 </head>
 <body>
 <div class="root">
   <div class="screen" id="game">
+    <div id="encounter" class="encounter" aria-hidden="true"></div>
     <div class="field">
       <div class="pad">
         <div class="enemy"><img id="enemySprite" src="narles.png" alt="Narles"></div>
@@ -139,6 +350,17 @@
         </div>
       </div>
     </div>
+    
+    <!-- WIN/LOSE popup -->
+    <div class="resultOverlay" id="resultOverlay" aria-hidden="true">
+      <div class="resultBox" role="dialog" aria-modal="true">
+        <div class="resultTitle" id="resultTitle">Result</div>
+        <div class="resultMsg" id="resultMsg"></div>
+        <div class="resultActions">
+          <button id="resultYes">YES</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -186,12 +408,44 @@ class Chiptune{
     const seq = [392, 349, 330, 294, 262]; // G4 F4 E4 D4 C4
     seq.forEach((f,i)=>setTimeout(()=>this.beep(f,0.35,'triangle',0.35), i*320));
   }  
+  encounter(){
+    // quick “whoosh” made of descending sawtooth blips
+    [880, 740, 620, 520, 440].forEach((f,i)=>
+      setTimeout(()=>this.beep(f,0.07,'sawtooth',0.45), i*40)
+    );
+  }  
+  
+  coin(){
+    const seq = [988,1319,1760,2349]; // B5, E6, A6, D7
+    seq.forEach((f,i)=>setTimeout(()=>this.beep(f,0.07,'square',0.55), i*70));
+  }
+    
+}
+
+const resultOverlay=document.getElementById('resultOverlay');
+const resultTitle=document.getElementById('resultTitle');
+const resultMsg=document.getElementById('resultMsg');
+const resultYes=document.getElementById('resultYes');
+const gameScreen = document.getElementById('game');
+
+function applyScreenFX(mode /* 'crt' | 'gb' | 'off' */){
+  gameScreen.classList.remove('fx-crt', 'fx-gb', 'fx-pop');
+  if(mode === 'crt'){
+    gameScreen.classList.add('fx-crt', 'fx-pop'); // fx-pop = tiny intro wobble
+  }else if(mode === 'gb'){
+    gameScreen.classList.add('fx-gb');
+  }
+  // 'off' leaves both removed
 }
 const sfx=new Chiptune();
 
+window.addEventListener('pointerdown', () => {
+  if (sfx.ctx.state === 'suspended') sfx.ctx.resume();
+}, { once:true });
+
 /*********** STATE ***********/
 const state={ player:{name:'Apachichu',hp:120,hpMax:120,mp:40,mpMax:40,items:{apple:4,juice:1}}, enemy:{name:'Narles',hp:100,hpMax:100}, turn:'player', lock:true, phase:'intro', dialogueIndex:0 };
-const dialogue=[ 'Apachichu: "Nice mustache, buddy. You do curls for those whiskers?"', 'Narles: "Mmmhmmm. I lift only eyebrows."', 'Apachichu: "Prepare to be thoroughly neigh-ed."', 'Narles: "Yup."', 'A battle starts!' ];
+const dialogue=[ 'Apachichu: "Nice mustache, buddy. You do curls for those whiskers?"', 'Narles: "Mmmhmmm."', 'Apachichu: "Prepare to be thoroughly neigh-ed."', 'Narles: "Yup."', 'A battle starts!' ];
 
 /*********** REFS ***********/
 const textbox=document.getElementById('textbox');
@@ -243,6 +497,74 @@ function setTextbox(t){ textbox.textContent=t; }
 function setSelected(c,idx){ const btn=[...c.querySelectorAll('button')]; btn.forEach((b,i)=>b.classList.toggle('sel',i===idx)); c.dataset.sel=idx; }
 function currentIndex(c){ return parseInt(c.dataset.sel||'0',10); }
 
+const encounterEl = document.getElementById('encounter');
+
+function buildEncounterBars() {
+  encounterEl.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar' + (i % 2 ? ' r' : '');
+    // per-bar custom properties for direction symmetry
+    bar.style.setProperty('--from', i % 2 ? '-100%' : '100%');
+    bar.style.setProperty('--to',   i % 2 ? '100%'  : '-100%');
+    // a tiny stagger to feel authentic
+    bar.style.animationDelay = `${i * 18}ms, ${240 + i * 18}ms`;
+    encounterEl.appendChild(bar);
+  }
+}
+
+
+
+function playEncounterTransition(onDone){
+  buildEncounterBars();
+  encounterEl.style.opacity = '1';
+  encounterEl.classList.add('show');
+  encounterEl.setAttribute('aria-hidden','false');
+  sfx.encounter();
+
+  // timings
+  const staggerLast = 11 * 18; // last bar's delay
+  const inDur = 220, outDelay = 240, outDur = 260;
+  const total = staggerLast + outDelay + inDur + outDur; // ≈ 718ms
+
+  // Start the displacement a hair before bars finish sliding out
+  const displaceStart = total - 360; // ~360ms of wobble overlapping the tail
+  setTimeout(() => {
+    gameScreen.classList.add('displace');
+  }, displaceStart);
+
+  // Fade overlay to transparent as the wobble finishes
+  const fadeStart = total - 140;
+  setTimeout(() => {
+    encounterEl.style.opacity = '0';
+  }, fadeStart);
+
+  // Cleanup: remove overlay + displacement, then continue
+  setTimeout(() => {
+    gameScreen.classList.remove('displace');
+    encounterEl.classList.remove('show');
+    encounterEl.setAttribute('aria-hidden','true');
+    encounterEl.innerHTML = '';
+    encounterEl.style.opacity = '1'; // reset for next time
+    if (onDone) onDone();
+  }, total + 80); // small pad
+}
+
+function showResult(title, msg){
+  resultTitle.textContent = title;
+  resultMsg.textContent = msg;
+  resultOverlay.classList.add('show');
+  resultOverlay.setAttribute('aria-hidden','false');
+  // trap focus on the YES button for keyboard users
+  resultYes.focus();
+}
+
+// simple restart — cleanest for now
+function restartGame(){
+  location.reload(); // quick reset of all state/assets
+}
+resultYes.addEventListener('click', restartGame);
+
 /*********** MENUS ***********/
 function buildMenus(){
   // Fight
@@ -270,8 +592,26 @@ function refreshItemCounts(){
 }
 function showMoveInfo(i){ const m=moves[i]; moveTitle.textContent=m.label; moveDesc.textContent=m.desc; moveMeta.textContent=`MP ${m.mp} | Damage ${m.dmg[0]}–${m.dmg[1]}`; }
 
+function buildMainMenu(){
+  // (Re)populate the 2x2 main menu after intro
+  mainMenu.innerHTML = '';
+  const actions = [
+    {label:'FIGHT', action:'FIGHT'},
+    {label:'BAG',   action:'ITEMS'},
+    {label:'INFO',  action:'INFO'},
+    {label:'RUN',   action:'RUN'}
+  ];
+  actions.forEach((a,i)=>{
+    const b = document.createElement('button');
+    b.textContent = a.label;
+    b.dataset.action = a.action;
+    if(i===0) b.classList.add('sel');
+    mainMenu.appendChild(b);
+  });
+  setSelected(mainMenu,0);
+}
 /*********** INTRO ***********/
-function advanceDialogue(){ if(state.phase!=='intro')return; sfx.blip(); if(state.dialogueIndex<dialogue.length){ setTextbox(dialogue[state.dialogueIndex++]); } else { state.phase='battle'; state.lock=false; setTextbox('What will Apachichu do?'); sfx.startSong(); } }
+function advanceDialogue(){ if(state.phase!=='intro')return; sfx.blip(); if(state.dialogueIndex<dialogue.length){ setTextbox(dialogue[state.dialogueIndex++]); } else { state.phase='battle'; state.lock=false; textbox.classList.remove('attn'); setTextbox('What will Apachichu do?'); buildMainMenu();  sfx.startSong(); } }
 textbox.addEventListener('click',advanceDialogue);
 
 /*********** INPUT ***********/
@@ -327,14 +667,21 @@ function win(){
   state.lock=true;
   setTextbox('Narles fainted! You win.');
 
-  // NEW: change Narles to KO sprite & give a little celebration flex
+  // KO sprite + little flex
   enemySprite.src='narles4.png';
   enemySprite.classList.add('flex');
   setTimeout(()=>enemySprite.classList.remove('flex'), 360);
 
-  // Stop battle BGM and play victory music
+  // stop BGM, do victory fanfare AND coin jingle
   sfx.stopSong();
   sfx.victoryTheme();
+  setTimeout(()=>sfx.coin(), 600); // coin a moment after fanfare hits
+
+  // popup with your exact text
+  showResult(
+    'GAME LORDS',
+    "Good job, dude.... I was almost impressed. Next time try to do it faster. Here's 500 points."
+  );
 }
 
 function lose(){
@@ -342,13 +689,37 @@ function lose(){
   state.lock=true;
   setTextbox('Apachichu fainted… You blacked out.');
 
-  // Stop battle BGM and play sad defeat music
+  // sad defeat music
   sfx.stopSong();
   sfx.defeatTheme();
+
+  // popup with only YES
+  showResult(
+    'GAME LORDS',
+    'Aww, you sucked. Want to try again lil guy?'
+  );
 }
 
 /*********** INIT ***********/
-state.player.mp=40; buildMenus(); updateBars(); setSelected(mainMenu,0); setTextbox('Tap/click to continue…');
+state.player.mp = 40;
+buildMenus();
+updateBars();
+
+// Hide main menu during intro; highlight the textbox
+mainMenu.innerHTML = '';
+textbox.classList.add('attn');
+applyScreenFX('gb');
+//applyScreenFX('crt'); // classic TV
+// applyScreenFX('off'); // no overlay  
+// Run the encounter transition first, then show the first intro line
+playEncounterTransition(()=>{
+  // After the wipe, show the beginning of your intro
+
+  state.phase = 'intro';
+  state.dialogueIndex = 0;
+  setTextbox('Apachichu trotted in. Narles cracked his knuckles. Tap/click to continue…');
+});
+
 </script>
 </body>
 </html>

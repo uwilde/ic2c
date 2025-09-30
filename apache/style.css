@@ -1,522 +1,253 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-/* Base Styles */
+﻿/* Base Styles */
 body {
     margin: 0;
-    background-color: black;
+    background: radial-gradient(circle at top, #12003a 0%, #05010f 55%, #010104 100%);
+    color: #f3f6ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-top: -26px;
 }
 
 .hidden {
     display: none !important;
 }
 
+.game-shell {
+    position: relative;
+    width: min(800px, 90vw);
+    margin: 40px auto 0;
+}
+
+#controlsHeading { margin: 2px;position: fixed;right: 40%;top: 23%; }
+
 .start-overlay {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    display: grid;
-    place-items: center;
-    grid-auto-flow: row;
-    background: rgba(4, 8, 20, 0.92);
-    padding: clamp(1rem, 4vw, 2.75rem);
-    color: #f6f7f9;
-    font-family: 'Press Start 2P', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    z-index: 100;
-}
-
-.start-overlay > * {
-    grid-area: 1 / 1;
-}
-
-#controlsOverlay, #collectOverlay {
-  position:fixed;
-  top:0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vw, 32px);
+    background: linear-gradient(135deg, rgba(6, 12, 36, 0.95), rgba(2, 3, 12, 0.95));
+    border: 2px solid rgba(0, 255, 247, 0.65);
+    box-shadow: inset 0 0 40px rgba(255, 60, 246, 0.15);
+    text-align: center;
+    z-index: 5;
+    overflow: hidden;
 }
 
 .start-window {
-    max-height: min(360px, calc(100vh - 3rem));
-    background: rgba(12, 16, 28, 0.94);
-    border: 4px solid #41ffb4;
-    box-shadow: 0 0 25px rgba(65, 255, 180, 0.45);
-    padding: clamp(1.25rem, 2.8vw, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
-    text-align: center;
+    width: 100%;
+    max-width: 520px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(1rem, 3vw, 1.5rem);
-    position: fixed;
-    top:8%;
-    z-index: 105;
-    overflow: auto;
-    scrollbar-gutter: stable both;
+    gap: 18px;
+    padding: clamp(18px, 4vw, 28px);
+    border: 2px solid rgba(255, 60, 246, 0.65);
+    background: linear-gradient(160deg, rgba(18, 2, 36, 0.9), rgba(2, 0, 24, 0.92));
+    box-shadow: 0 0 25px rgba(255, 60, 246, 0.35), 0 0 50px rgba(0, 255, 247, 0.15);
+    overflow: hidden;
 }
 
+div#startScreen { overflow:hidden; }
 
 .start-title {
-    font-size: clamp(1.6rem, 4vw, 2rem);
-    margin: 0 0 0.75rem;
-    color: #41ffb4;
-    text-shadow: 4px 4px 0 #1b2a50;
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #ff39ff;
+    text-shadow: 0 0 6px rgba(255, 60, 246, 0.7), 0 0 18px rgba(0, 255, 247, 0.35);
 }
 
 .start-tagline {
-    margin: 0 0 1.75rem;
-    font-size: 0.85rem;
-    color: #f4f1a3;
+    margin: 0;
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    letter-spacing: 2px;
+    color: #00ffe1;
+    text-shadow: 0 0 10px rgba(0, 255, 247, 0.6);
 }
 
+.loading-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 14px;
+    border: 1px solid rgba(0, 255, 247, 0.7);
+    border-radius: 4px;
+    background: rgba(10, 22, 54, 0.7);
+    box-shadow: 0 0 10px rgba(0, 255, 247, 0.25);
+    overflow: hidden;
+}
+
+.loading-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00ffe1 0%, #ff39ff 50%, #00ffe1 100%);
+    box-shadow: 0 0 16px rgba(255, 60, 246, 0.4);
+    transition: width 0.25s ease;
+}
+
+.loading-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #c3fff4;
+}
 
 .start-buttons {
     display: flex;
-    justify-content: center;
-    gap: 1rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    gap: 12px;
+    justify-content: center;
 }
 
 .retro-button {
-    background: linear-gradient(180deg, #41ffb4 0%, #1ccfa2 100%);
-    border: 3px solid #092b29;
-    box-shadow: 0 6px 0 #0d4f4a;
-    padding: 0.9rem 1.5rem;
-    font-size: 0.8rem;
-    color: #052925;
+    position: relative;
+    background: linear-gradient(135deg, rgba(5, 12, 38, 0.85), rgba(32, 0, 64, 0.9));
+    color: #f7faff;
+    border: 2px solid rgba(255, 60, 246, 0.8);
+    padding: 12px 22px;
+    font-size: 1rem;
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+    text-shadow: 0 0 8px rgba(255, 60, 246, 0.6);
+    box-shadow: 0 0 12px rgba(255, 60, 246, 0.35), inset 0 0 12px rgba(0, 255, 247, 0.25);
 }
 
-.retro-button:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 #0d4f4a;
+.retro-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
+.retro-button:not(:disabled):hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(0, 255, 247, 0.95);
+    box-shadow: 0 0 18px rgba(0, 255, 247, 0.45), 0 0 36px rgba(255, 60, 246, 0.35);
+}
+
+.retro-button:not(:disabled):focus-visible {
+    outline: 3px solid rgba(0, 255, 247, 0.9);
+    outline-offset: 2px;
+}
+
+.modal {
+    position: absolute;
+    inset: clamp(12px, 1vw, 32px);
+    background: linear-gradient(155deg, rgba(12, 3, 32, 0.96), rgba(4, 1, 18, 0.96));
+    border: 2px solid rgba(0, 255, 247, 0.55);
+    box-shadow: 0 0 24px rgba(255, 60, 246, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.modal-window {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(5, 6, 24, 0.85);
+    border: 1px solid rgba(255, 60, 246, 0.35);
+    box-shadow: inset 0 0 18px rgba(0, 255, 247, 0.15);
+}
+
+.modal-close {
+    align-self: flex-end;
+    background: rgba(40, 0, 70, 0.7);
+    border: 2px solid rgba(255, 60, 246, 0.65);
+    color: #ffffff;
+    padding: 4px 10px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-shadow: 0 0 6px rgba(255, 60, 246, 0.6);
+}
 
 .retro-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: grid;
-    gap: 0.65rem;
-}
-
-.retro-list li {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.6rem;
-    line-height: 1.4;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    color: #c3fff4;
 }
 
 .retro-list .key {
-    color: #41ffb4;
-    margin-right: 1rem;
+    display: inline-block;
+    width: 120px;
+    font-weight: 700;
+    color: #00ffe1;
+    text-shadow: 0 0 8px rgba(0, 255, 247, 0.45);
 }
 
 .retro-list .desc {
-    flex: 1;
-    text-align: right;
-    color: #f6f7f9;
-}
-
-
-.info-columns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    justify-content: center;
-    margin-top: 1rem;
+    color: #f7f0ff;
 }
 
 .info-pager {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 16px;
 }
 
 .info-page {
-    display: flex;
-    justify-content: center;
-}
-
-.info-page .info-block {
-    flex: 0 1 320px;
-}
-
-.info-pagination {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
-}
-
-.info-pagination .retro-button {
-    flex: 1;
-    padding: 0.75rem 1.25rem;
-}
-
-.info-pagination .retro-button[disabled] {
-    opacity: 0.55;
-    cursor: not-allowed;
-    box-shadow: 0 3px 0 #0d4f4a;
-    transform: none;
-}
-
-.info-block {
-    flex: 1 1 250px;
-    background: rgba(10, 15, 30, 0.8);
-    border: 3px solid rgba(65, 255, 180, 0.35);
-    padding: 1.1rem 1rem;
     text-align: left;
 }
 
 .info-block h3 {
-    font-size: 0.72rem;
-    margin: 0 0 0.75rem;
-    color: #f4f1a3;
-    text-align: center;
+    margin-bottom: 0;
+    letter-spacing: 1px;
+    margin-top:0;
 }
+h2#collectHeading {margin-top:1px; margin-bottom:1px;}
 
 .item-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: grid;
-    gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .item-row {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 0.75rem;
+    display: flex;
+    gap: 12px;
     align-items: center;
 }
 
 .item-icon {
-    width: 44px;
-    height: 44px;
+    width: 33px;
+    height: 25px;
     image-rendering: pixelated;
-    border: 2px solid rgba(65, 255, 180, 0.35);
-    background: rgba(5, 8, 15, 0.85);
-    padding: 4px;
 }
 
-
 .item-name {
-    display: block;
-    font-size: 0.62rem;
-    color: #41ffb4;
-    margin-bottom: 0.1rem;
+    font-weight: 700;
+    color: #00ffe1;
+    text-shadow: 0 0 6px rgba(0, 255, 247, 0.45);
 }
 
 .item-desc {
-    display: block;
-    font-size: 0.58rem;
-    color: #e4e7ff;
-    line-height: 1.4;
-}
-
-.modal {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: clamp(1rem, 4vw, 2.75rem);
-    background: rgba(4, 8, 20, 0.9);
-    z-index: 110;
-}
-
-
-.modal-window {
-    max-height: 100%;
-    overflow-y: auto;
-    scrollbar-gutter: stable both;
-    background: rgba(12, 16, 28, 0.97);
-    padding: clamp(1.25rem, 2.8vw, 1.75rem) clamp(1rem, 2.5vw, 1.5rem);
-    position: fixed;
-    top:8%;
-    color: #f6f7f9;
-    border: 4px solid #f4f1a3;
-    box-shadow: 0 0 25px rgba(244, 241, 163, 0.35);
-}
-
-.start-window,
-.modal-window {
-    scrollbar-width: thin;
-    scrollbar-color: #41ffb4 rgba(5, 12, 24, 0.85);
-}
-
-.start-window::-webkit-scrollbar,
-.modal-window::-webkit-scrollbar {
-    width: 12px;
-}
-
-.start-window::-webkit-scrollbar-track,
-.modal-window::-webkit-scrollbar-track {
-    background: rgba(5, 12, 24, 0.85);
-    border: 2px solid #092b29;
-    box-shadow: inset 0 0 6px rgba(9, 22, 36, 0.6);
-}
-
-.start-window::-webkit-scrollbar-thumb,
-.modal-window::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #41ffb4 0%, #1ccfa2 100%);
-    border: 2px solid #051e1b;
-    box-shadow: inset 0 0 6px rgba(4, 8, 12, 0.6);
-}
-
-.start-window::-webkit-scrollbar-thumb:hover,
-.modal-window::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #5dffd3 0%, #22e0b3 100%);
-}
-
-
-.modal-window h2,
-.modal-window h3 {
-    text-transform: uppercase;
-}
-
-.modal-window h2 {
-    margin-top: 0;
     font-size: 0.9rem;
-    color: #f4f1a3;
-    text-align: center;
-    margin-bottom: 1.2rem;
+    color: #f7f0ff;
 }
-
-.modal-close {
-    position: absolute;
-    top: 0.6rem;
-    right: 0.8rem;
-    background: transparent;
-    border: none;
-    color: #f4f1a3;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-
-@media (max-width: 640px) {
-    .start-overlay {
-        padding: clamp(1rem, 6vw, 2rem);
-    }
-
-    .start-window,
-    .modal-window {
-        width: min(95vw, 540px);
-        max-height: min(88vh, 360px);
-        padding: 1.4rem 1rem;
-    }
-
-    .retro-button {
-        flex: 1 1 130px;
-    }
-
-    .item-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .retro-list li {
-        font-size: 0.58rem;
-    }
-}
-
-
-
-@media (max-width: 420px) {
-    .start-overlay {
-        padding: clamp(1rem, 7vw, 1.75rem);
-    }
-
-    .start-window,
-    .modal-window {
-        width: min(95vw, 520px);
-        max-height: min(88vh, 320px);
-    }
-
-    .start-window {
-        border-width: 3px;
-    }
-
-    .retro-button {
-        font-size: 0.7rem;
-        padding: 0.75rem 1rem;
-    }
-}
-
-
 
 #gameCanvas {
     display: block;
-    margin: 0 auto;
-    background-color: #87CEEB;
-    max-width: 80vw;
-    height: auto;
-}
-
-#pauseButton {
-    height: 10px;
-    pointer-events: auto;
-}
-#touchControls button {
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-}
-
-#touchControls button img {
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-}
-
-#touchControls {
-    position: absolute;
-    left: 0;
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 10;
-    pointer-events: none; 
-}
-
-#leftRightButtons {
-    display: flex;
-    height: 80px;
-    pointer-events: auto; 
+    height: auto;
+    background-color: #87CEEB; /* Sky blue background */
+    border: 2px solid #fff;
 }
 
 
-#jumpStompButtons {
-    display: flex;
-    height: 80px;
-    pointer-events: auto; 
-}
-
-
-#touchControls button {
-    background: rgba(255, 255, 255, 0.2);
-    border: solid 1px white;
-    padding: 5px;
-    margin: 0px;
-    border-radius: 10px;
-    touch-action: none;  
-    color: white;
-    font-size: 18px;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#touchControls button img {
-    width: 40px;
-    height: 40px;
-}
-
-@media only screen and (max-width: 1200px) {
-    #gameCanvas {
-        width: 100%;
-        height: auto;
-    }
-
-    #touchControls {
-        flex-direction: row;
-        bottom: 0px;
-    }
-
-    #leftRightButtons,
-    #jumpStompButtons {
-        flex: 1;
-        justify-content: space-around;
-    }
-
-    #touchControls button {
-        padding: 20px;
-        margin: 10px;
-        font-size: 24px;
-    }
-
-    #touchControls button img {
-        width: 50px;
-        height: 50px;
-    }
-}
-
-
-@media only screen and (max-width: 768px) {
-    #touchControls {
-        flex-direction: column;
-        bottom: 10px;
-    }
-
-    #leftRightButtons,
-    #jumpStompButtons {
-        width: 80%;
-        justify-content: space-around;
-        margin-bottom: 0px;
-    }
-
-    #touchControls button {
-        padding: 20px;
-        margin: 5px;
-        font-size: 20px;
-    }
-
-    #touchControls button img {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-@media only screen and (max-width: 480px) {
-    #touchControls button {
-        padding: 15px;
-        margin: 5px;
-        font-size: 18px;
-    }
-
-    #touchControls button img {
-        width: 25px;
-        height: 25px;
-    }
-}
-
-@media only screen and (orientation: portrait) {
-    #gameCanvas {
-        max-height: 70vh;
-        width: 100%;
-    }
-
-    #touchControls {
-        flex-direction: row;
-        bottom: 20px;
-    }
-
-    #leftRightButtons,
-    #jumpStompButtons {
-        width: 50%;
-        height: 150px;
-        margin-bottom: 10px;
-    }
-
-
-    #touchControls button {
-        padding: 15px;
-        font-size: 20px;
-    }
-
-    #touchControls button img {
-        width: 35px;
-        height: 35px;
-    }
-}
-
-
-@media only screen and (min-width: 1025px) {
-    #touchControls {
-        display: none;
-    }
-}

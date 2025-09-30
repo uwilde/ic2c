@@ -1,72 +1,149 @@
-/* =========================
-   Apache — bugfix + UFO boss
+﻿/* =========================
+   Apache â€” bugfix + UFO boss
    ========================= */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const loadingStatusEl = document.getElementById('loadingStatus');
+const loadingPercentEl = document.getElementById('loadingPercent');
+const loadingBarEl = document.querySelector('.loading-bar');
+const loadingBarFillEl = document.getElementById('loadingBarFill');
+
+let gameState = 'title';
+let gameReady = false;
+let gameStarted = false;
+let assetsRegistered = 0;
+let assetsLoaded = 0;
+let startGameButton = null;
+
+function updateLoadingUI() {
+  if (!loadingBarFillEl) {
+    return;
+  }
+  const percent = assetsRegistered ? Math.round((assetsLoaded / assetsRegistered) * 100) : 0;
+  loadingBarFillEl.style.width = `${percent}%`;
+  if (loadingBarEl) {
+    loadingBarEl.setAttribute('aria-valuenow', String(percent));
+  }
+  if (loadingPercentEl) {
+    loadingPercentEl.textContent = `${percent}%`;
+  }
+  if (loadingStatusEl) {
+    const status = assetsRegistered ? `Loading assets (${assetsLoaded}/${assetsRegistered})` : 'Preparing assets...';
+    loadingStatusEl.textContent = percent >= 100 ? 'Ready to ride!' : status;
+  }
+}
+
+function handleAllAssetsLoaded() {
+  if (gameReady) {
+    return;
+  }
+  gameReady = true;
+  updateLoadingUI();
+  refreshStartButtonState();
+  if (gameStarted) {
+    startMainLoop();
+  }
+}
+
+function markAssetLoaded() {
+  assetsLoaded = Math.min(assetsLoaded + 1, assetsRegistered);
+  updateLoadingUI();
+  if (assetsRegistered > 0 && assetsLoaded >= assetsRegistered) {
+    handleAllAssetsLoaded();
+  }
+}
+
+function registerAsset(img) {
+  if (!img) {
+    return img;
+  }
+  assetsRegistered += 1;
+  const finalize = () => {
+    img.removeEventListener('load', finalize);
+    img.removeEventListener('error', finalize);
+    markAssetLoaded();
+  };
+  if (img.complete && img.naturalWidth > 0) {
+    markAssetLoaded();
+  } else {
+    img.addEventListener('load', finalize, { once: true });
+    img.addEventListener('error', finalize, { once: true });
+  }
+  updateLoadingUI();
+  return img;
+}
+
+function createAsset(src) {
+  const img = new Image();
+  if (src) {
+    img.src = src;
+  }
+  return registerAsset(img);
+}
+
+function refreshStartButtonState() {
+  if (!startGameButton) {
+    return;
+  }
+  const shouldDisable = !gameReady || gameStarted;
+  if (startGameButton.disabled !== shouldDisable) {
+    startGameButton.disabled = shouldDisable;
+  }
+}
+
+updateLoadingUI();
+
 /* ---------- Assets ---------- */
-const horseImage = new Image();
-const apamboImage = new Image();
-const logImage = new Image();
-const enemyImage = new Image();
-const coinImage = new Image();
-const goldCoinImage = new Image();
-const platformImage = new Image();
-const powerUpImage = new Image();
-const horse2Image = new Image();
-const bgLayer1 = new Image();
-const bgLayer2 = new Image();
-const bgLayer3 = new Image();
-const beerImage = new Image();
-const spaceBgLayer2 = new Image();
-const spaceBgLayer3 = new Image();
-const apastronautImage = new Image();
-const enemySpaceImage = new Image();
-const logSpaceImage = new Image();
-const horse2SpaceImage = new Image();
+const horseImage = createAsset('APACHE.png');
+const apamboImage = createAsset('APAMBO.png');
+const logImage = createAsset('LOG.png');
+const enemyImage = createAsset('ENEMY.png');
+const coinImage = createAsset('COIN.png');
+const goldCoinImage = createAsset('GOLD_COIN.png');
+const platformImage = createAsset('PLATFORM.png');
+const powerUpImage = createAsset('POWERUP.png');
+const horse2Image = createAsset('HORSE2.png');
+const bgLayer1 = createAsset('BG_LAYER1.png');
+const bgLayer2 = createAsset('BG_LAYER2.png');
+const bgLayer3 = createAsset('BG_LAYER3.png');
+const beerImage = createAsset('beer.png');
+const spaceBgLayer2 = createAsset('SPACE_BG_LAYER2.png');
+const spaceBgLayer3 = createAsset('SPACE_BG_LAYER2.png');
+const apastronautImage = createAsset('apastronaut.png');
+const enemySpaceImage = createAsset('ENEMYSPACE.png');
+const logSpaceImage = createAsset('LOGSPACE.png');
+const horse2SpaceImage = createAsset('HORSE2SPACE.png');
 const spaceDecorEntries = [
-  { key: 'moon1', img: new Image(), src: 'space/moon1.png', height: 140 },
-  { key: 'moon2', img: new Image(), src: 'space/moon2.png', height: 168 },
-  { key: 'moon3', img: new Image(), src: 'space/moon3.png', height: 128 },
-  { key: 'meteor', img: new Image(), src: 'space/meteor.png', height: 96 },
-  { key: 'satellite', img: new Image(), src: 'space/satellite.png', height: 110 },
-  { key: 'ufospace', img: new Image(), src: 'space/ufospace.png', height: 120 },
+  { key: 'moon1', img: createAsset('space/moon1.png'), height: 140 },
+  { key: 'moon2', img: createAsset('space/moon2.png'), height: 168 },
+  { key: 'moon3', img: createAsset('space/moon3.png'), height: 128 },
+  { key: 'meteor', img: createAsset('space/meteor.png'), height: 96 },
+  { key: 'satellite', img: createAsset('space/satellite.png'), height: 110 },
+  { key: 'ufospace', img: createAsset('space/ufospace.png'), height: 120 },
 ];
-const earthDecor = { key: 'earth', img: new Image(), src: 'space/earth.png', height: 220 };
+const earthDecor = { key: 'earth', img: createAsset('space/earth.png'), height: 220 };
 const APPLES_PER_RAMBO = 30;
 // HORSE2 (bonus trigger)
 let horse2s = []; // {platform, offsetX, x, y, width, height}
 const HORSE2_W = 64, HORSE2_H = 64;
 let horse2CooldownUntil = 0;
 
-// “APAMBO MODE!!!” banner state
+// APAMBO MODE banner state
 let apamboBanner = null; // {start, duration}
 const APAMBO_BANNER_DURATION = 1100; // ms (fast flash)
 
 /* Optional boss sprite: if missing, we draw a fallback */
 const ufoImage = new Image();
-const discoHorseImage = new Image();
-const discoBgLayer2 = new Image();
-const discoBgLayer3 = new Image();
-const discoBallFrames = Array.from({ length: 17 }, (_, i) => {
-  const img = new Image();
-  img.src = `Disco Ball/db${i + 1}.png`;
-  return img;
-});
-const snipsFrames = Array.from({ length: 13 }, (_, i) => {
-  const img = new Image();
-  img.src = `Sheriff Snips/ss${i + 1}.png`;
-  return img;
-});
+const discoHorseImage = createAsset('discapache.png');
+const discoBgLayer2 = createAsset('DISCO_BG_LAYER2.png');
+const discoBgLayer3 = createAsset('DISCO_BG_LAYER3.png');
+const discoBallFrames = Array.from({ length: 17 }, (_, i) => createAsset(`Disco Ball/db${i + 1}.png`));
+const snipsFrames = Array.from({ length: 13 }, (_, i) => createAsset(`Sheriff Snips/ss${i + 1}.png`));
 
-const leftButton = document.getElementById('leftButton');
-const rightButton = document.getElementById('rightButton');
-const pauseButton = document.getElementById('pauseButton');
-const jumpButton = document.getElementById('jumpButton');
-const stompButton = document.getElementById('stompButton');
 const startScreen = document.getElementById('startScreen');
-const startGameButton = document.getElementById('startGameButton');
+startGameButton = document.getElementById('startGameButton');
 const controlsToggleButton = document.getElementById('controlsToggleButton');
 const controlsOverlay = document.getElementById('controlsOverlay');
 const collectOverlay = document.getElementById('collectOverlay');
@@ -77,7 +154,7 @@ const collectPrevButton = document.getElementById('collectPrevButton');
 const collectNextButton = document.getElementById('collectNextButton');
 
 if (startGameButton) {
-  startGameButton.disabled = true;
+  refreshStartButtonState();
 }
 
 let logSpawnTimer = 0;
@@ -96,10 +173,6 @@ let suckedByBeam = false;
 let beamWasSucking = false;
 let nextBeamSoundAt = 0;
 
-let gameState = 'playing';
-let imagesLoaded = 0;
-let gameReady = false;
-let gameStarted = false;
 let collectOverlayPage = 'collectibles';
 
 let invincibleUntil = 0;      // ms timestamp when invincibility ends
@@ -107,47 +180,6 @@ let powerUpCooldownUntil = 0;    // ms timestamp to throttle powerUp spawns
 
 const HURT_DURATION_MS = 750;   // post-hit i-frames
 let hurtUntil = 0;
-
-/* Keep your original sources */
-horseImage.src = 'APACHE.png';
-apamboImage.src = 'APAMBO.png';
-logImage.src = 'LOG.png';
-enemyImage.src = 'ENEMY.png';
-horse2Image.src = 'HORSE2.png';
-coinImage.src = 'COIN.png';
-goldCoinImage.src = 'GOLD_COIN.png';
-platformImage.src = 'PLATFORM.png';
-powerUpImage.src = 'POWERUP.png';
-bgLayer1.src = 'BG_LAYER1.png';
-bgLayer2.src = 'BG_LAYER2.png';
-bgLayer3.src = 'BG_LAYER3.png';
-discoHorseImage.src = 'discapache.png';
-discoBgLayer2.src = 'DISCO_BG_LAYER2.png';
-discoBgLayer3.src = 'DISCO_BG_LAYER3.png';
-beerImage.src = 'beer.png';
-spaceBgLayer2.src = 'SPACE_BG_LAYER2.png';
-spaceBgLayer3.src = 'SPACE_BG_LAYER2.png';
-apastronautImage.src = 'apastronaut.png';
-enemySpaceImage.src = 'ENEMYSPACE.png';
-logSpaceImage.src = 'LOGSPACE.png';
-horse2SpaceImage.src = 'HORSE2SPACE.png';
-spaceDecorEntries.forEach(entry => { entry.img.src = entry.src; });
-earthDecor.img.src = earthDecor.src;
-
-/* Wait for images before starting */
-[
-  horseImage, logImage, enemyImage, coinImage, platformImage,
-  powerUpImage, bgLayer1, bgLayer2, bgLayer3, horse2Image, goldCoinImage
-].forEach(img => img.onload = () => {
-  imagesLoaded++;
-  if (imagesLoaded === 11) {
-    gameReady = true;
-    if (startGameButton) startGameButton.disabled = false;
-    if (gameStarted) {
-      startMainLoop();
-    }
-  }
-});
 
 /* Sounds (your existing files) */
 /* ===== 8-bit Audio: Music + SFX (WebAudio) ===== */
@@ -245,7 +277,7 @@ const AudioKit = (() => {
     },
     powerup() {
       const t = ctx.currentTime;
-      const steps = [72, 76, 79, 84, 88]; // C major “shine”
+      const steps = [72, 76, 79, 84, 88]; // C major â€œshineâ€
       steps.forEach((m, i) => {
         const tt = t + i*0.06;
         const n = pulseOsc(midiToHz(m), 0.25, tt);
@@ -265,7 +297,7 @@ const AudioKit = (() => {
     beam() {
       const t = ctx.currentTime;
       const n = pulseOsc(300, 0.5, t);
-      n.rampFreq(140, t, t + 0.4);  // ✅ now legal
+      n.rampFreq(140, t, t + 0.4);  // âœ… now legal
       const e = envADSR(n.out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
       e.out.connect(masterGain);
       n.stop(t + 0.5); e.release(t + 0.4);
@@ -382,7 +414,7 @@ const AudioKit = (() => {
   function twangLead(midi, t0, dur=0.24, vol=0.28) {
     const {out, stop, addVibrato} = pulseOsc(midiToHz(midi), 0.28, t0);
     const pre = ctx.createGain(); pre.gain.value = vol;
-    const killVib = addVibrato(5.7, 6); // ✅ vibrato modulates the underlying oscillators
+    const killVib = addVibrato(5.7, 6); // âœ… vibrato modulates the underlying oscillators
     out.connect(pre);
     const e = envADSR(pre, t0, 0.004, 0.06, 0.16, 0.08, 1.0, 0.6);
     e.out.connect(masterGain);
@@ -407,7 +439,7 @@ const AudioKit = (() => {
     const stopAt = t0 + dur; e.release(stopAt - 0.02);
   }
 
-  // distorted “guitar” chug: saw -> distortion -> lowpass gate
+  // distorted â€œguitarâ€ chug: saw -> distortion -> lowpass gate
   function chug(midi, t0, dur=0.16, vol=0.22) {
     const f = midiToHz(midi);
     const o1 = sawOsc(f, t0);
@@ -470,7 +502,7 @@ const AudioKit = (() => {
 
 
   /* ------------ SONG DEFINITIONS ------------- */
-  // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
+  // MAIN: Redneck Adventure (key A, Iâ€“â™­VIIâ€“IV: Aâ€“Gâ€“D)
   const SONG_MAIN = {
     name: 'main',
     bpm: 124,
@@ -484,7 +516,7 @@ const AudioKit = (() => {
     drums:  ['KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH']
   };
 
-  // METAL — faster & crunchier (more drive, double-kick grid)
+  // METAL â€” faster & crunchier (more drive, double-kick grid)
   const metalDrums = [];
   for (let i = 0; i < 64; i++) {
     let dd = 'K'; // kick on every 16th for intense double bass
@@ -830,6 +862,138 @@ let coins = [];
 let platforms = [];
 let powerUps = [];
 let keys = {};
+
+const HORIZONTAL_AXIS_DEADZONE = 0.25;
+const horizontalControlState = {
+  keyboardLeft: false,
+  keyboardRight: false,
+  pointerLeft: false,
+  pointerRight: false,
+  joystickLeft: false,
+  joystickRight: false,
+};
+
+function syncHorizontalKeys() {
+  keys['ArrowLeft'] = horizontalControlState.keyboardLeft ||
+    horizontalControlState.pointerLeft ||
+    horizontalControlState.joystickLeft;
+  keys['ArrowRight'] = horizontalControlState.keyboardRight ||
+    horizontalControlState.pointerRight ||
+    horizontalControlState.joystickRight;
+}
+
+function isJoystickEngaged() {
+  return horizontalControlState.joystickLeft || horizontalControlState.joystickRight;
+}
+
+function resetHorizontalControlState() {
+  horizontalControlState.keyboardLeft = false;
+  horizontalControlState.keyboardRight = false;
+  horizontalControlState.pointerLeft = false;
+  horizontalControlState.pointerRight = false;
+  horizontalControlState.joystickLeft = false;
+  horizontalControlState.joystickRight = false;
+  syncHorizontalKeys();
+}
+
+function startStompFromControl() {
+  if (!gameStarted) return;
+  if (!horse.stomping) {
+    horse.stomping = true;
+    horse.stompCount = 0;
+  }
+}
+
+function stopStompFromControl(options = {}) {
+  if (!gameStarted) return;
+  const respectManual = options.respectManual !== false;
+  if (respectManual && keys['ControlLeft']) {
+    return;
+  }
+  if (respectManual && isJoystickEngaged()) {
+    return;
+  }
+  horse.stomping = false;
+  horse.trampleAngle = 0;
+}
+
+function startJumpFromControl() {
+  if (!gameStarted) return;
+  if (horse.onGround && !isSpaceModeVisual()) {
+    ensureAudioActive();
+    horse.isJumping = true;
+    horse.velocityY = -350;
+    horse.jumpHoldTime = 0;
+    horse.onGround = false;
+    jumpSound.play();
+  }
+  keys['Space'] = true;
+}
+
+function endJumpFromControl() {
+  if (!gameStarted) return;
+  keys['Space'] = false;
+}
+
+function setHorizontalAxisFromJoystick(value) {
+  if (!gameStarted) return;
+  const leftActive = value < -HORIZONTAL_AXIS_DEADZONE;
+  const rightActive = value > HORIZONTAL_AXIS_DEADZONE;
+  horizontalControlState.joystickLeft = leftActive;
+  horizontalControlState.joystickRight = rightActive;
+  syncHorizontalKeys();
+  if (leftActive || rightActive) {
+    startStompFromControl();
+  } else {
+    stopStompFromControl();
+  }
+}
+
+function togglePauseFromControl() {
+  if (!gameStarted) return;
+  isPaused = !isPaused;
+  if (!isPaused) {
+    startMainLoop();
+    ensureAudioActive();
+    const now = performance.now();
+    const discoActive = isDiscoModeActive();
+    const inApambo = now < ramboUntil;
+    AudioKit.stopSong();
+    discoMusicOn = false;
+    apamboMusicOn = false;
+    if (discoActive) {
+      AudioKit.playDisco();
+      discoMusicOn = true;
+    } else if (inApambo) {
+      AudioKit.playMetal();
+      apamboMusicOn = true;
+    } else {
+      AudioKit.startSong();
+    }
+    if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
+      AudioKit.startSnipLoop();
+    }
+  } else {
+    cancelAnimationFrame(animationId);
+    drawPauseOverlay();
+    AudioKit.stopSong();
+    if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+      AudioKit.stopSnipLoop();
+    }
+  }
+}
+
+function registerExternalControls() {
+  window.apacheControls = {
+    setHorizontalAxis: setHorizontalAxisFromJoystick,
+    pressJump: startJumpFromControl,
+    releaseJump: endJumpFromControl,
+    togglePause: togglePauseFromControl,
+  };
+}
+
+registerExternalControls();
+resetHorizontalControlState();
 let goldCoins = [];
 let discoBall = null;
 let snips = null;
@@ -940,6 +1104,7 @@ function setCollectOverlayPage(page) {
     collectNextButton.disabled = isDisabled;
     collectNextButton.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
   }
+  refreshStartButtonState();
 }
 
 function resetCollectOverlayPager() {
@@ -1029,8 +1194,10 @@ if (startGameButton) {
     }
     hideOverlay(controlsOverlay);
     hideOverlay(collectOverlay);
+    gameState = 'playing';
     gameStarted = true;
     ensureAudioActive();
+    syncMusicToState();
     if (gameReady) {
       startMainLoop();
     }
@@ -1066,66 +1233,54 @@ document.addEventListener('keydown', e => {
     }
     return;
   }
+
   keys[e.code] = true;
 
-  if (e.code === 'ControlLeft' && !horse.stomping) {
-    horse.stomping = true;
-    horse.stompCount = 0;
+  if (e.code === 'ArrowLeft') {
+    horizontalControlState.keyboardLeft = true;
+    syncHorizontalKeys();
   }
 
-  if (e.code === 'Space' && horse.onGround && !isSpaceModeVisual()) {
-		ensureAudioActive();
-    horse.isJumping = true;
-    horse.velocityY = -350;
-    horse.jumpHoldTime = 0;
-    horse.onGround = false;
-    jumpSound.play();
+  if (e.code === 'ArrowRight') {
+    horizontalControlState.keyboardRight = true;
+    syncHorizontalKeys();
   }
 
-	if (e.code === 'Escape') {
-		isPaused = !isPaused;
-		if (!isPaused) {
-			startMainLoop();
+  if (e.code === 'ControlLeft') {
+    startStompFromControl();
+  }
 
-			const now = performance.now();
-			const discoActive = isDiscoModeActive();
-			const inApambo = now < ramboUntil;
+  if (e.code === 'Space') {
+    startJumpFromControl();
+  }
 
-			AudioKit.stopSong();
-			discoMusicOn = false;
-			apamboMusicOn = false;
-
-			if (discoActive) {
-				AudioKit.playDisco();
-				discoMusicOn = true;
-			} else if (inApambo) {
-				AudioKit.playMetal();
-				apamboMusicOn = true;
-			} else {
-				AudioKit.startSong();
-			}
-			if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
-				ensureAudioActive();
-				AudioKit.startSnipLoop();
-			}
-		} else {
-			cancelAnimationFrame(animationId);
-			drawPauseOverlay();
-			AudioKit.stopSong();
-			if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
-				AudioKit.stopSnipLoop();
-			}
-		}
-	}
+  if (e.code === 'Escape') {
+    togglePauseFromControl();
+  }
 });
 
 
 document.addEventListener('keyup', e => {
   if (!gameStarted) return;
+
   keys[e.code] = false;
+
+  if (e.code === 'ArrowLeft') {
+    horizontalControlState.keyboardLeft = false;
+    syncHorizontalKeys();
+  }
+
+  if (e.code === 'ArrowRight') {
+    horizontalControlState.keyboardRight = false;
+    syncHorizontalKeys();
+  }
+
   if (e.code === 'ControlLeft') {
-    horse.stomping = false;
-    horse.trampleAngle = 0;
+    stopStompFromControl();
+  }
+
+  if (e.code === 'Space') {
+    endJumpFromControl();
   }
 });
 
@@ -1744,7 +1899,7 @@ function createPlatform() {
       width: HORSE2_W,
       height: HORSE2_H
     });
-    // 12–18s cooldown before another can appear
+    // 12â€“18s cooldown before another can appear
     horse2CooldownUntil = performance.now() + (12000 + Math.random() * 6000);
   }
 }
@@ -1929,7 +2084,7 @@ function updateEnemies(dt) {
         horse.score += 20;
         // small bounce (optional)
         horse.velocityY = -120;
-        // (no stompSound; remove any “stomp to kill” logic elsewhere)
+        // (no stompSound; remove any â€œstomp to killâ€ logic elsewhere)
       } else if (!isInvincible()) {
         // Side/body contact = damage
         loseLife();
@@ -2060,7 +2215,7 @@ function drawHorse2s() {
   }
 }
 
-// Create & show the flashing “APAMBO MODE!!!” banner, then enable APAMBO
+// Create & show the flashing â€œAPAMBO MODE!!!â€ banner, then enable APAMBO
 function triggerApamboBanner() {
   ensureAudioActive();
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
@@ -2268,7 +2423,7 @@ function tractorPull(dt) {
 
   // Play beam sound periodically while beam is active (independent of player position)
   if (nowMs >= nextBeamSoundAt) {
-    console.log('Playing beam sound'); // For debugging—remove after testing
+    console.log('Playing beam sound'); // For debuggingâ€”remove after testing
     ensureAudioActive(); // Changed from ensureAudioActive(true) to avoid forced resume issues
     AudioKit.sfx.beam();
     nextBeamSoundAt = nowMs + 450;
@@ -2327,7 +2482,7 @@ function tractorPull(dt) {
     horse.isJumping = true;
     horse.onGround = false;
 
-    // Lateral pull toward center — fully safe
+    // Lateral pull toward center â€” fully safe
     const dx = nz(beamTopX - pxC, 0);
     const denomHW = Math.max(8, halfWidthAt(pyMid)); // never < 8 to avoid huge pulls
     const centerFactor = clamp(Math.abs(dx) / denomHW, 0, 1);
@@ -2428,7 +2583,7 @@ function drawBoss() {
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#0e0e0e';
 
-    // saucer upper disc (red) with darker underside band—reads as one unit
+    // saucer upper disc (red) with darker underside bandâ€”reads as one unit
     ctx.fillStyle = '#d43b35';
     ctx.beginPath();
     ctx.ellipse(cx, y + h * 0.55, w * 0.48, h * 0.22, 0, 0, Math.PI * 2);
@@ -2485,7 +2640,7 @@ function drawBoss() {
     ctx.fill(); ctx.stroke();
   }
 
-  /* ====== COW (dangling “stuck to the bottom”) ====== */
+  /* ====== COW (dangling â€œstuck to the bottomâ€) ====== */
   // Small stylized pixel-cow; uses rectangles & arcs, swings a bit.
   const c = boss.cow;
   const attachX = cx;
@@ -2494,7 +2649,7 @@ function drawBoss() {
   const cowX = Math.round(attachX - 26 + swingX);
   const cowY = Math.round(attachY + c.bob);
 
-  // rope/tractor “hold”
+  // rope/tractor â€œholdâ€
   ctx.strokeStyle = 'rgba(80,80,80,0.9)';
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(attachX, attachY); ctx.lineTo(cowX + 26, cowY + 6); ctx.stroke();
@@ -2771,7 +2926,7 @@ function syncMusicToState() {
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
-  // skip spawning HORSE2 to prevent the “log turned into horse2” illusion.
+  // skip spawning HORSE2 to prevent the â€œlog turned into horse2â€ illusion.
   const left  = platform.x - pad;
   const right = platform.x + platform.width + pad;
   for (const l of logs) {
@@ -3031,12 +3186,12 @@ function drawDiscoLights() {
 function drawCoins()     { coins.forEach(c => ctx.drawImage(coinImage, c.x, c.y, c.width, c.height)); }
 function drawGoldCoins() {
   for (const g of goldCoins) {
-    // gentle 0.75–1.25x pulse
+    // gentle 0.75â€“1.25x pulse
     const t = performance.now();
     const pulse = 1 + Math.sin(t / 240) * 0.25;
 
     ctx.save();
-    // softer, subtler glow — no additive blending
+    // softer, subtler glow â€” no additive blending
     ctx.shadowColor = 'rgba(255,215,0,0.35)';   // was ~0.9
     ctx.shadowBlur  = 4 + 4 * pulse;            // was ~14 + big pulse
     ctx.drawImage(goldCoinImage, g.x, g.y + (g.bobY || 0), g.width, g.height);
@@ -3201,6 +3356,7 @@ function resetGame() {
     jumpHoldTime: 0, maxJumpHoldTime: 0.3
   };
   logs = []; enemies = []; coins = []; platforms = []; powerUps = []; keys = {};
+  resetHorizontalControlState();
   discoBall = null;
   if (snips) { despawnSnips(false); }
   snips = null;
@@ -3232,55 +3388,6 @@ function resetGame() {
   startMainLoop();
   AudioKit.startSong();
 }
-
-/* ---------- Touch controls (unchanged) ---------- */
-leftButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowLeft'] = true; });
-leftButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowLeft'] = false; });
-
-rightButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowRight'] = true; });
-rightButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; keys['ArrowRight'] = false; });
-
-pauseButton.addEventListener('pointerup', e => {
-  e.preventDefault();
-  if (!gameStarted) return;
-  isPaused = !isPaused;
-  if (!isPaused) {
-    startMainLoop();
-
-    const inApambo = performance.now() < ramboUntil;
-    AudioKit.stopSong();
-    if (inApambo) { AudioKit.playMetal(); apamboMusicOn = true; }
-    else          { AudioKit.startSong(); apamboMusicOn = false; }
-
-  } else {
-    cancelAnimationFrame(animationId);
-    drawPauseOverlay();
-    AudioKit.stopSong();   // ← stop when pausing
-  }
-});
-
-jumpButton.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  if (!gameStarted) return;
-  if (horse.onGround && !isSpaceModeVisual()) {
-		ensureAudioActive();
-    horse.isJumping = true;
-    horse.velocityY = -350;
-    horse.jumpHoldTime = 0;
-    horse.onGround = false;
-    jumpSound.play();
-  }
-  // simulate held Space for variable jump height
-  keys['Space'] = true;
-});
-jumpButton.addEventListener('pointerup', e => {
-  e.preventDefault();
-  if (!gameStarted) return;
-  keys['Space'] = false;
-});
-
-stompButton.addEventListener('pointerdown', e => { e.preventDefault(); if (!gameStarted) return; if (!horse.stomping) { horse.stomping = true; horse.stompCount = 0; } });
-stompButton.addEventListener('pointerup',   e => { e.preventDefault(); if (!gameStarted) return; horse.stomping = false; horse.trampleAngle = 0; });
 
 function startMainLoop() {
   cancelAnimationFrame(animationId);
@@ -3390,7 +3497,7 @@ function gameLoop(ts) {
       }
     }
 
-    // Spawn boss every ~25–35s (randomized), only if none active
+    // Spawn boss every ~25â€“35s (randomized), only if none active
     if (!inSpace && !boss && bossSpawnTimer >= 45 + Math.random() * 20) {
       spawnBoss();
       bossSpawnTimer = 0;
