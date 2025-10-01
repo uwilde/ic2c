@@ -3257,10 +3257,12 @@ function setupApacheTouchControls() {
 
   let joystickPointerId = null;
   let joystickBounds = null;
-  let lastAxisValue = 0;
+  let lastHorizontalAxisValue = 0;
+  let lastVerticalAxisValue = 0;
 
   const state = {
-    axis: 0,
+    horizontalAxis: 0,
+    verticalAxis: 0,
     jumpPressed: false,
   };
 
@@ -3272,11 +3274,19 @@ function setupApacheTouchControls() {
     return frameWindow.apacheControls;
   }
 
-  function applyAxis(value) {
-    state.axis = value;
+  function applyHorizontalAxis(value) {
+    state.horizontalAxis = value;
     const controls = getControls();
     if (controls && typeof controls.setHorizontalAxis === 'function') {
       controls.setHorizontalAxis(value);
+    }
+  }
+
+  function applyVerticalAxis(value) {
+    state.verticalAxis = value;
+    const controls = getControls();
+    if (controls && typeof controls.setVerticalAxis === 'function') {
+      controls.setVerticalAxis(value);
     }
   }
 
@@ -3309,7 +3319,10 @@ function setupApacheTouchControls() {
       return;
     }
     if (typeof controls.setHorizontalAxis === 'function') {
-      controls.setHorizontalAxis(state.axis);
+      controls.setHorizontalAxis(state.horizontalAxis);
+    }
+    if (typeof controls.setVerticalAxis === 'function') {
+      controls.setVerticalAxis(state.verticalAxis);
     }
     if (state.jumpPressed && typeof controls.pressJump === 'function') {
       controls.pressJump();
@@ -3340,20 +3353,28 @@ function setupApacheTouchControls() {
     joystickHandle.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
 
     const normalizedX = dx / radius;
-    const axisValue = Math.abs(normalizedX) > 0.2 ? Math.max(-1, Math.min(1, normalizedX)) : 0;
+    const normalizedY = dy / radius;
+    const horizontalAxis = Math.abs(normalizedX) > 0.2 ? Math.max(-1, Math.min(1, normalizedX)) : 0;
+    const verticalAxis = Math.abs(normalizedY) > 0.2 ? Math.max(-1, Math.min(1, normalizedY)) : 0;
 
-    if (axisValue !== lastAxisValue) {
-      lastAxisValue = axisValue;
-      applyAxis(axisValue);
+    if (horizontalAxis !== lastHorizontalAxisValue) {
+      lastHorizontalAxisValue = horizontalAxis;
+      applyHorizontalAxis(horizontalAxis);
+    }
+    if (verticalAxis !== lastVerticalAxisValue) {
+      lastVerticalAxisValue = verticalAxis;
+      applyVerticalAxis(verticalAxis);
     }
   }
 
   function resetJoystick() {
     joystickPointerId = null;
     joystickBounds = null;
-    lastAxisValue = 0;
+    lastHorizontalAxisValue = 0;
+    lastVerticalAxisValue = 0;
     joystickHandle.style.transform = 'translate(0px, 0px)';
-    applyAxis(0);
+    applyHorizontalAxis(0);
+    applyVerticalAxis(0);
   }
 
   joystick.addEventListener('pointerdown', (event) => {
