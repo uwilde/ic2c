@@ -426,6 +426,7 @@ const resultOverlay=document.getElementById('resultOverlay');
 const resultTitle=document.getElementById('resultTitle');
 const resultMsg=document.getElementById('resultMsg');
 const resultYes=document.getElementById('resultYes');
+let resultYesHandler=null;
 const gameScreen = document.getElementById('game');
 
 function applyScreenFX(mode /* 'crt' | 'gb' | 'off' */){
@@ -550,20 +551,29 @@ function playEncounterTransition(onDone){
   }, total + 80); // small pad
 }
 
-function showResult(title, msg){
+function showResult(title, msg, options={}){
   resultTitle.textContent = title;
   resultMsg.textContent = msg;
   resultOverlay.classList.add('show');
   resultOverlay.setAttribute('aria-hidden','false');
   // trap focus on the YES button for keyboard users
   resultYes.focus();
+  resultYesHandler = typeof options.onYes === 'function' ? options.onYes : null;
 }
 
 // simple restart — cleanest for now
 function restartGame(){
   location.reload(); // quick reset of all state/assets
 }
-resultYes.addEventListener('click', restartGame);
+resultYes.addEventListener('click', ()=>{
+  if (resultYesHandler) {
+    const handler = resultYesHandler;
+    resultYesHandler = null;
+    handler();
+  } else {
+    restartGame();
+  }
+});
 
 /*********** MENUS ***********/
 function buildMenus(){
@@ -680,7 +690,16 @@ function win(){
   // popup with your exact text
   showResult(
     'GAME LORDS',
-    "Good job, dude.... I was almost impressed. Next time try to do it faster. Here's 500 points."
+    "Good job, dude.... I was almost impressed. Next time try to do it faster. Here's 500 points.",
+    {
+      onYes: () => {
+        try {
+          window.parent.postMessage({ type: 'apachemonResult', outcome: 'victory' }, '*');
+        } catch (err) {
+          console.error('Mini-game postMessage failed', err);
+        }
+      }
+    }
   );
 }
 
@@ -696,7 +715,8 @@ function lose(){
   // popup with only YES
   showResult(
     'GAME LORDS',
-    'Aww, you sucked. Want to try again lil guy?'
+    'Aww, you sucked. Want to try again lil guy?',
+    { onYes: restartGame }
   );
 }
 

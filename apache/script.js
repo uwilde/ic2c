@@ -115,6 +115,7 @@ const apastronautImage = createAsset('apastronaut.png');
 const enemySpaceImage = createAsset('ENEMYSPACE.png');
 const logSpaceImage = createAsset('LOGSPACE.png');
 const horse2SpaceImage = createAsset('HORSE2SPACE.png');
+const laboyImage = createAsset('laboy.png');
 const spaceDecorEntries = [
   { key: 'moon1', img: createAsset('space/moon1.png'), height: 140 },
   { key: 'moon2', img: createAsset('space/moon2.png'), height: 168 },
@@ -125,6 +126,13 @@ const spaceDecorEntries = [
 ];
 const earthDecor = { key: 'earth', img: createAsset('space/earth.png'), height: 220 };
 const APPLES_PER_RAMBO = 30;
+const LABOY_SCORE_INTERVAL = 1000;
+const MINI_GAME_SCORE_BONUS = 500;
+const APACHEMON_GAMES = [
+  'Apachemon/apachemon.html',
+  'Apachemon/apachemon_brody.html',
+  'Apachemon/apachemon_sheriff_snip.html',
+];
 // HORSE2 (bonus trigger)
 let horse2s = []; // {platform, offsetX, x, y, width, height}
 const HORSE2_W = 64, HORSE2_H = 64;
@@ -152,6 +160,8 @@ const collectiblesPage = document.getElementById('collectiblesPage');
 const hazardsPage = document.getElementById('hazardsPage');
 const collectPrevButton = document.getElementById('collectPrevButton');
 const collectNextButton = document.getElementById('collectNextButton');
+const miniGameOverlay = document.getElementById('miniGameOverlay');
+const miniGameFrame = document.getElementById('miniGameFrame');
 
 if (startGameButton) {
   refreshStartButtonState();
@@ -859,9 +869,13 @@ let horse = {
 let logs = [];
 let enemies = [];
 let coins = [];
+let laboys = [];
 let platforms = [];
 let powerUps = [];
 let keys = {};
+let nextLaboyScoreTrigger = LABOY_SCORE_INTERVAL;
+let miniGameActive = false;
+let gameStateBeforeMiniGame = null;
 
 const HORIZONTAL_AXIS_DEADZONE = 0.25;
 const horizontalControlState = {
@@ -1460,6 +1474,39 @@ function spawnSpaceCoins() {
       addCoin(Math.cos(t) * radius + i * 18, Math.sin(t) * radius);
     }
   }
+}
+
+function spawnLaboy() {
+  const width = 64;
+  const height = 64;
+  if (isSpaceModeActive()) {
+    const baseY = clamp(Math.random() * (canvas.height - height - 120) + 40, 32, canvas.height - height - 32);
+    laboys.push({
+      x: canvas.width + 60,
+      y: baseY,
+      baseY,
+      width,
+      height,
+      glowPhase: Math.random() * Math.PI * 2,
+      floatPhase: Math.random() * Math.PI * 2,
+      floatSpeed: 0.8 + Math.random() * 0.6,
+      floatAmplitude: 26 + Math.random() * 18,
+      collected: false,
+      space: true
+    });
+    return;
+  }
+
+  laboys.push({
+    x: canvas.width + 60,
+    y: GROUND_Y,
+    baseY: GROUND_Y,
+    width,
+    height,
+    glowPhase: Math.random() * Math.PI * 2,
+    collected: false,
+    space: false
+  });
 }
 
 function spawnSpaceHorse2() {
@@ -2175,6 +2222,43 @@ function updateCoins(dt) {
       collectSound.play();
     }
   }
+}
+
+function updateLaboys(dt) {
+  for (let i = laboys.length - 1; i >= 0; i--) {
+    const item = laboys[i];
+    const factor = item.space ? 0.55 : 0.7;
+    item.x -= gameSpeed * factor * dt;
+
+    if (item.space) {
+      item.floatPhase += item.floatSpeed * dt;
+      const offset = Math.sin(item.floatPhase) * item.floatAmplitude;
+      item.y = clamp(item.baseY + offset, 32, canvas.height - item.height - 32);
+    }
+
+    item.glowPhase += dt * 4;
+
+    if (item.x + item.width < -160) {
+      laboys.splice(i, 1);
+      continue;
+    }
+
+    if (!item.collected && rectsOverlap(horse, item)) {
+      handleLaboyCollected(i);
+    }
+  }
+}
+
+function handleLaboyCollected(index) {
+  if (index < 0 || index >= laboys.length) {
+    return;
+  }
+  const item = laboys[index];
+  item.collected = true;
+  laboys.splice(index, 1);
+  ensureAudioActive();
+  collectSound.play();
+  enterMiniGame();
 }
 
 function updateBeers(dt) {
@@ -2943,6 +3027,65 @@ function drawRamboMeter() {
 
 /* ---------- Helpers ---------- */
 
+function pickRandomMiniGame() {
+  if (!APACHEMON_GAMES.length) {
+    return null;
+  }
+  const idx = Math.floor(Math.random() * APACHEMON_GAMES.length);
+  return APACHEMON_GAMES[idx];
+}
+
+function enterMiniGame() {
+  if (miniGameActive) {
+    return;
+  }
+  if (!miniGameOverlay || !miniGameFrame) {
+    horse.score += MINI_GAME_SCORE_BONUS;
+    return;
+  }
+  const url = pickRandomMiniGame();
+  if (!url) {
+    horse.score += MINI_GAME_SCORE_BONUS;
+    return;
+  }
+
+  miniGameActive = true;
+  gameStateBeforeMiniGame = gameState;
+  gameState = 'mini-game';
+  cancelAnimationFrame(animationId);
+  AudioKit.stopSong();
+
+  miniGameOverlay.classList.remove('hidden');
+  miniGameOverlay.setAttribute('aria-hidden', 'false');
+  miniGameFrame.src = url;
+}
+
+function exitMiniGame(grantBonus = false) {
+  if (!miniGameActive) {
+    return;
+  }
+
+  miniGameActive = false;
+  if (miniGameOverlay) {
+    miniGameOverlay.classList.add('hidden');
+    miniGameOverlay.setAttribute('aria-hidden', 'true');
+  }
+  if (miniGameFrame) {
+    miniGameFrame.src = 'about:blank';
+  }
+
+  if (grantBonus) {
+    horse.score += MINI_GAME_SCORE_BONUS;
+  }
+
+  gameState = gameStateBeforeMiniGame || 'playing';
+  gameStateBeforeMiniGame = null;
+  lastTime = performance.now();
+  startMainLoop();
+  ensureAudioActive(true);
+  syncMusicToState();
+}
+
 function isNum(v){ return Number.isFinite(v); }
 function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
@@ -3239,6 +3382,29 @@ function drawDiscoLights() {
 }
 
 function drawCoins()     { coins.forEach(c => ctx.drawImage(coinImage, c.x, c.y, c.width, c.height)); }
+
+function drawLaboys() {
+  for (const item of laboys) {
+    const cx = item.x + item.width / 2;
+    const cy = item.y + item.height / 2;
+    const pulse = 1 + Math.sin(item.glowPhase) * 0.25;
+    const radius = Math.max(item.width, item.height) * 0.75 * pulse;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const gradient = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius);
+    gradient.addColorStop(0, 'rgba(255,255,200,0.75)');
+    gradient.addColorStop(0.6, 'rgba(255,200,80,0.35)');
+    gradient.addColorStop(1, 'rgba(255,140,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.drawImage(laboyImage, item.x, item.y, item.width, item.height);
+  }
+}
 function drawGoldCoins() {
   for (const g of goldCoins) {
     // gentle 0.75â€“1.25x pulse
@@ -3411,6 +3577,7 @@ function resetGame() {
     jumpHoldTime: 0, maxJumpHoldTime: 0.3
   };
   logs = []; enemies = []; coins = []; platforms = []; powerUps = []; keys = {};
+  laboys = [];
   resetHorizontalControlState();
   discoBall = null;
   if (snips) { despawnSnips(false); }
@@ -3418,6 +3585,9 @@ function resetGame() {
   nextSnipsAt = performance.now() + SNIPS_SPAWN_INTERVAL + Math.random() * SNIPS_SPAWN_JITTER;
   beers = [];
   scheduleNextBeer();
+  nextLaboyScoreTrigger = LABOY_SCORE_INTERVAL;
+  miniGameActive = false;
+  gameStateBeforeMiniGame = null;
   spaceState = 'normal';
   spaceModeUntil = 0;
   spaceTransitionStart = 0;
@@ -3565,6 +3735,7 @@ function gameLoop(ts) {
     updateLogs(dt);
     updateEnemies(dt);
     updateCoins(dt);
+    updateLaboys(dt);
     updateDiscoBall(dt);
     updateGoldCoins(dt);
     updatePlatforms(dt);
@@ -3575,6 +3746,11 @@ function gameLoop(ts) {
     updateBoss(dt);
     if (!isNum(horse.x) || !isNum(horse.y) || !isNum(horse.velocityY)) {
       resetHorsePosition();
+    }
+
+    while (horse.score >= nextLaboyScoreTrigger) {
+      spawnLaboy();
+      nextLaboyScoreTrigger += LABOY_SCORE_INTERVAL;
     }
 
     // Auto-fire while APAMBO is active
@@ -3594,6 +3770,7 @@ function gameLoop(ts) {
     drawSpaceDecorations();
     drawPlatforms();
     drawCoins();
+    drawLaboys();
     drawDiscoBall();
     drawGoldCoins();
     drawBeers();
@@ -3622,6 +3799,10 @@ function gameLoop(ts) {
     drawSpaceStars();
     drawSpaceDecorations();
     drawGameOverScreen();
+  }
+
+  if (miniGameActive) {
+    return;
   }
 
   animationId = requestAnimationFrame(gameLoop);
@@ -3699,6 +3880,22 @@ window.addEventListener('message', (event) => {
   if (!data || typeof data !== 'object') return;
   if (data.type !== DESKTOP_MEDIA_MESSAGE) return;
   handleDesktopMediaCommand(data.action);
+});
+
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+  if (data.type !== 'apachemonResult') {
+    return;
+  }
+
+  if (data.outcome === 'victory') {
+    exitMiniGame(true);
+  } else {
+    exitMiniGame(false);
+  }
 });
 
 
