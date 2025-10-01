@@ -2,7 +2,11 @@
    Apache â€” bugfix + UFO boss
    ========================= */
 
-(function () {
+(function bootstrap() {
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+return;
+}
 let canvas = document.getElementById('gameCanvas');
 
 if (!canvas) {
@@ -14,6 +18,10 @@ document.body.appendChild(canvas);
 }
 
 const ctx = canvas.getContext('2d');
+if (!ctx) {
+console.error('Unable to get 2D context for the game canvas.');
+return;
+}
 
 const loadingStatusEl = document.getElementById('loadingStatus');
 const loadingPercentEl = document.getElementById('loadingPercent');
@@ -4459,4 +4467,5 @@ window.addEventListener('message', (event) => {
   }
 });
 })();
+
 
