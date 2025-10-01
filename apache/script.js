@@ -1,8 +1,13 @@
-﻿/* =========================
+/* =========================
    Apache â€” bugfix + UFO boss
    ========================= */
 
+(function () {
 const canvas = document.getElementById('gameCanvas');
+if (!canvas) {
+  console.warn('[Apache] gameCanvas not found; skipping Apache game bootstrap.');
+  return;
+}
 const ctx = canvas.getContext('2d');
 
 const loadingStatusEl = document.getElementById('loadingStatus');
@@ -1987,8 +1992,8 @@ function spawnSpaceCoins() {
 }
 
 function spawnLaboy() {
-  const width = 64;
-  const height = 64;
+  const width = 32;
+  const height = 32;
   if (isSpaceModeActive()) {
     const baseY = clamp(Math.random() * (canvas.height - height - 120) + 40, 32, canvas.height - height - 32);
     laboys.push({
@@ -4448,35 +4453,4 @@ window.addEventListener('message', (event) => {
     exitMiniGame(false);
   }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+})();
