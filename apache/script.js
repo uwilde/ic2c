@@ -3,11 +3,16 @@
    ========================= */
 
 (function () {
-const canvas = document.getElementById('gameCanvas');
+let canvas = document.getElementById('gameCanvas');
+
 if (!canvas) {
-  console.warn('[Apache] gameCanvas not found; skipping Apache game bootstrap.');
-  return;
+canvas = document.createElement('canvas');
+canvas.id = 'gameCanvas';
+canvas.width = 800;
+canvas.height = 400;
+document.body.appendChild(canvas);
 }
+
 const ctx = canvas.getContext('2d');
 
 const loadingStatusEl = document.getElementById('loadingStatus');
@@ -4454,3 +4459,4 @@ window.addEventListener('message', (event) => {
   }
 });
 })();
+
