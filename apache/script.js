@@ -162,6 +162,16 @@ const collectPrevButton = document.getElementById('collectPrevButton');
 const collectNextButton = document.getElementById('collectNextButton');
 const miniGameOverlay = document.getElementById('miniGameOverlay');
 const miniGameFrame = document.getElementById('miniGameFrame');
+const highScoresButton = document.getElementById('highScoresButton');
+const highScoresOverlay = document.getElementById('highScoresOverlay');
+const highScoresList = document.getElementById('highScoresList');
+const highScoresStatus = document.getElementById('highScoresStatus');
+const initialsOverlay = document.getElementById('initialsOverlay');
+const initialsLettersEls = Array.from(document.querySelectorAll('.initial-letter'));
+const initialsArrowButtons = Array.from(document.querySelectorAll('.initial-arrow'));
+const initialsConfirmButton = document.getElementById('initialsConfirm');
+const initialsSkipButton = document.getElementById('initialsSkip');
+const initialsStatus = document.getElementById('initialsStatus');
 
 if (startGameButton) {
   refreshStartButtonState();
@@ -187,6 +197,18 @@ let collectOverlayPage = 'collectibles';
 
 let invincibleUntil = 0;      // ms timestamp when invincibility ends
 let powerUpCooldownUntil = 0;    // ms timestamp to throttle powerUp spawns
+
+const HIGH_SCORES_ENDPOINT = '/.netlify/functions/high-scores';
+const INITIALS_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const LOCAL_SCORES_KEY = 'apacheHighScores';
+let highScores = [];
+let highScoresLoaded = false;
+let highScoresLoading = false;
+let pendingScoreSubmission = null;
+let initialsIndices = [0, 0, 0];
+let initialsActiveIndex = 0;
+let initialsOpen = false;
+let isSavingScore = false;
 
 const HURT_DURATION_MS = 750;   // post-hit i-frames
 let hurtUntil = 0;
@@ -1166,6 +1188,245 @@ function showOverlay(overlay) {
   overlay.setAttribute('aria-hidden', 'false');
 }
 
+function getLocalHighScores() {
+  try {
+    const raw = localStorage.getItem(LOCAL_SCORES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function storeLocalHighScores(list) {
+  try {
+    localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(list));
+  } catch (err) {
+    /* ignore */
+  }
+}
+
+function renderHighScores(list = highScores) {
+  if (!highScoresList) {
+    return;
+  }
+  const scores = Array.isArray(list) ? list : [];
+  if (!scores.length) {
+    highScoresList.innerHTML = '<div class="high-score-row">NO SCORES RECORDED</div>';
+    return;
+  }
+  const rows = scores
+    .map((entry, idx) => {
+      const rank = (idx + 1).toString().padStart(2, '0');
+      const safeName = (entry.name || 'AAA').substring(0, 3).toUpperCase();
+      const safeScore = Number(entry.score || 0).toLocaleString();
+      return `<div class="high-score-row"><span class="high-score-rank">${rank}</span><span class="high-score-name">${safeName}</span><span class="high-score-score">${safeScore}</span></div>`;
+    })
+    .join('');
+  highScoresList.innerHTML = rows;
+}
+
+async function loadHighScores(force = false) {
+  if (highScoresLoading) {
+    return highScores;
+  }
+  if (highScoresLoaded && !force) {
+    renderHighScores();
+    return highScores;
+  }
+  highScoresLoading = true;
+  if (highScoresStatus) {
+    highScoresStatus.textContent = 'Loading...';
+  }
+  try {
+    const res = await fetch(HIGH_SCORES_ENDPOINT, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    highScores = Array.isArray(data.scores) ? data.scores : [];
+    storeLocalHighScores(highScores);
+    highScoresLoaded = true;
+    renderHighScores();
+    if (highScoresStatus) {
+      highScoresStatus.textContent = 'Press ESC to close.';
+    }
+  } catch (err) {
+    highScores = topScoresFrom(getLocalHighScores());
+    highScoresLoaded = true;
+    renderHighScores();
+    if (highScoresStatus) {
+      highScoresStatus.textContent = 'Offline mode: showing local scores only.';
+    }
+  } finally {
+    highScoresLoading = false;
+  }
+  return highScores;
+}
+
+function getInitialsString() {
+  return initialsIndices
+    .map(idx => INITIALS_ALPHABET[(idx % INITIALS_ALPHABET.length + INITIALS_ALPHABET.length) % INITIALS_ALPHABET.length] || 'A')
+    .join('');
+}
+
+function updateInitialsDisplay() {
+  initialsLettersEls.forEach((el, idx) => {
+    const letter = INITIALS_ALPHABET[(initialsIndices[idx] % INITIALS_ALPHABET.length + INITIALS_ALPHABET.length) % INITIALS_ALPHABET.length] || 'A';
+    el.textContent = letter;
+    const cell = el.parentElement;
+    if (cell) {
+      cell.classList.toggle('active', idx === initialsActiveIndex);
+    }
+  });
+}
+
+function shiftInitial(slot, delta) {
+  const alphabetLength = INITIALS_ALPHABET.length;
+  initialsIndices[slot] = (initialsIndices[slot] + delta + alphabetLength) % alphabetLength;
+  updateInitialsDisplay();
+}
+
+function focusInitial(slot) {
+  initialsActiveIndex = Math.max(0, Math.min(initialsIndices.length - 1, slot));
+  updateInitialsDisplay();
+}
+
+async function showHighScores() {
+  if (!highScoresOverlay) {
+    return;
+  }
+  showOverlay(highScoresOverlay);
+  if (highScoresButton) {
+    highScoresButton.setAttribute('aria-expanded', 'true');
+  }
+  await loadHighScores(false);
+}
+
+function closeInitialsOverlay() {
+  initialsOpen = false;
+  hideOverlay(initialsOverlay);
+  document.body.classList.remove('initials-open');
+}
+
+function openInitialsOverlay(score) {
+  if (!initialsOverlay) {
+    return;
+  }
+  hideOverlay(highScoresOverlay);
+  hideOverlay(controlsOverlay);
+  hideOverlay(collectOverlay);
+  pendingScoreSubmission = score;
+  initialsOpen = true;
+  initialsIndices = [0, 0, 0];
+  initialsActiveIndex = 0;
+  updateInitialsDisplay();
+  if (initialsStatus) {
+    initialsStatus.textContent = '';
+  }
+  showOverlay(initialsOverlay);
+  document.body.classList.add('initials-open');
+}
+
+async function submitHighScoreInitials() {
+  if (!initialsOpen || pendingScoreSubmission == null || isSavingScore) {
+    return;
+  }
+  const name = getInitialsString();
+  const score = pendingScoreSubmission;
+  isSavingScore = true;
+  if (initialsStatus) {
+    initialsStatus.textContent = 'Saving...';
+  }
+  try {
+    let offline = false;
+    try {
+      const res = await fetch(HIGH_SCORES_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, score })
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      highScores = Array.isArray(data.scores) ? data.scores : [];
+      storeLocalHighScores(highScores);
+      if (highScoresStatus) {
+        highScoresStatus.textContent = 'Press ESC to close.';
+      }
+    } catch (err) {
+      offline = true;
+      const now = new Date().toISOString();
+      const local = getLocalHighScores();
+      local.push({ name, score, timestamp: now });
+      local.sort((a, b) => b.score - a.score);
+      const trimmed = local.slice(0, 50);
+      storeLocalHighScores(trimmed);
+      highScores = trimmed.slice(0, 10);
+      if (highScoresStatus) {
+        highScoresStatus.textContent = 'Offline mode: showing local scores only.';
+      }
+    }
+    highScoresLoaded = true;
+    renderHighScores();
+    if (initialsStatus) {
+      initialsStatus.textContent = offline ? 'Saved locally. Connect to sync to the cloud.' : 'Score saved!';
+    }
+    pendingScoreSubmission = null;
+    setTimeout(() => {
+      closeInitialsOverlay();
+    }, 1000);
+  } finally {
+    isSavingScore = false;
+  }
+}
+
+function skipSavingScore() {
+  pendingScoreSubmission = null;
+  if (initialsStatus) {
+    initialsStatus.textContent = '';
+  }
+  closeInitialsOverlay();
+}
+
+function topScoresFrom(list) {
+  return (Array.isArray(list) ? list : [])
+    .slice()
+    .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
+    .slice(0, 10);
+}
+
+function qualifiesForHighScore(score) {
+  if (!Number.isFinite(score) || score <= 0) {
+    return false;
+  }
+  const current = highScoresLoaded ? highScores : getLocalHighScores();
+  const top = topScoresFrom(current);
+  if (top.length < 10) {
+    return true;
+  }
+  const lowest = Number(top[top.length - 1]?.score) || 0;
+  return score > lowest;
+}
+
+function promptHighScoreSave(score) {
+  if (gameState !== 'gameover') {
+    return;
+  }
+  if (!qualifiesForHighScore(score)) {
+    return;
+  }
+  loadHighScores().finally(() => {
+    if (gameState === 'gameover' && qualifiesForHighScore(score)) {
+      openInitialsOverlay(score);
+    }
+  });
+}
+
 function hideOverlay(overlay) {
   if (!overlay) return;
   overlay.classList.add('hidden');
@@ -1179,6 +1440,9 @@ function hideOverlay(overlay) {
       collectiblesToggleButton.setAttribute('aria-expanded', 'false');
     }
   }
+  if (overlay === highScoresOverlay && highScoresButton) {
+    highScoresButton.setAttribute('aria-expanded', 'false');
+  }
 }
 
 if (controlsToggleButton) {
@@ -1187,11 +1451,20 @@ if (controlsToggleButton) {
 if (collectiblesToggleButton) {
   collectiblesToggleButton.setAttribute('aria-expanded', 'false');
 }
+if (highScoresButton) {
+  highScoresButton.setAttribute('aria-expanded', 'false');
+}
 if (controlsOverlay) {
   controlsOverlay.setAttribute('aria-hidden', 'true');
 }
 if (collectOverlay) {
   collectOverlay.setAttribute('aria-hidden', 'true');
+}
+if (highScoresOverlay) {
+  highScoresOverlay.setAttribute('aria-hidden', 'true');
+}
+if (initialsOverlay) {
+  initialsOverlay.setAttribute('aria-hidden', 'true');
 }
 
 resetCollectOverlayPager();
@@ -1223,6 +1496,67 @@ if (collectiblesToggleButton && collectOverlay) {
   });
 }
 
+if (highScoresButton && highScoresOverlay) {
+  highScoresButton.addEventListener('click', async () => {
+    const isOpen = !highScoresOverlay.classList.contains('hidden');
+    if (isOpen) {
+      hideOverlay(highScoresOverlay);
+      return;
+    }
+    await showHighScores();
+  });
+}
+
+initialsArrowButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    if (!initialsOpen) return;
+    const cell = button.closest('.initial-cell');
+    if (!cell) return;
+    const slot = Number(cell.getAttribute('data-index') || '0');
+    focusInitial(slot);
+    const dir = button.getAttribute('data-dir') === 'up' ? -1 : 1;
+    shiftInitial(slot, dir);
+  });
+});
+
+if (initialsConfirmButton) {
+  initialsConfirmButton.addEventListener('click', () => {
+    submitHighScoreInitials();
+  });
+}
+
+if (initialsSkipButton) {
+  initialsSkipButton.addEventListener('click', () => {
+    skipSavingScore();
+  });
+}
+
+document.addEventListener('keydown', (event) => {
+  if (!initialsOpen) {
+    return;
+  }
+  const key = event.key;
+  if (key === 'ArrowUp') {
+    shiftInitial(initialsActiveIndex, -1);
+    event.preventDefault();
+  } else if (key === 'ArrowDown') {
+    shiftInitial(initialsActiveIndex, 1);
+    event.preventDefault();
+  } else if (key === 'ArrowLeft') {
+    focusInitial(Math.max(0, initialsActiveIndex - 1));
+    event.preventDefault();
+  } else if (key === 'ArrowRight') {
+    focusInitial(Math.min(initialsIndices.length - 1, initialsActiveIndex + 1));
+    event.preventDefault();
+  } else if (key === 'Enter') {
+    submitHighScoreInitials();
+    event.preventDefault();
+  } else if (key === 'Escape') {
+    skipSavingScore();
+    event.preventDefault();
+  }
+});
+
 if (collectPrevButton) {
   collectPrevButton.addEventListener('click', () => {
     setCollectOverlayPage('collectibles');
@@ -1243,6 +1577,7 @@ if (startGameButton) {
     }
     hideOverlay(controlsOverlay);
     hideOverlay(collectOverlay);
+    hideOverlay(highScoresOverlay);
     gameState = 'playing';
     gameStarted = true;
     ensureAudioActive();
@@ -1263,7 +1598,7 @@ document.querySelectorAll('.modal-close').forEach(btn => {
   });
 });
 
-[controlsOverlay, collectOverlay].forEach(overlay => {
+[controlsOverlay, collectOverlay, highScoresOverlay].forEach(overlay => {
   if (!overlay) return;
   overlay.addEventListener('click', e => {
     if (e.target === overlay) {
@@ -1275,13 +1610,14 @@ document.querySelectorAll('.modal-close').forEach(btn => {
 
 /* ---------- Input ---------- */
 document.addEventListener('keydown', e => {
-  if (!gameStarted) {
-    if (e.code === 'Escape') {
-      hideOverlay(controlsOverlay);
-      hideOverlay(collectOverlay);
-    }
-    return;
+if (!gameStarted) {
+  if (e.code === 'Escape') {
+    hideOverlay(controlsOverlay);
+    hideOverlay(collectOverlay);
+    hideOverlay(highScoresOverlay);
   }
+  return;
+}
 
   keys[e.code] = true;
 
@@ -3547,6 +3883,9 @@ function gameOver() {
   difficultyMultiplier = 1;
   baseGameSpeed = 200;
   recalcGameSpeed();
+  setTimeout(() => {
+    promptHighScoreSave(horse.score);
+  }, 400);
 }
 
 canvas.addEventListener('click', (event) => {

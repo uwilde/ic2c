@@ -26,6 +26,7 @@
                     <button id="startGameButton" class="retro-button">Start</button>
                     <button id="controlsToggleButton" class="retro-button" aria-expanded="false">Controls</button>
                     <button id="collectiblesToggleButton" class="retro-button" aria-expanded="false">Collectables &amp; Junk</button>
+                    <button id="highScoresButton" class="retro-button" aria-expanded="false">High Scores</button>
                 </div>
             </div>
             <div id="controlsOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="controlsHeading" aria-hidden="true">
@@ -138,6 +139,46 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="highScoresOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="highScoresHeading" aria-hidden="true">
+        <div class="modal-window high-scores-window">
+            <button class="modal-close" data-close="highScoresOverlay" aria-label="Close high scores">X</button>
+            <h2 id="highScoresHeading">Top Riders</h2>
+            <div class="high-scores-body">
+                <div id="highScoresList" class="high-scores-list" role="region" aria-live="polite"></div>
+            </div>
+            <div class="high-scores-footer">
+                <span id="highScoresStatus" class="high-scores-status">Loading...</span>
+            </div>
+        </div>
+    </div>
+    <div id="initialsOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="initialsHeading" aria-hidden="true">
+        <div class="modal-window initials-window">
+            <h2 id="initialsHeading">Save Your Score</h2>
+            <p class="initials-blurb">Use arrows to set your three-letter tag.</p>
+            <div class="initials-row" role="group" aria-label="Initials input">
+                <div class="initial-cell" data-index="0">
+                    <button class="initial-arrow" data-dir="up" aria-label="Previous letter">▲</button>
+                    <div class="initial-letter" aria-hidden="true">A</div>
+                    <button class="initial-arrow" data-dir="down" aria-label="Next letter">▼</button>
+                </div>
+                <div class="initial-cell" data-index="1">
+                    <button class="initial-arrow" data-dir="up" aria-label="Previous letter">▲</button>
+                    <div class="initial-letter" aria-hidden="true">A</div>
+                    <button class="initial-arrow" data-dir="down" aria-label="Next letter">▼</button>
+                </div>
+                <div class="initial-cell" data-index="2">
+                    <button class="initial-arrow" data-dir="up" aria-label="Previous letter">▲</button>
+                    <div class="initial-letter" aria-hidden="true">A</div>
+                    <button class="initial-arrow" data-dir="down" aria-label="Next letter">▼</button>
+                </div>
+            </div>
+            <div class="initials-actions">
+                <button id="initialsConfirm" class="retro-button">Save Score</button>
+                <button id="initialsSkip" class="retro-button">Skip</button>
+            </div>
+            <div id="initialsStatus" class="initials-status" aria-live="polite"></div>
         </div>
     </div>
     <div id="miniGameOverlay" class="mini-game-overlay hidden" aria-hidden="true">
