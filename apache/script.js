@@ -872,6 +872,14 @@ const horizontalControlState = {
   joystickLeft: false,
   joystickRight: false,
 };
+const VERTICAL_AXIS_DEADZONE = 0.25;
+const verticalControlState = {
+  keyboardUp: false,
+  keyboardDown: false,
+  joystickUp: false,
+  joystickDown: false,
+};
+
 
 function syncHorizontalKeys() {
   keys['ArrowLeft'] = horizontalControlState.keyboardLeft ||
@@ -882,8 +890,16 @@ function syncHorizontalKeys() {
     horizontalControlState.joystickRight;
 }
 
+function syncVerticalKeys() {
+  keys['ArrowUp'] = verticalControlState.keyboardUp ||
+    verticalControlState.joystickUp;
+  keys['ArrowDown'] = verticalControlState.keyboardDown ||
+    verticalControlState.joystickDown;
+}
+
 function isJoystickEngaged() {
-  return horizontalControlState.joystickLeft || horizontalControlState.joystickRight;
+  return horizontalControlState.joystickLeft || horizontalControlState.joystickRight ||
+    verticalControlState.joystickUp || verticalControlState.joystickDown;
 }
 
 function resetHorizontalControlState() {
@@ -894,6 +910,14 @@ function resetHorizontalControlState() {
   horizontalControlState.joystickLeft = false;
   horizontalControlState.joystickRight = false;
   syncHorizontalKeys();
+}
+
+function resetVerticalControlState() {
+  verticalControlState.keyboardUp = false;
+  verticalControlState.keyboardDown = false;
+  verticalControlState.joystickUp = false;
+  verticalControlState.joystickDown = false;
+  syncVerticalKeys();
 }
 
 function startStompFromControl() {
@@ -949,6 +973,15 @@ function setHorizontalAxisFromJoystick(value) {
   }
 }
 
+function setVerticalAxisFromJoystick(value) {
+  if (!gameStarted) return;
+  const upActive = value < -VERTICAL_AXIS_DEADZONE;
+  const downActive = value > VERTICAL_AXIS_DEADZONE;
+  verticalControlState.joystickUp = upActive;
+  verticalControlState.joystickDown = downActive;
+  syncVerticalKeys();
+}
+
 function togglePauseFromControl() {
   if (!gameStarted) return;
   isPaused = !isPaused;
@@ -986,6 +1019,7 @@ function togglePauseFromControl() {
 function registerExternalControls() {
   window.apacheControls = {
     setHorizontalAxis: setHorizontalAxisFromJoystick,
+    setVerticalAxis: setVerticalAxisFromJoystick,
     pressJump: startJumpFromControl,
     releaseJump: endJumpFromControl,
     togglePause: togglePauseFromControl,
@@ -994,6 +1028,7 @@ function registerExternalControls() {
 
 registerExternalControls();
 resetHorizontalControlState();
+resetVerticalControlState();
 let goldCoins = [];
 let discoBall = null;
 let snips = null;
@@ -1254,6 +1289,16 @@ document.addEventListener('keydown', e => {
     startJumpFromControl();
   }
 
+  if (e.code === 'ArrowUp') {
+    verticalControlState.keyboardUp = true;
+    syncVerticalKeys();
+  }
+
+  if (e.code === 'ArrowDown') {
+    verticalControlState.keyboardDown = true;
+    syncVerticalKeys();
+  }
+
   if (e.code === 'Escape') {
     togglePauseFromControl();
   }
@@ -1277,6 +1322,16 @@ document.addEventListener('keyup', e => {
 
   if (e.code === 'ControlLeft') {
     stopStompFromControl();
+  }
+
+  if (e.code === 'ArrowUp') {
+    verticalControlState.keyboardUp = false;
+    syncVerticalKeys();
+  }
+
+  if (e.code === 'ArrowDown') {
+    verticalControlState.keyboardDown = false;
+    syncVerticalKeys();
   }
 
   if (e.code === 'Space') {
