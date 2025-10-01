@@ -17,7 +17,7 @@ body {
     margin: 40px auto 0;
 }
 
-#controlsHeading { margin: 2px;position: fixed;right: 45%;top: 18%; }
+#controlsHeading { margin: 2px;position: fixed;right: 45%;top: 13%; }
 
 .start-overlay {
     position: absolute;
@@ -179,7 +179,7 @@ div#startScreen { overflow:hidden; }
 .retro-list {
     user-select: none;
     list-style: none;
-    padding: 0;
+    padding: 41px;
     margin: 0;
     display: flex;
     flex-direction: column;
