@@ -370,6 +370,11 @@
 </div>
 
 <script>
+const SPEED = {
+  enemyRead: 1100,  // time to read "Sheriff Snip used X!"
+  windup:    650,   // animation wind-up before the hit lands
+  postHit:   900    // linger on damage/miss text before player's turn
+};
 /*********** AUDIO ***********/
 class Chiptune{
   constructor(){this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=0.12;this.master.connect(this.ctx.destination);} 
@@ -710,24 +715,61 @@ function useItem(which){
   state.lock=true; setTimeout(()=>{closeBagOverlay(); enemyTurn();},650);
 }
 function enemyTurn(){
-  if(state.phase!=='battle')return;
-  const m=enemyMoves[rnd(0,enemyMoves.length-1)];
-  state.lock=true; setTextbox(`Sheriff Snip used ${m.label}!`);
-  const old=enemySprite.src; enemySprite.src=m.sprite; enemySprite.classList.add(m.anim); sfx.blip();
-  setTimeout(()=>enemySprite.classList.remove(m.anim),360);
-  setTimeout(()=>{
-    const dodge=0.10;
-    if(Math.random()<dodge){ setTextbox('Apachichu dodged it!'); sfx.miss(); enemySprite.src='snips.png'; return endEnemy(); }
-    let dmg=rnd(m.dmg[0],m.dmg[1]);
-    if(m.key==='PLUCK'&&Math.random()<0.3) dmg+=8; // small bonus on the hardest move
-    state.player.hp=clamp(state.player.hp-dmg,0,state.player.hpMax); updateBars();
-    playerSprite.classList.add('hit'); sfx.hit(); setTimeout(()=>playerSprite.classList.remove('hit'),260);
-    enemySprite.src='snips.png';
-    if(state.player.hp<=0) return lose();
-    endEnemy();
-  },420);
+  if (state.phase !== 'battle') return;
+
+  const m = enemyMoves[rnd(0, enemyMoves.length - 1)];
+  state.lock = true;
+
+  // 1) Show the move name long enough to read
+  setTextbox(`Sheriff Snip used ${m.label}!`);
+
+  // 2) After a readable pause, start the wind-up animation
+  setTimeout(() => {
+    const old = enemySprite.src;
+    enemySprite.src = m.sprite;
+    enemySprite.classList.add(m.anim);
+    sfx.blip?.();
+
+    // 3) After wind-up, resolve hit/miss + damage
+    setTimeout(() => {
+      enemySprite.classList.remove(m.anim);
+
+      const dodge = 0.10;
+      if (Math.random() < dodge) {
+        setTextbox('Apachichu dodged it!');
+        sfx.miss();
+        enemySprite.src = 'snips.png';
+        return setTimeout(endEnemy, SPEED.postHit);
+      }
+
+      let dmg = rnd(m.dmg[0], m.dmg[1]);
+      if (m.key === 'PLUCK' && Math.random() < 0.3) dmg += 8; // keep your bonus
+      state.player.hp = clamp(state.player.hp - dmg, 0, state.player.hpMax);
+      updateBars();
+
+      playerSprite.classList.add('hit');
+      sfx.hit();
+      setTimeout(() => playerSprite.classList.remove('hit'), 260);
+
+      enemySprite.src = 'snips.png';
+
+      if (state.player.hp <= 0) return lose();
+
+      // Optional: show a short result line before giving control back
+      setTextbox(`It dealt ${dmg} damage!`);
+      setTimeout(endEnemy, SPEED.postHit);
+
+    }, SPEED.windup);
+
+  }, SPEED.enemyRead);
 }
-const endEnemy=()=>{ state.lock=false; setTextbox('What will Apachichu do?'); };
+
+const endEnemy = () => {
+  state.lock = false;
+  setTextbox('What will Apachichu do?');
+};
+
+
 
 function win(){
   state.phase='end'; state.lock=true;

@@ -172,6 +172,12 @@ const initialsArrowButtons = Array.from(document.querySelectorAll('.initial-arro
 const initialsConfirmButton = document.getElementById('initialsConfirm');
 const initialsSkipButton = document.getElementById('initialsSkip');
 const initialsStatus = document.getElementById('initialsStatus');
+const pauseOverlay = document.getElementById('pauseOverlay');
+const pauseResumeButton = document.getElementById('pauseResumeButton');
+const pauseMainMenuButton = document.getElementById('pauseMainMenuButton');
+const volumeSliders = Array.from(document.querySelectorAll('[data-volume-slider]'));
+const muteToggleButtons = Array.from(document.querySelectorAll('[data-mute-toggle]'));
+const volumeDisplays = Array.from(document.querySelectorAll('[data-volume-display]'));
 
 if (startGameButton) {
   refreshStartButtonState();
@@ -209,6 +215,11 @@ let initialsIndices = [0, 0, 0];
 let initialsActiveIndex = 0;
 let initialsOpen = false;
 let isSavingScore = false;
+const DEFAULT_VOLUME = 0.8;
+const VOLUME_STORAGE_KEY = 'apacheVolume';
+const MUTE_STORAGE_KEY = 'apacheMuted';
+let volumeLevel = DEFAULT_VOLUME;
+let volumeMuted = false;
 
 const HURT_DURATION_MS = 750;   // post-hit i-frames
 let hurtUntil = 0;
@@ -216,7 +227,7 @@ let hurtUntil = 0;
 /* Sounds (your existing files) */
 /* ===== 8-bit Audio: Music + SFX (WebAudio) ===== */
 const AudioKit = (() => {
-  let ctx, masterGain, started = false, muted = false, snipLoop = null;
+  let ctx, masterGain, started = false, muted = false, volume = 0.8, snipLoop = null;
 
   // --- util ---
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -715,7 +726,7 @@ const AudioKit = (() => {
     if (ctx) return;
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = ctx.createGain();
-    masterGain.gain.value = 0.8;
+    masterGain.gain.value = volume;
     masterGain.connect(ctx.destination);
   }
 
@@ -751,7 +762,14 @@ const AudioKit = (() => {
 
   function setMuted(v) {
     muted = !!v;
-    if (masterGain) masterGain.gain.value = muted ? 0 : 0.8;
+    if (masterGain) masterGain.gain.value = muted ? 0 : volume;
+  }
+
+  function setVolume(v) {
+    volume = clamp(Number.isFinite(v) ? v : volume, 0, 1);
+    if (masterGain && !muted) {
+      masterGain.gain.value = volume;
+    }
   }
 
   function startSnipLoop() {
@@ -797,7 +815,9 @@ const AudioKit = (() => {
 
   return {
     init,
-    readyFromGesture, startSong, stopSong, setMuted, toggleMute(){ setMuted(!muted); },
+    readyFromGesture, startSong, stopSong, setMuted,
+    setVolume,
+    toggleMute(){ setMuted(!muted); },
 
     playMetal,
 
@@ -805,6 +825,8 @@ const AudioKit = (() => {
     startSnipLoop,
     stopSnipLoop,
     sfx: SFX,
+    getVolume(){ return volume; },
+    isMuted(){ return muted; },
     get started(){ return started; },
   };
 })();
@@ -1018,38 +1040,80 @@ function setVerticalAxisFromJoystick(value) {
   syncVerticalKeys();
 }
 
-function togglePauseFromControl() {
-  if (!gameStarted) return;
-  isPaused = !isPaused;
-  if (!isPaused) {
-    startMainLoop();
-    ensureAudioActive();
-    const now = performance.now();
-    const discoActive = isDiscoModeActive();
-    const inApambo = now < ramboUntil;
-    AudioKit.stopSong();
-    discoMusicOn = false;
-    apamboMusicOn = false;
-    if (discoActive) {
-      AudioKit.playDisco();
-      discoMusicOn = true;
-    } else if (inApambo) {
-      AudioKit.playMetal();
-      apamboMusicOn = true;
-    } else {
-      AudioKit.startSong();
-    }
-    if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
-      AudioKit.startSnipLoop();
+function pauseGame() {
+  if (!gameStarted || isPaused) return;
+  isPaused = true;
+  cancelAnimationFrame(animationId);
+  AudioKit.stopSong();
+  discoMusicOn = false;
+  apamboMusicOn = false;
+  if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+    AudioKit.stopSnipLoop();
+  }
+  hideOverlay(controlsOverlay);
+  hideOverlay(collectOverlay);
+  hideOverlay(highScoresOverlay);
+  if (pauseOverlay) {
+    syncVolumeUI();
+    showOverlay(pauseOverlay);
+    if (pauseResumeButton) {
+      pauseResumeButton.focus();
     }
   } else {
-    cancelAnimationFrame(animationId);
     drawPauseOverlay();
-    AudioKit.stopSong();
-    if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
-      AudioKit.stopSnipLoop();
-    }
   }
+}
+
+function resumeGame() {
+  if (!isPaused) return;
+  isPaused = false;
+  hideOverlay(pauseOverlay);
+  ensureAudioActive();
+  syncMusicToState();
+  if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
+    AudioKit.startSnipLoop();
+  }
+  startMainLoop();
+}
+
+function togglePauseFromControl() {
+  if (!gameStarted || gameState !== 'playing') return;
+  if (isPaused) {
+    resumeGame();
+  } else {
+    pauseGame();
+  }
+}
+
+function returnToMainMenu() {
+  hideOverlay(pauseOverlay);
+  isPaused = false;
+  cancelAnimationFrame(animationId);
+  AudioKit.stopSong();
+  if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+    AudioKit.stopSnipLoop();
+  }
+  resetGame({ start: false });
+  if (startScreen) {
+    startScreen.classList.remove('hidden');
+  }
+  if (startGameButton) {
+    startGameButton.disabled = false;
+  }
+  if (highScoresButton) {
+    highScoresButton.setAttribute('aria-expanded', 'false');
+  }
+  hideOverlay(controlsOverlay);
+  hideOverlay(collectOverlay);
+  hideOverlay(highScoresOverlay);
+  hideOverlay(initialsOverlay);
+  initialsOpen = false;
+  pendingScoreSubmission = null;
+  if (initialsStatus) {
+    initialsStatus.textContent = '';
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  syncVolumeUI();
 }
 
 function registerExternalControls() {
@@ -1393,6 +1457,83 @@ function skipSavingScore() {
   closeInitialsOverlay();
 }
 
+function storeVolumeSettings() {
+  try {
+    localStorage.setItem(VOLUME_STORAGE_KEY, String(volumeLevel));
+    localStorage.setItem(MUTE_STORAGE_KEY, volumeMuted ? 'true' : 'false');
+  } catch (err) {
+    /* ignore */
+  }
+}
+
+function syncVolumeUI() {
+  const percent = Math.round(clamp(volumeLevel, 0, 1) * 100);
+  volumeDisplays.forEach(el => {
+    el.textContent = `${percent}%`;
+  });
+  volumeSliders.forEach(slider => {
+    if (Number(slider.value) !== percent) {
+      slider.value = String(percent);
+    }
+  });
+  const currentlyMuted = volumeMuted || percent === 0;
+  muteToggleButtons.forEach(btn => {
+    btn.textContent = currentlyMuted ? 'Unmute' : 'Mute';
+    btn.setAttribute('aria-pressed', currentlyMuted ? 'true' : 'false');
+  });
+}
+
+function applyVolumeSettings(save = true) {
+  try { AudioKit.init(); } catch (err) {}
+  if (AudioKit && typeof AudioKit.setVolume === 'function') {
+    AudioKit.setVolume(volumeLevel);
+  }
+  const effectiveMuted = volumeMuted || volumeLevel <= 0;
+  if (AudioKit && typeof AudioKit.setMuted === 'function') {
+    AudioKit.setMuted(effectiveMuted);
+  }
+  if (save) {
+    storeVolumeSettings();
+  }
+  syncVolumeUI();
+}
+
+function loadVolumeSettings() {
+  const storedVolume = parseFloat(localStorage.getItem(VOLUME_STORAGE_KEY));
+  if (Number.isFinite(storedVolume)) {
+    volumeLevel = clamp(storedVolume, 0, 1);
+  } else {
+    volumeLevel = DEFAULT_VOLUME;
+  }
+  const storedMute = localStorage.getItem(MUTE_STORAGE_KEY);
+  volumeMuted = storedMute === 'true';
+  applyVolumeSettings(false);
+}
+
+function handleVolumeSliderValue(value) {
+  const percent = clamp(value, 0, 100);
+  volumeLevel = clamp(percent / 100, 0, 1);
+  if (volumeLevel > 0) {
+    volumeMuted = false;
+  } else {
+    volumeMuted = true;
+  }
+  applyVolumeSettings();
+}
+
+function toggleMute() {
+  const currentlyMuted = volumeMuted || volumeLevel <= 0;
+  if (currentlyMuted) {
+    if (volumeLevel <= 0) {
+      volumeLevel = DEFAULT_VOLUME;
+    }
+    volumeMuted = false;
+  } else {
+    volumeMuted = true;
+  }
+  applyVolumeSettings();
+}
+
 function topScoresFrom(list) {
   return (Array.isArray(list) ? list : [])
     .slice()
@@ -1459,6 +1600,9 @@ if (controlsOverlay) {
 }
 if (collectOverlay) {
   collectOverlay.setAttribute('aria-hidden', 'true');
+}
+if (pauseOverlay) {
+  pauseOverlay.setAttribute('aria-hidden', 'true');
 }
 if (highScoresOverlay) {
   highScoresOverlay.setAttribute('aria-hidden', 'true');
@@ -1578,6 +1722,7 @@ if (startGameButton) {
     hideOverlay(controlsOverlay);
     hideOverlay(collectOverlay);
     hideOverlay(highScoresOverlay);
+    hideOverlay(pauseOverlay);
     gameState = 'playing';
     gameStarted = true;
     ensureAudioActive();
@@ -1587,6 +1732,32 @@ if (startGameButton) {
     }
   });
 }
+
+volumeSliders.forEach(slider => {
+  slider.addEventListener('input', (event) => {
+    handleVolumeSliderValue(Number(event.target.value || 0));
+  });
+});
+
+muteToggleButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleMute();
+  });
+});
+
+if (pauseResumeButton) {
+  pauseResumeButton.addEventListener('click', () => {
+    resumeGame();
+  });
+}
+
+if (pauseMainMenuButton) {
+  pauseMainMenuButton.addEventListener('click', () => {
+    returnToMainMenu();
+  });
+}
+
+loadVolumeSettings();
 
 document.querySelectorAll('.modal-close').forEach(btn => {
   btn.addEventListener('click', (e) => {
@@ -1615,6 +1786,8 @@ if (!gameStarted) {
     hideOverlay(controlsOverlay);
     hideOverlay(collectOverlay);
     hideOverlay(highScoresOverlay);
+    hideOverlay(pauseOverlay);
+    isPaused = false;
   }
   return;
 }
@@ -3888,23 +4061,7 @@ function gameOver() {
   }, 400);
 }
 
-canvas.addEventListener('click', (event) => {
-  if (gameState !== 'gameover') return;
-
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const x = (event.clientX - rect.left) * scaleX;
-  const y = (event.clientY - rect.top) * scaleY;
-
-  if (x >= canvas.width / 2 - 75 && x <= canvas.width / 2 + 75 &&
-      y >= canvas.height / 2 + 30 && y <= canvas.height / 2 + 80) {
-    resetGame();
-  }
-});
-
-function resetGame() {
-  gameState = 'playing';
+function initializeGameState() {
   applesCollected = 0;
   ramboUntil = 0;
   nextDartAt = 0;
@@ -3915,7 +4072,12 @@ function resetGame() {
     onGround: true, trampleAngle: 0, lives: 3, invincible: false, invincibleTimer: 0,
     jumpHoldTime: 0, maxJumpHoldTime: 0.3
   };
-  logs = []; enemies = []; coins = []; platforms = []; powerUps = []; keys = {};
+  logs = [];
+  enemies = [];
+  coins = [];
+  platforms = [];
+  powerUps = [];
+  keys = {};
   laboys = [];
   resetHorizontalControlState();
   discoBall = null;
@@ -3927,6 +4089,10 @@ function resetGame() {
   nextLaboyScoreTrigger = LABOY_SCORE_INTERVAL;
   miniGameActive = false;
   gameStateBeforeMiniGame = null;
+  hideOverlay(miniGameOverlay);
+  if (miniGameFrame) {
+    miniGameFrame.src = 'about:blank';
+  }
   spaceState = 'normal';
   spaceModeUntil = 0;
   spaceTransitionStart = 0;
@@ -3945,12 +4111,57 @@ function resetGame() {
   difficultyMultiplier = 1;
   baseGameSpeed = 200;
   recalcGameSpeed();
-  frame = 0; level = 1; isPaused = false;
+  frame = 0;
+  level = 1;
+  isPaused = false;
   bgLayer1X = bgLayer2X = bgLayer3X = 0;
-  boss = null; bossSpawnTimer = 0;
+  boss = null;
+  bossSpawnTimer = 0;
   apamboMusicOn = false;
-  startMainLoop();
-  AudioKit.startSong();
+  hideOverlay(pauseOverlay);
+}
+
+canvas.addEventListener('click', (event) => {
+  if (gameState !== 'gameover') return;
+
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (event.clientX - rect.left) * scaleX;
+  const y = (event.clientY - rect.top) * scaleY;
+
+  if (x >= canvas.width / 2 - 75 && x <= canvas.width / 2 + 75 &&
+      y >= canvas.height / 2 + 30 && y <= canvas.height / 2 + 80) {
+    resetGame();
+  }
+});
+
+function resetGame(options = {}) {
+  const { start = true } = options;
+  initializeGameState();
+  if (start) {
+    gameState = 'playing';
+    gameStarted = true;
+  } else {
+    gameState = 'title';
+    gameStarted = false;
+  }
+  if (startScreen) {
+    startScreen.classList.toggle('hidden', start);
+  }
+  if (startGameButton) {
+    startGameButton.disabled = start;
+  }
+  if (start) {
+    startMainLoop();
+    AudioKit.startSong();
+  } else {
+    cancelAnimationFrame(animationId);
+    AudioKit.stopSong();
+    if (AudioKit && typeof AudioKit.stopSnipLoop === 'function') {
+      AudioKit.stopSnipLoop();
+    }
+  }
 }
 
 function startMainLoop() {

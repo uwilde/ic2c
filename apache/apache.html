@@ -28,6 +28,12 @@
                     <button id="collectiblesToggleButton" class="retro-button" aria-expanded="false">Collectables &amp; Junk</button>
                     <button id="highScoresButton" class="retro-button" aria-expanded="false">High Scores</button>
                 </div>
+                <div class="volume-control" data-volume-context="menu">
+                    <label class="volume-label" for="menuVolumeSlider">Volume</label>
+                    <input id="menuVolumeSlider" class="volume-slider" type="range" min="0" max="100" step="1" value="80" data-volume-slider>
+                    <button type="button" class="retro-button volume-mute" data-mute-toggle>Mute</button>
+                    <span class="volume-value" data-volume-display>80%</span>
+                </div>
             </div>
             <div id="controlsOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="controlsHeading" aria-hidden="true">
                 <div class="modal-window">
@@ -138,6 +144,22 @@
                         <button id="collectNextButton" class="retro-button" type="button" aria-controls="collectiblesPage hazardsPage">Hazards</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div id="pauseOverlay" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pauseHeading" aria-hidden="true">
+        <div class="modal-window pause-window">
+            <h2 id="pauseHeading">Game Paused</h2>
+            <p class="pause-blurb">Catch your breath, trailblazer.</p>
+            <div class="pause-actions">
+                <button id="pauseResumeButton" class="retro-button">Resume</button>
+                <button id="pauseMainMenuButton" class="retro-button">Main Menu</button>
+            </div>
+            <div class="volume-control" data-volume-context="pause">
+                <label class="volume-label" for="pauseVolumeSlider">Volume</label>
+                <input id="pauseVolumeSlider" class="volume-slider" type="range" min="0" max="100" step="1" value="80" data-volume-slider>
+                <button type="button" class="retro-button volume-mute" data-mute-toggle>Mute</button>
+                <span class="volume-value" data-volume-display>80%</span>
             </div>
         </div>
     </div>
