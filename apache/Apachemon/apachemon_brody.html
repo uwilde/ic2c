@@ -369,6 +369,11 @@
 </div>
 
 <script>
+const SPEED = {
+  enemyRead: 1100,  // time to read "Brody used X!"
+  windup:    650,
+  postHit:   900
+};
 /*********** AUDIO ***********/
 class Chiptune{
   constructor(){this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.master=this.ctx.createGain();this.master.gain.value=0.12;this.master.connect(this.ctx.destination);} 
@@ -684,8 +689,55 @@ function projectile(fromEl,toEl,img){
 function chooseMove(i){ if(state.lock||state.phase!=='battle')return; const m=moves[i]; if((state.player.mp??0)<m.mp){ setTextbox('Not enough MP!'); sfx.miss(); return;} closeFight(); actPlayerMove(m); }
 function actPlayerMove(m){ state.lock=true; state.player.mp=(state.player.mp??0)-m.mp; updateBars(); setTextbox(`${state.player.name} used ${m.label}!`); sfx.blip(); playerSprite.classList.add(m.anim); setTimeout(()=>playerSprite.classList.remove(m.anim),340); if(m.key==='NUG') projectile(playerSprite,enemySprite,'nug.png'); setTimeout(()=>{ const miss=0.12, crit=0.16; if(Math.random()<miss){ setTextbox('…but it missed!'); sfx.miss(); return setTimeout(enemyTurn,600);} let dmg=rnd(m.dmg[0],m.dmg[1]); if(Math.random()<crit){ dmg=Math.floor(dmg*1.5); setTextbox('A critical hit!'); } state.enemy.hp=clamp(state.enemy.hp-dmg,0,state.enemy.hpMax); updateBars(); enemySprite.classList.add('hit'); sfx.hit(); setTimeout(()=>enemySprite.classList.remove('hit'),260); if(state.enemy.hp<=0) return win(); setTimeout(enemyTurn,700); },380); }
 function useItem(which){ if(state.lock||state.phase!=='battle')return; if(which==='apple'){ if(state.player.items.apple<=0){ setTextbox('No Apple Drank left!'); sfx.miss(); return;} state.player.items.apple--; state.player.mp=clamp((state.player.mp??0)+12,0,state.player.mpMax); refreshItemCounts(); updateBars(); setTextbox('Apachichu sips Apple Drank! MP +12'); sfx.heal(); } else { if(state.player.items.juice<=0){ setTextbox("No Restor'O'Juice left!"); sfx.miss(); return;} state.player.items.juice--; state.player.hp=clamp(state.player.hp+40,0,state.player.hpMax); refreshItemCounts(); updateBars(); setTextbox("Apachichu guzzles Restor'O'Juice! HP +40"); sfx.heal(); } state.lock=true; setTimeout(()=>{closeBagOverlay(); enemyTurn();},650); }
-function enemyTurn(){ if(state.phase!=='battle')return; const m=enemyMoves[rnd(0,enemyMoves.length-1)]; state.lock=true; setTextbox(`Brody used ${m.label}!`); const old=enemySprite.src; enemySprite.src=m.sprite; enemySprite.classList.add(m.anim); sfx.blip(); setTimeout(()=>enemySprite.classList.remove(m.anim),360); setTimeout(()=>{ const dodge=0.10; if(Math.random()<dodge){ setTextbox('Apachichu dodged it!'); sfx.miss(); enemySprite.src='brody.png'; return endEnemy(); } let dmg=rnd(m.dmg[0],m.dmg[1]); if(m.key==='SAUSAGE'&&Math.random()<0.3) dmg+=8; state.player.hp=clamp(state.player.hp-dmg,0,state.player.hpMax); updateBars(); playerSprite.classList.add('hit'); sfx.hit(); setTimeout(()=>playerSprite.classList.remove('hit'),260); enemySprite.src='brody.png'; if(state.player.hp<=0) return lose(); endEnemy(); },420); }
-const endEnemy=()=>{ state.lock=false; setTextbox('What will Apachichu do?'); };
+function enemyTurn(){
+  if(state.phase!=='battle') return;
+
+  const m = enemyMoves[rnd(0, enemyMoves.length-1)];
+  state.lock = true;
+
+  setTextbox(`Brody used ${m.label}!`);
+
+  setTimeout(() => {
+    const old = enemySprite.src;
+    enemySprite.src = m.sprite;
+    enemySprite.classList.add(m.anim);
+    sfx.blip?.();
+
+    setTimeout(() => {
+      enemySprite.classList.remove(m.anim);
+
+      const dodge = 0.10;
+      if (Math.random() < dodge) {
+        setTextbox('Apachichu dodged it!');
+        sfx.miss();
+        enemySprite.src = 'brody.png';
+        return setTimeout(endEnemy, SPEED.postHit);
+      }
+
+      const dmg = rnd(m.dmg[0], m.dmg[1]);
+      state.player.hp = clamp(state.player.hp - dmg, 0, state.player.hpMax);
+      updateBars();
+
+      playerSprite.classList.add('hit');
+      sfx.hit();
+      setTimeout(()=>playerSprite.classList.remove('hit'), 260);
+
+      enemySprite.src = 'brody.png';
+
+      if (state.player.hp <= 0) return lose();
+
+      setTextbox(`It dealt ${dmg} damage!`);
+      setTimeout(endEnemy, SPEED.postHit);
+
+    }, SPEED.windup);
+  }, SPEED.enemyRead);
+}
+
+const endEnemy = () => {
+  state.lock = false;
+  setTextbox('What will Apachichu do?');
+};
+
 function win(){
   state.phase='end';
   state.lock=true;
