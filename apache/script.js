@@ -1,5 +1,5 @@
-﻿/* =========================
-   Apache â€” bugfix + UFO boss
+/* =========================
+   Apache — bugfix + UFO boss
    ========================= */
 
 const canvas = document.getElementById('gameCanvas');
@@ -179,6 +179,137 @@ const pauseMainMenuButton = document.getElementById('pauseMainMenuButton');
 const volumeSliders = Array.from(document.querySelectorAll('[data-volume-slider]'));
 const muteToggleButtons = Array.from(document.querySelectorAll('[data-mute-toggle]'));
 const volumeDisplays = Array.from(document.querySelectorAll('[data-volume-display]'));
+const startWindowButtons = Array.from(new Set([
+  ...Array.from(document.querySelectorAll('.start-window .retro-button')),
+  startGameButton,
+  controlsToggleButton,
+  collectiblesToggleButton,
+  highScoresButton,
+  startScreen ? startScreen.querySelector('[data-mute-toggle]') : null,
+].filter(Boolean)));
+
+const menuSfxQueue = [];
+let menuSfxPumpActive = false;
+let menuSfxPumpDeadline = 0;
+const getMenuTimestamp = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+  ? () => performance.now()
+  : () => Date.now();
+
+function playMenuSfxNow(name) {
+  if (!AudioKit || !AudioKit.sfx || typeof AudioKit.sfx[name] !== 'function') {
+    return;
+  }
+  try {
+    AudioKit.sfx[name]();
+  } catch (err) {
+    console.warn('Menu SFX failed', err);
+  }
+}
+
+function flushMenuSfxQueue() {
+  if (!menuSfxQueue.length) {
+    menuSfxPumpActive = false;
+    return;
+  }
+  while (menuSfxQueue.length) {
+    playMenuSfxNow(menuSfxQueue.shift());
+  }
+  menuSfxPumpActive = false;
+}
+
+function pumpMenuSfxQueue() {
+  if (!menuSfxPumpActive) {
+    return;
+  }
+  if (!menuSfxQueue.length) {
+    menuSfxPumpActive = false;
+    return;
+  }
+  if (AudioKit && AudioKit.started) {
+    flushMenuSfxQueue();
+    return;
+  }
+  if (getMenuTimestamp() > menuSfxPumpDeadline) {
+    menuSfxQueue.length = 0;
+    menuSfxPumpActive = false;
+    return;
+  }
+  if (AudioKit && typeof AudioKit.readyFromGesture === 'function') {
+    try {
+      AudioKit.readyFromGesture();
+    } catch (err) {
+      // Ignore resume issues until user interacts
+    }
+  }
+  const scheduler = typeof requestAnimationFrame === 'function'
+    ? requestAnimationFrame
+    : (cb) => setTimeout(cb, 32);
+  scheduler(() => {
+    if (!menuSfxPumpActive) {
+      return;
+    }
+    pumpMenuSfxQueue();
+  });
+}
+
+function triggerMenuSfx(name) {
+  if (!AudioKit || !AudioKit.sfx || typeof AudioKit.sfx[name] !== 'function') {
+    return;
+  }
+
+  ensureAudioActive(true);
+
+  menuSfxQueue.push(name);
+  if (menuSfxQueue.length > 8) {
+    menuSfxQueue.splice(0, menuSfxQueue.length - 8);
+  }
+
+  if (AudioKit.started) {
+    flushMenuSfxQueue();
+    return;
+  }
+
+  if (!menuSfxPumpActive) {
+    menuSfxPumpActive = true;
+    menuSfxPumpDeadline = getMenuTimestamp() + 4000;
+    pumpMenuSfxQueue();
+  }
+}
+
+function attachMenuButtonAudio(button, { hoverSfx = 'menuHover', clickSfx = 'menuClick' } = {}) {
+  if (!button) {
+    return;
+  }
+  const handleHover = () => triggerMenuSfx(hoverSfx);
+  const handleClick = () => triggerMenuSfx(clickSfx);
+  const handleKey = (event) => {
+    if (event.repeat) {
+      return;
+    }
+    const key = event.key;
+    if (key === 'Enter' || key === ' ' || key === 'Space' || key === 'Spacebar') {
+      triggerMenuSfx(clickSfx);
+    }
+  };
+
+  const supportsPointer = typeof window !== 'undefined' && 'PointerEvent' in window;
+  if (supportsPointer) {
+    button.addEventListener('pointerenter', handleHover);
+  } else {
+    button.addEventListener('mouseenter', handleHover);
+  }
+
+  button.addEventListener('focus', handleHover);
+  button.addEventListener('click', handleClick);
+  button.addEventListener('keydown', handleKey);
+}
+
+startWindowButtons.forEach(button => {
+  const clickSfx = button === startGameButton ? 'menuStart' : 'menuClick';
+  attachMenuButtonAudio(button, { clickSfx });
+});
+
+
 
 if (startGameButton) {
   refreshStartButtonState();
@@ -321,7 +452,7 @@ const AudioKit = (() => {
     },
     powerup() {
       const t = ctx.currentTime;
-      const steps = [72, 76, 79, 84, 88]; // C major â€œshineâ€
+      const steps = [72, 76, 79, 84, 88]; // C major “shine”
       steps.forEach((m, i) => {
         const tt = t + i*0.06;
         const n = pulseOsc(midiToHz(m), 0.25, tt);
@@ -341,7 +472,7 @@ const AudioKit = (() => {
     beam() {
       const t = ctx.currentTime;
       const n = pulseOsc(300, 0.5, t);
-      n.rampFreq(140, t, t + 0.4);  // âœ… now legal
+      n.rampFreq(140, t, t + 0.4);  // ✅ now legal
       const e = envADSR(n.out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
       e.out.connect(masterGain);
       n.stop(t + 0.5); e.release(t + 0.4);
@@ -371,6 +502,34 @@ const AudioKit = (() => {
         const n = pulseOsc(midiToHz(m), 0.5, tt);
         const e = envADSR(n.out, tt, 0.003, 0.08, 0.0, 0.25, 0.9, 0.0);
         e.out.connect(masterGain); n.stop(tt + 0.35); e.release(tt + 0.18);
+      });
+    },
+    menuHover() {
+      const t = ctx.currentTime;
+      const note = pulseOsc(midiToHz(94), 0.5, t);
+      const env = envADSR(note.out, t, 0.001, 0.025, 0, 0.04, 0.75, 0);
+      env.out.connect(masterGain);
+      note.stop(t + 0.09);
+      env.release(t + 0.05);
+    },
+    menuClick() {
+      const t = ctx.currentTime;
+      const tone = pulseOsc(midiToHz(82), 0.5, t);
+      tone.rampFreq(midiToHz(74), t, t + 0.08);
+      const env = envADSR(tone.out, t, 0.001, 0.04, 0, 0.08, 0.85, 0);
+      env.out.connect(masterGain);
+      tone.stop(t + 0.12);
+      env.release(t + 0.07);
+    },
+    menuStart() {
+      const t = ctx.currentTime;
+      [79, 84, 91].forEach((m, i) => {
+        const tt = t + i * 0.05;
+        const note = pulseOsc(midiToHz(m), 0.45, tt);
+        const env = envADSR(note.out, tt, 0.002, 0.04, 0, 0.12, 0.9, 0.05);
+        env.out.connect(masterGain);
+        note.stop(tt + 0.2);
+        env.release(tt + 0.1);
       });
     }
   };
@@ -458,7 +617,7 @@ const AudioKit = (() => {
   function twangLead(midi, t0, dur=0.24, vol=0.28) {
     const {out, stop, addVibrato} = pulseOsc(midiToHz(midi), 0.28, t0);
     const pre = ctx.createGain(); pre.gain.value = vol;
-    const killVib = addVibrato(5.7, 6); // âœ… vibrato modulates the underlying oscillators
+    const killVib = addVibrato(5.7, 6); // ✅ vibrato modulates the underlying oscillators
     out.connect(pre);
     const e = envADSR(pre, t0, 0.004, 0.06, 0.16, 0.08, 1.0, 0.6);
     e.out.connect(masterGain);
@@ -483,7 +642,7 @@ const AudioKit = (() => {
     const stopAt = t0 + dur; e.release(stopAt - 0.02);
   }
 
-  // distorted â€œguitarâ€ chug: saw -> distortion -> lowpass gate
+  // distorted “guitar” chug: saw -> distortion -> lowpass gate
   function chug(midi, t0, dur=0.16, vol=0.22) {
     const f = midiToHz(midi);
     const o1 = sawOsc(f, t0);
@@ -546,7 +705,7 @@ const AudioKit = (() => {
 
 
   /* ------------ SONG DEFINITIONS ------------- */
-  // MAIN: Redneck Adventure (key A, Iâ€“â™­VIIâ€“IV: Aâ€“Gâ€“D)
+  // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
   const SONG_MAIN = {
     name: 'main',
     bpm: 124,
@@ -560,7 +719,7 @@ const AudioKit = (() => {
     drums:  ['KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH']
   };
 
-  // METAL â€” faster & crunchier (more drive, double-kick grid)
+  // METAL — faster & crunchier (more drive, double-kick grid)
   const metalDrums = [];
   for (let i = 0; i < 64; i++) {
     let dd = 'K'; // kick on every 16th for intense double bass
@@ -1003,7 +1162,7 @@ function stopStompFromControl(options = {}) {
 function startJumpFromControl() {
   if (!gameStarted) return;
   if (horse.onGround && !isSpaceModeVisual()) {
-    ensureAudioActive();
+    ensureAudioActive(true);
     horse.isJumping = true;
     horse.velocityY = -350;
     horse.jumpHoldTime = 0;
@@ -1069,7 +1228,7 @@ function resumeGame() {
   if (!isPaused) return;
   isPaused = false;
   hideOverlay(pauseOverlay);
-  ensureAudioActive();
+  ensureAudioActive(true);
   syncMusicToState();
   if (snips && AudioKit && typeof AudioKit.startSnipLoop === 'function') {
     AudioKit.startSnipLoop();
@@ -1726,7 +1885,7 @@ if (startGameButton) {
     hideOverlay(pauseOverlay);
     gameState = 'playing';
     gameStarted = true;
-    ensureAudioActive();
+    ensureAudioActive(true);
     syncMusicToState();
     if (gameReady) {
       startMainLoop();
@@ -2140,7 +2299,7 @@ function spawnDiscoBall() {
 function collectDiscoBall() {
   if (!discoBall) return;
   discoBall.collected = true;
-  ensureAudioActive();
+  ensureAudioActive(true);
   if (AudioKit && AudioKit.sfx && typeof AudioKit.sfx.powerup === 'function') {
     AudioKit.sfx.powerup();
   }
@@ -2174,7 +2333,7 @@ function spawnBeer() {
 }
 
 function handleBeerCollected() {
-  ensureAudioActive();
+  ensureAudioActive(true);
   if (collectSound && typeof collectSound.play === 'function') {
     collectSound.play();
   }
@@ -2349,7 +2508,7 @@ function activateDiscoMode() {
 
   if (!alreadyActive) {
     discoModeStartedAt = now;
-    ensureAudioActive();
+    ensureAudioActive(true);
     AudioKit.stopSong();
     AudioKit.playDisco();
     discoMusicOn = true;
@@ -2383,7 +2542,7 @@ function spawnSnips() {
     direction: -1,
   };
   nextSnipsAt = Number.POSITIVE_INFINITY;
-  ensureAudioActive();
+  ensureAudioActive(true);
   if (AudioKit && typeof AudioKit.startSnipLoop === 'function') {
     AudioKit.startSnipLoop();
   }
@@ -2511,7 +2670,7 @@ function createPlatform() {
       width: HORSE2_W,
       height: HORSE2_H
     });
-    // 12â€“18s cooldown before another can appear
+    // 12–18s cooldown before another can appear
     horse2CooldownUntil = performance.now() + (12000 + Math.random() * 6000);
   }
 }
@@ -2696,7 +2855,7 @@ function updateEnemies(dt) {
         horse.score += 20;
         // small bounce (optional)
         horse.velocityY = -120;
-        // (no stompSound; remove any â€œstomp to killâ€ logic elsewhere)
+        // (no stompSound; remove any “stomp to kill” logic elsewhere)
       } else if (!isInvincible()) {
         // Side/body contact = damage
         loseLife();
@@ -2728,7 +2887,7 @@ function updateCoins(dt) {
         ramboUntil = performance.now() + RAMBO_DURATION;
         nextDartAt = 0; // fire immediately
       }
-			ensureAudioActive();
+			ensureAudioActive(true);
       collectSound.play();
     }
   }
@@ -2766,7 +2925,7 @@ function handleLaboyCollected(index) {
   const item = laboys[index];
   item.collected = true;
   laboys.splice(index, 1);
-  ensureAudioActive();
+  ensureAudioActive(true);
   collectSound.play();
   enterMiniGame();
 }
@@ -2806,7 +2965,7 @@ function updatePowerUps(dt) {
 			invincibleUntil = performance.now() + 8000;
 			horse.invincible = true;
 			powerUpCooldownUntil = performance.now() + 20000;
-			ensureAudioActive();
+			ensureAudioActive(true);
 			collectSound.play();
 			AudioKit.sfx.powerup();
 
@@ -2864,9 +3023,9 @@ function drawHorse2s() {
   }
 }
 
-// Create & show the flashing â€œAPAMBO MODE!!!â€ banner, then enable APAMBO
+// Create & show the flashing “APAMBO MODE!!!” banner, then enable APAMBO
 function triggerApamboBanner() {
-  ensureAudioActive();
+  ensureAudioActive(true);
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
   // immediately set APAMBO so the meter & darts are ready when banner clears
   ramboUntil = performance.now() + RAMBO_DURATION;
@@ -2918,7 +3077,7 @@ function drawApamboBanner() {
 /* ---------- Boss (UFO + tractor beam) ---------- */
 function spawnBoss() {
   const w = 148, h = 92;
-  const baseY = 68;
+  const baseY = 30;
   boss = {
     x: canvas.width + 120,
     y: baseY,
@@ -3072,8 +3231,8 @@ function tractorPull(dt) {
 
   // Play beam sound periodically while beam is active (independent of player position)
   if (nowMs >= nextBeamSoundAt) {
-    console.log('Playing beam sound'); // For debuggingâ€”remove after testing
-    ensureAudioActive(); // Changed from ensureAudioActive(true) to avoid forced resume issues
+    console.log('Playing beam sound'); // For debugging—remove after testing
+    ensureAudioActive(true); // Changed from ensureAudioActive(true) to avoid forced resume issues
     AudioKit.sfx.beam();
     nextBeamSoundAt = nowMs + 450;
   }
@@ -3131,7 +3290,7 @@ function tractorPull(dt) {
     horse.isJumping = true;
     horse.onGround = false;
 
-    // Lateral pull toward center â€” fully safe
+    // Lateral pull toward center — fully safe
     const dx = nz(beamTopX - pxC, 0);
     const denomHW = Math.max(8, halfWidthAt(pyMid)); // never < 8 to avoid huge pulls
     const centerFactor = clamp(Math.abs(dx) / denomHW, 0, 1);
@@ -3232,7 +3391,7 @@ function drawBoss() {
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#0e0e0e';
 
-    // saucer upper disc (red) with darker underside bandâ€”reads as one unit
+    // saucer upper disc (red) with darker underside band—reads as one unit
     ctx.fillStyle = '#d43b35';
     ctx.beginPath();
     ctx.ellipse(cx, y + h * 0.55, w * 0.48, h * 0.22, 0, 0, Math.PI * 2);
@@ -3289,7 +3448,7 @@ function drawBoss() {
     ctx.fill(); ctx.stroke();
   }
 
-  /* ====== COW (dangling â€œstuck to the bottomâ€) ====== */
+  /* ====== COW (dangling “stuck to the bottom”) ====== */
   // Small stylized pixel-cow; uses rectangles & arcs, swings a bit.
   const c = boss.cow;
   const attachX = cx;
@@ -3298,7 +3457,7 @@ function drawBoss() {
   const cowX = Math.round(attachX - 26 + swingX);
   const cowY = Math.round(attachY + c.bob);
 
-  // rope/tractor â€œholdâ€
+  // rope/tractor “hold”
   ctx.strokeStyle = 'rgba(80,80,80,0.9)';
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(attachX, attachY); ctx.lineTo(cowX + 26, cowY + 6); ctx.stroke();
@@ -3477,7 +3636,7 @@ function updateGoldCoins(dt) {
       horse.lives += 1;
 
       // sfx
-      ensureAudioActive();
+      ensureAudioActive(true);
       collectSound.play();
     }
   }
@@ -3634,7 +3793,7 @@ function syncMusicToState() {
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
-  // skip spawning HORSE2 to prevent the â€œlog turned into horse2â€ illusion.
+  // skip spawning HORSE2 to prevent the “log turned into horse2” illusion.
   const left  = platform.x - pad;
   const right = platform.x + platform.width + pad;
   for (const l of logs) {
@@ -3917,12 +4076,12 @@ function drawLaboys() {
 }
 function drawGoldCoins() {
   for (const g of goldCoins) {
-    // gentle 0.75â€“1.25x pulse
+    // gentle 0.75–1.25x pulse
     const t = performance.now();
     const pulse = 1 + Math.sin(t / 240) * 0.25;
 
     ctx.save();
-    // softer, subtler glow â€” no additive blending
+    // softer, subtler glow — no additive blending
     ctx.shadowColor = 'rgba(255,215,0,0.35)';   // was ~0.9
     ctx.shadowBlur  = 4 + 4 * pulse;            // was ~14 + big pulse
     ctx.drawImage(goldCoinImage, g.x, g.y + (g.bobY || 0), g.width, g.height);
@@ -4179,7 +4338,7 @@ function gameLoop(ts) {
   lastTime = ts;
 
 
-  ensureAudioActive();
+  ensureAudioActive(true);
 
 
   updateSpaceMode(dt);
@@ -4273,7 +4432,7 @@ function gameLoop(ts) {
       }
     }
 
-    // Spawn boss every ~25â€“35s (randomized), only if none active
+    // Spawn boss every ~25–35s (randomized), only if none active
     if (!inSpace && !boss && bossSpawnTimer >= 45 + Math.random() * 20) {
       spawnBoss();
       bossSpawnTimer = 0;
@@ -4307,7 +4466,7 @@ function gameLoop(ts) {
     // Auto-fire while APAMBO is active
     if (nowMs < ramboUntil) {
       if (nowMs >= nextDartAt) {
-				ensureAudioActive();
+				ensureAudioActive(true);
         spawnDart();
         AudioKit.sfx.dart();
         nextDartAt = nowMs + DART_INTERVAL;
@@ -4382,7 +4541,7 @@ function handleDesktopMediaCommand(action) {
       }
       if (!desktopPausedByHost) {
         try {
-          ensureAudioActive();
+          ensureAudioActive(true);
           syncMusicToState();
         } catch (err) {
           console.warn('Resume audio failed', err);
@@ -4405,7 +4564,7 @@ function handleDesktopMediaCommand(action) {
           AudioKit.setMuted(false);
         }
         try {
-          ensureAudioActive();
+          ensureAudioActive(true);
           syncMusicToState();
         } catch (err) {
           console.warn('Resume audio failed', err);
@@ -4448,7 +4607,6 @@ window.addEventListener('message', (event) => {
     exitMiniGame(false);
   }
 });
-
 
 
 
