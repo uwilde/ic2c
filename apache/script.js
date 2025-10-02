@@ -130,6 +130,7 @@ const LABOY_SCORE_INTERVAL = 1000;
 const MINI_GAME_SCORE_BONUS = 500;
 const APACHEMON_GAMES = [
   'Apachemon/apachemon.html',
+  'Apachemon/apachemon_roxy.html',
   'Apachemon/apachemon_brody.html',
   'Apachemon/apachemon_sheriff_snip.html',
 ];
@@ -4447,6 +4448,7 @@ window.addEventListener('message', (event) => {
     exitMiniGame(false);
   }
 });
+
 
 
 
