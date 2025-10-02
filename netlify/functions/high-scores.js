@@ -1,7 +1,15 @@
 const SCORES_LIMIT = 50;
 const TOP_LIMIT = 10;
-const STORE_NAME = process.env.HIGH_SCORE_STORE || 'apache-adventure-high-scores';
-const STORE_KEY = process.env.HIGH_SCORE_KEY || 'scores.json';
+const STORE_NAME =
+  process.env.NETLIFY_SCORES_STORE ||
+  process.env.HIGH_SCORE_STORE ||
+  process.env.SCORES_STORE ||
+  'apache-adventure-high-scores';
+const STORE_KEY =
+  process.env.NETLIFY_SCORES_KEY ||
+  process.env.HIGH_SCORE_KEY ||
+  process.env.SCORES_KEY ||
+  'scores.json';
 const path = require('path');
 
 const localScoresPath = path.resolve(__dirname, '../../scores/high-scores.json');
@@ -22,11 +30,27 @@ async function getBlobStore() {
   }
 }
 
+function extractEntries(data) {
+  if (!data) {
+    return [];
+  }
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (Array.isArray(data.entries)) {
+    return data.entries;
+  }
+  if (Array.isArray(data.scores)) {
+    return data.scores;
+  }
+  return [];
+}
+
 async function readLocalFallback() {
   try {
     const fs = await import('fs/promises');
     const data = await fs.readFile(localScoresPath, 'utf8');
-    return JSON.parse(data);
+    return extractEntries(JSON.parse(data));
   } catch (err) {
     return [];
   }
@@ -47,8 +71,8 @@ async function fetchScores() {
     const store = await getBlobStore();
     if (store) {
       const data = await store.get(STORE_KEY, { type: 'json' });
-      if (Array.isArray(data)) {
-        return data;
+      if (data != null) {
+        return extractEntries(data);
       }
     }
   } catch (err) {
@@ -61,9 +85,13 @@ async function writeScores(entries) {
   try {
     const store = await getBlobStore();
     if (store) {
-      await store.set(STORE_KEY, entries, {
-        metadata: { updatedAt: new Date().toISOString() }
-      });
+      const serialised = Array.isArray(entries) ? entries : [];
+      const metadata = { updatedAt: new Date().toISOString() };
+      if (typeof store.setJSON === 'function') {
+        await store.setJSON(STORE_KEY, serialised, { metadata });
+      } else {
+        await store.set(STORE_KEY, JSON.stringify(serialised), { metadata });
+      }
       return;
     }
   } catch (err) {
