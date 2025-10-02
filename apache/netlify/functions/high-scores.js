@@ -1,4 +1,4 @@
-const SCORES_LIMIT = 50;
+﻿const SCORES_LIMIT = 50;
 const TOP_LIMIT = 10;
 
 const owner = process.env.GITHUB_OWNER;
@@ -6,54 +6,175 @@ const repo = process.env.GITHUB_REPO;
 const scoresPath = process.env.GITHUB_SCORES_PATH || 'scores/high-scores.json';
 const token = process.env.GITHUB_TOKEN;
 
+let getStoreFn;
+try {
+  ({ getStore: getStoreFn } = require('@netlify/blobs'));
+} catch (error) {
+  getStoreFn = null;
+}
+
+const blobStoreName = process.env.NETLIFY_SCORES_STORE || 'high-scores';
+const blobStoreKey = process.env.NETLIFY_SCORES_KEY || 'scores.json';
+
+let blobStoreCache;
+
+function ensureBlobStore() {
+  if (!getStoreFn) {
+    return null;
+  }
+  if (blobStoreCache !== undefined) {
+    return blobStoreCache;
+  }
+  try {
+    blobStoreCache = getStoreFn({ name: blobStoreName });
+  } catch (err) {
+    console.warn('Netlify Blobs store unavailable:', err.message);
+    blobStoreCache = null;
+  }
+  return blobStoreCache;
+}
+
+async function fetchBlobScores() {
+  const store = ensureBlobStore();
+  if (!store) {
+    return null;
+  }
+  try {
+    const result = await store.getWithMetadata(blobStoreKey, { type: 'json' });
+    if (!result || result.data == null) {
+      return { entries: [], etag: result?.etag };
+    }
+    const data = result.data;
+    const entries = Array.isArray(data?.entries)
+      ? data.entries
+      : Array.isArray(data)
+      ? data
+      : [];
+    return { entries, etag: result.etag };
+  } catch (err) {
+    console.error('Netlify Blobs read failed:', err);
+    return null;
+  }
+}
+
+async function writeBlobScores(entries) {
+  const store = ensureBlobStore();
+  if (!store) {
+    return false;
+  }
+  try {
+    await store.setJSON(
+      blobStoreKey,
+      { entries, updatedAt: new Date().toISOString() }
+    );
+    return true;
+  } catch (err) {
+    console.error('Netlify Blobs write failed:', err);
+    return false;
+  }
+}
+
+async function readLocalScores() {
+  try {
+    const fs = await import('fs/promises');
+    const pathModule = await import('path');
+    const localPath = pathModule.resolve(__dirname, '../../', scoresPath);
+    const data = await fs.readFile(localPath, 'utf8');
+    const parsed = JSON.parse(data);
+    const entries = Array.isArray(parsed?.entries)
+      ? parsed.entries
+      : Array.isArray(parsed)
+      ? parsed
+      : [];
+    return { entries };
+  } catch (err) {
+    return { entries: [] };
+  }
+}
+
+async function writeLocalScores(entries) {
+  try {
+    const fs = await import('fs/promises');
+    const pathModule = await import('path');
+    const localPath = pathModule.resolve(__dirname, '../../', scoresPath);
+    await fs.mkdir(pathModule.dirname(localPath), { recursive: true });
+    await fs.writeFile(localPath, JSON.stringify(entries, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Local score write failed:', err);
+    return false;
+  }
+}
+
 async function fetchScores() {
   if (!token || !owner || !repo) {
-    try {
-      const fs = await import('fs/promises');
-      const pathModule = await import('path');
-      const localPath = pathModule.resolve(__dirname, '../../', scoresPath);
-      const data = await fs.readFile(localPath, 'utf8');
-      return JSON.parse(data);
-    } catch (err) {
-      return [];
+    const blobScores = await fetchBlobScores();
+    if (blobScores) {
+      return blobScores;
     }
+    return readLocalScores();
   }
 
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${scoresPath}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json'
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'high-scores-function'
     }
   });
+
+  if (res.status === 404) {
+    return { entries: [], sha: null };
+  }
+
   if (!res.ok) {
     throw new Error(`GitHub fetch failed: ${res.status}`);
   }
+
   const json = await res.json();
   const content = Buffer.from(json.content, 'base64').toString('utf8');
-  return { entries: JSON.parse(content), sha: json.sha };
+  const parsed = JSON.parse(content);
+  const entries = Array.isArray(parsed?.entries)
+    ? parsed.entries
+    : Array.isArray(parsed)
+    ? parsed
+    : [];
+  return { entries, sha: json.sha };
 }
 
 async function writeScores({ entries, sha }) {
-  if (!token || !owner || !repo) {
-    return false;
+  if (token && owner && repo) {
+    const body = {
+      message: 'Update high scores',
+      content: Buffer.from(JSON.stringify(entries, null, 2)).toString('base64')
+    };
+
+    if (sha) {
+      body.sha = sha;
+    }
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${scoresPath}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'high-scores-function'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      throw new Error(`GitHub write failed: ${res.status}`);
+    }
+
+    return true;
   }
-  const body = {
-    message: 'Update high scores',
-    content: Buffer.from(JSON.stringify(entries, null, 2)).toString('base64'),
-    sha
-  };
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${scoresPath}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json'
-    },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    throw new Error(`GitHub write failed: ${res.status}`);
+
+  if (await writeBlobScores(entries)) {
+    return true;
   }
-  return true;
+
+  return writeLocalScores(entries);
 }
 
 function normaliseName(name) {
@@ -102,9 +223,7 @@ exports.handler = async function(event) {
       entries.sort((a, b) => b.score - a.score);
       const trimmed = entries.slice(0, SCORES_LIMIT);
 
-      if (token && owner && repo) {
-        await writeScores({ entries: trimmed, sha: store.sha });
-      }
+      await writeScores({ entries: trimmed, sha: store.sha });
 
       const top = trimmed.slice(0, TOP_LIMIT);
       return {
