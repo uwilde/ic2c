@@ -1,27 +1,9 @@
-/* =========================
+﻿/* =========================
    Apache â€” bugfix + UFO boss
    ========================= */
 
-(function bootstrap() {
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
-return;
-}
-let canvas = document.getElementById('gameCanvas');
-
-if (!canvas) {
-canvas = document.createElement('canvas');
-canvas.id = 'gameCanvas';
-canvas.width = 800;
-canvas.height = 400;
-document.body.appendChild(canvas);
-}
-
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-if (!ctx) {
-console.error('Unable to get 2D context for the game canvas.');
-return;
-}
 
 const loadingStatusEl = document.getElementById('loadingStatus');
 const loadingPercentEl = document.getElementById('loadingPercent');
@@ -149,7 +131,6 @@ const MINI_GAME_SCORE_BONUS = 500;
 const APACHEMON_GAMES = [
   'Apachemon/apachemon.html',
   'Apachemon/apachemon_brody.html',
-  'Apachemon/apachemon_roxy.html',
   'Apachemon/apachemon_sheriff_snip.html',
 ];
 // HORSE2 (bonus trigger)
@@ -2005,8 +1986,8 @@ function spawnSpaceCoins() {
 }
 
 function spawnLaboy() {
-  const width = 32;
-  const height = 32;
+  const width = 64;
+  const height = 64;
   if (isSpaceModeActive()) {
     const baseY = clamp(Math.random() * (canvas.height - height - 120) + 40, 32, canvas.height - height - 32);
     laboys.push({
@@ -4466,6 +4447,35 @@ window.addEventListener('message', (event) => {
     exitMiniGame(false);
   }
 });
-})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
