@@ -14,21 +14,40 @@ const path = require('path');
 
 const localScoresPath = path.resolve(__dirname, '../../scores/high-scores.json');
 
-let storePromise = null;
-let storeInitError = null;
-async function getBlobStore() {
-  if (storePromise) {
-    return storePromise;
+let blobsModulePromise = null;
+async function loadBlobsModule() {
+  if (!blobsModulePromise) {
+    blobsModulePromise = import('@netlify/blobs');
   }
+  return blobsModulePromise;
+}
+
+async function getBlobStore(event) {
+  let initError = null;
+  let connectError = null;
+
   try {
-    storePromise = import('@netlify/blobs').then(({ getStore }) =>
-      getStore({ name: STORE_NAME, persist: true })
-    );
-    return storePromise;
+    const module = await loadBlobsModule();
+    const { getStore, connectLambda } = module;
+
+    if (typeof connectLambda === 'function' && event) {
+      try {
+        connectLambda(event);
+      } catch (err) {
+        connectError = err;
+      }
+    }
+
+    if (typeof getStore !== 'function') {
+      initError = new Error('getStore is not available in @netlify/blobs');
+      return { store: null, initError, connectError };
+    }
+
+    const store = getStore({ name: STORE_NAME, persist: true });
+    return { store, initError, connectError };
   } catch (err) {
-    storeInitError = err;
-    storePromise = Promise.resolve(null);
-    return storePromise;
+    initError = err;
+    return { store: null, initError, connectError };
   }
 }
 
@@ -135,11 +154,12 @@ async function readStoreEntries(store, options = {}) {
   return result;
 }
 
-async function fetchScores(debugDetails) {
+async function fetchScores(event, debugDetails) {
   try {
-    const store = await getBlobStore();
+    const { store, initError, connectError } = await getBlobStore(event);
     if (debugDetails) {
-      debugDetails.storeInitError = storeInitError ? String(storeInitError) : null;
+      debugDetails.storeInitError = initError ? String(initError) : null;
+      debugDetails.storeConnectError = connectError ? String(connectError) : null;
       debugDetails.storeAvailable = Boolean(store);
     }
     if (store) {
@@ -165,9 +185,18 @@ async function fetchScores(debugDetails) {
   return fallback;
 }
 
-async function writeScores(entries, debugDetails) {
+async function writeScores(entries, event, debugDetails) {
+  const { store, initError, connectError } = await getBlobStore(event);
+  if (debugDetails) {
+    if (initError) {
+      debugDetails.storeWriteInitError = String(initError);
+    }
+    if (connectError) {
+      debugDetails.storeWriteConnectError = String(connectError);
+    }
+    debugDetails.storeWriteAvailable = Boolean(store);
+  }
   try {
-    const store = await getBlobStore();
     if (store) {
       const serialised = Array.isArray(entries) ? entries : [];
       const metadata = { updatedAt: new Date().toISOString() };
@@ -196,7 +225,7 @@ function normaliseName(name) {
   return (name || 'AAA').replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 3) || 'AAA';
 }
 
-exports.handler = async function handler(event) {
+exports.handler = async function handler(event, context) {
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -215,14 +244,15 @@ exports.handler = async function handler(event) {
   try {
     if (event.httpMethod === 'GET') {
       if (debugMode) {
-        const store = await getBlobStore();
+        const { store, initError, connectError } = await getBlobStore(event);
         const result = await readStoreEntries(store, { includeRaw: true });
         const localEntries = await readLocalFallback();
         const payload = {
           storeName: STORE_NAME,
           storeKey: STORE_KEY,
-          storeInitError: storeInitError ? String(storeInitError) : null,
           storeAvailable: Boolean(store),
+          storeInitError: initError ? String(initError) : null,
+          storeConnectError: connectError ? String(connectError) : null,
           storeReadError: result.error,
           storeEntries: result.entries,
           storeRaw: result.raw,
@@ -238,7 +268,7 @@ exports.handler = async function handler(event) {
         };
       }
 
-      const entries = await fetchScores(debugDetails);
+      const entries = await fetchScores(event, debugDetails);
       const top = entries
         .slice()
         .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
@@ -263,12 +293,12 @@ exports.handler = async function handler(event) {
       const score = Number(payload.score) || 0;
       const timestamp = new Date().toISOString();
 
-      const entries = await fetchScores(debugDetails);
+      const entries = await fetchScores(event, debugDetails);
       entries.push({ name, score, timestamp });
       entries.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
       const trimmed = entries.slice(0, SCORES_LIMIT);
 
-      await writeScores(trimmed, debugDetails);
+      await writeScores(trimmed, event, debugDetails);
 
       const top = trimmed.slice(0, TOP_LIMIT);
       if (debugDetails) {
