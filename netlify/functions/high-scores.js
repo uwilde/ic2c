@@ -15,6 +15,7 @@ const path = require('path');
 const localScoresPath = path.resolve(__dirname, '../../scores/high-scores.json');
 
 let storePromise = null;
+let storeInitError = null;
 async function getBlobStore() {
   if (storePromise) {
     return storePromise;
@@ -25,9 +26,37 @@ async function getBlobStore() {
     );
     return storePromise;
   } catch (err) {
+    storeInitError = err;
     storePromise = Promise.resolve(null);
     return storePromise;
   }
+}
+
+function safeJsonParse(value) {
+  if (!value) {
+    return null;
+  }
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return null;
+  }
+}
+
+function toUtf8(value) {
+  if (!value) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Buffer.isBuffer(value)) {
+    return value.toString('utf8');
+  }
+  if (value instanceof Uint8Array) {
+    return Buffer.from(value).toString('utf8');
+  }
+  return String(value);
 }
 
 function extractEntries(data) {
@@ -66,22 +95,77 @@ async function writeLocalFallback(entries) {
   }
 }
 
-async function fetchScores() {
+async function readStoreEntries(store, options = {}) {
+  const result = { entries: [], raw: undefined, error: null };
+  if (!store) {
+    return result;
+  }
+  try {
+    const data = await store.get(STORE_KEY, { type: 'json' });
+    if (options.includeRaw) {
+      result.raw = data;
+    }
+    result.entries = extractEntries(data);
+    return result;
+  } catch (err) {
+    result.error = err.message || String(err);
+    try {
+      const text = await store.get(STORE_KEY, { type: 'text' });
+      const parsed = safeJsonParse(text);
+      if (options.includeRaw) {
+        result.raw = text;
+      }
+      if (parsed) {
+        result.entries = extractEntries(parsed);
+        result.error = null;
+        return result;
+      }
+    } catch (innerErr) {
+      result.error = [result.error, innerErr.message || String(innerErr)].join('; ');
+      if (options.includeRaw) {
+        try {
+          const rawBytes = await store.get(STORE_KEY);
+          result.raw = toUtf8(rawBytes);
+        } catch (rawErr) {
+          // ignore
+        }
+      }
+    }
+  }
+  return result;
+}
+
+async function fetchScores(debugDetails) {
   try {
     const store = await getBlobStore();
+    if (debugDetails) {
+      debugDetails.storeInitError = storeInitError ? String(storeInitError) : null;
+      debugDetails.storeAvailable = Boolean(store);
+    }
     if (store) {
-      const data = await store.get(STORE_KEY, { type: 'json' });
-      if (data != null) {
-        return extractEntries(data);
+      const { entries, error } = await readStoreEntries(store);
+      if (debugDetails) {
+        debugDetails.storeReadError = error;
+        debugDetails.storeEntriesCount = entries.length;
+      }
+      if (!error || entries.length) {
+        return entries;
       }
     }
   } catch (err) {
-    // fall through to local fallback
+    if (debugDetails) {
+      debugDetails.fetchError = err.message || String(err);
+    }
   }
-  return readLocalFallback();
+  const fallback = await readLocalFallback();
+  if (debugDetails) {
+    debugDetails.usedFallback = true;
+    debugDetails.fallbackEntriesCount = fallback.length;
+  }
+  return fallback;
 }
 
-async function writeScores(entries) {
+async function writeScores(entries, debugDetails) {
   try {
     const store = await getBlobStore();
     if (store) {
@@ -92,9 +176,15 @@ async function writeScores(entries) {
       } else {
         await store.set(STORE_KEY, JSON.stringify(serialised), { metadata });
       }
+      if (debugDetails) {
+        debugDetails.storeWrite = 'ok';
+      }
       return;
     }
   } catch (err) {
+    if (debugDetails) {
+      debugDetails.storeWriteError = err.message || String(err);
+    }
     if (process.env.NETLIFY === 'true') {
       throw err;
     }
@@ -118,20 +208,52 @@ exports.handler = async function handler(event) {
     };
   }
 
+  const params = event.queryStringParameters || {};
+  const debugMode = params.debug === '1';
+  const debugDetails = debugMode ? {} : null;
+
   try {
     if (event.httpMethod === 'GET') {
-      const entries = await fetchScores();
+      if (debugMode) {
+        const store = await getBlobStore();
+        const result = await readStoreEntries(store, { includeRaw: true });
+        const localEntries = await readLocalFallback();
+        const payload = {
+          storeName: STORE_NAME,
+          storeKey: STORE_KEY,
+          storeInitError: storeInitError ? String(storeInitError) : null,
+          storeAvailable: Boolean(store),
+          storeReadError: result.error,
+          storeEntries: result.entries,
+          storeRaw: result.raw,
+          fallbackEntries: localEntries
+        };
+        return {
+          statusCode: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        };
+      }
+
+      const entries = await fetchScores(debugDetails);
       const top = entries
         .slice()
         .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
         .slice(0, TOP_LIMIT);
+      if (debugDetails) {
+        debugDetails.responseEntries = top;
+      }
+      const payload = debugDetails ? { scores: top, debug: debugDetails } : { scores: top };
       return {
         statusCode: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ scores: top })
+        body: JSON.stringify(payload)
       };
     }
 
@@ -141,21 +263,27 @@ exports.handler = async function handler(event) {
       const score = Number(payload.score) || 0;
       const timestamp = new Date().toISOString();
 
-      const entries = await fetchScores();
+      const entries = await fetchScores(debugDetails);
       entries.push({ name, score, timestamp });
       entries.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
       const trimmed = entries.slice(0, SCORES_LIMIT);
 
-      await writeScores(trimmed);
+      await writeScores(trimmed, debugDetails);
 
       const top = trimmed.slice(0, TOP_LIMIT);
+      if (debugDetails) {
+        debugDetails.responseEntries = top;
+      }
+      const responsePayload = debugDetails
+        ? { ok: true, scores: top, debug: debugDetails }
+        : { ok: true, scores: top };
       return {
         statusCode: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ ok: true, scores: top })
+        body: JSON.stringify(responsePayload)
       };
     }
 
@@ -165,13 +293,16 @@ exports.handler = async function handler(event) {
       body: 'Method Not Allowed'
     };
   } catch (error) {
+    const payload = debugDetails
+      ? { error: error.message, debug: debugDetails }
+      : { error: error.message };
     return {
       statusCode: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify(payload)
     };
   }
 };
