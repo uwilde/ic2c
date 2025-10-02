@@ -1,5 +1,5 @@
 /* =========================
-   Apache — bugfix + UFO boss
+   Apache ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â bugfix + UFO boss
    ========================= */
 
 const canvas = document.getElementById('gameCanvas');
@@ -128,6 +128,12 @@ const earthDecor = { key: 'earth', img: createAsset('space/earth.png'), height: 
 const APPLES_PER_RAMBO = 30;
 const LABOY_SCORE_INTERVAL = 1000;
 const MINI_GAME_SCORE_BONUS = 500;
+const APACHE_FIGHTER_URL = 'apachefighter/apachefighter88.html';
+const APACHE_FIGHTER_SCORE_REWARD = 600;
+
+let miniGameRewardPoints = MINI_GAME_SCORE_BONUS;
+let apacheFighterCompleted = false;
+let apacheFighterActive = false;
 const APACHEMON_GAMES = [
   'Apachemon/apachemon.html',
   'Apachemon/apachemon_roxy.html',
@@ -452,7 +458,7 @@ const AudioKit = (() => {
     },
     powerup() {
       const t = ctx.currentTime;
-      const steps = [72, 76, 79, 84, 88]; // C major “shine”
+      const steps = [72, 76, 79, 84, 88]; // C major ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œshineÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â
       steps.forEach((m, i) => {
         const tt = t + i*0.06;
         const n = pulseOsc(midiToHz(m), 0.25, tt);
@@ -472,7 +478,7 @@ const AudioKit = (() => {
     beam() {
       const t = ctx.currentTime;
       const n = pulseOsc(300, 0.5, t);
-      n.rampFreq(140, t, t + 0.4);  // ✅ now legal
+      n.rampFreq(140, t, t + 0.4);  // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ now legal
       const e = envADSR(n.out, t, 0.004, 0.05, 0.3, 0.3, 0.7, 0.2);
       e.out.connect(masterGain);
       n.stop(t + 0.5); e.release(t + 0.4);
@@ -617,7 +623,7 @@ const AudioKit = (() => {
   function twangLead(midi, t0, dur=0.24, vol=0.28) {
     const {out, stop, addVibrato} = pulseOsc(midiToHz(midi), 0.28, t0);
     const pre = ctx.createGain(); pre.gain.value = vol;
-    const killVib = addVibrato(5.7, 6); // ✅ vibrato modulates the underlying oscillators
+    const killVib = addVibrato(5.7, 6); // ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ vibrato modulates the underlying oscillators
     out.connect(pre);
     const e = envADSR(pre, t0, 0.004, 0.06, 0.16, 0.08, 1.0, 0.6);
     e.out.connect(masterGain);
@@ -642,7 +648,7 @@ const AudioKit = (() => {
     const stopAt = t0 + dur; e.release(stopAt - 0.02);
   }
 
-  // distorted “guitar” chug: saw -> distortion -> lowpass gate
+  // distorted ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œguitarÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â chug: saw -> distortion -> lowpass gate
   function chug(midi, t0, dur=0.16, vol=0.22) {
     const f = midiToHz(midi);
     const o1 = sawOsc(f, t0);
@@ -705,7 +711,7 @@ const AudioKit = (() => {
 
 
   /* ------------ SONG DEFINITIONS ------------- */
-  // MAIN: Redneck Adventure (key A, I–♭VII–IV: A–G–D)
+  // MAIN: Redneck Adventure (key A, IÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­VIIÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“IV: AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“D)
   const SONG_MAIN = {
     name: 'main',
     bpm: 124,
@@ -719,7 +725,7 @@ const AudioKit = (() => {
     drums:  ['KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH', 'KH','SH','KH','SH']
   };
 
-  // METAL — faster & crunchier (more drive, double-kick grid)
+  // METAL ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â faster & crunchier (more drive, double-kick grid)
   const metalDrums = [];
   for (let i = 0; i < 64; i++) {
     let dd = 'K'; // kick on every 16th for intense double bass
@@ -2670,7 +2676,7 @@ function createPlatform() {
       width: HORSE2_W,
       height: HORSE2_H
     });
-    // 12–18s cooldown before another can appear
+    // 12ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“18s cooldown before another can appear
     horse2CooldownUntil = performance.now() + (12000 + Math.random() * 6000);
   }
 }
@@ -2855,7 +2861,7 @@ function updateEnemies(dt) {
         horse.score += 20;
         // small bounce (optional)
         horse.velocityY = -120;
-        // (no stompSound; remove any “stomp to kill” logic elsewhere)
+        // (no stompSound; remove any ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œstomp to killÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â logic elsewhere)
       } else if (!isInvincible()) {
         // Side/body contact = damage
         loseLife();
@@ -3023,7 +3029,7 @@ function drawHorse2s() {
   }
 }
 
-// Create & show the flashing “APAMBO MODE!!!” banner, then enable APAMBO
+// Create & show the flashing ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œAPAMBO MODE!!!ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â banner, then enable APAMBO
 function triggerApamboBanner() {
   ensureAudioActive(true);
   apamboBanner = { start: performance.now(), duration: APAMBO_BANNER_DURATION };
@@ -3107,7 +3113,8 @@ function spawnBoss() {
       amplitude: 0.25,         // swing amplitude
       bob: 0,                  // vertical bob
       bobSpeed: 3.0,
-      stuckOffsetY: 16         // how far below saucer belly the rope attaches
+      stuckOffsetY: 16,        // how far below saucer belly the rope attaches
+      rescued: false
     },
 
     // beam FX
@@ -3219,6 +3226,46 @@ function updateBoss(dt) {
 }
 
 
+function getCowHitbox() {
+  if (!boss || !boss.cow || boss.cow.rescued) {
+    return null;
+  }
+  const c = boss.cow;
+  const cx = boss.x + boss.w * 0.5;
+  const attachY = boss.y + boss.h * 0.68 + c.stuckOffsetY;
+  const swingX = Math.sin(c.swing) * (c.amplitude * 14);
+  const cowX = Math.round(cx - 26 + swingX);
+  const cowY = Math.round(attachY + c.bob);
+  return {
+    x: cowX - 12,
+    y: cowY + 6,
+    width: 68,
+    height: 50
+  };
+}
+
+function handleCowRescueTrigger() {
+  if (apacheFighterCompleted || miniGameActive || apacheFighterActive) {
+    return;
+  }
+
+  suckedByBeam = false;
+  beamExposure = 0;
+  beamWasSucking = false;
+
+  const hadBoss = !!boss;
+  if (hadBoss && boss.cow) {
+    boss.cow.rescued = true;
+  }
+
+  launchApacheFighterGame();
+
+  if (hadBoss) {
+    boss = null;
+    bossSpawnTimer = 0;
+  }
+}
+
 function tractorPull(dt) {
   if (!boss || !boss.beamActive) {
     suckedByBeam = false;
@@ -3231,7 +3278,7 @@ function tractorPull(dt) {
 
   // Play beam sound periodically while beam is active (independent of player position)
   if (nowMs >= nextBeamSoundAt) {
-    console.log('Playing beam sound'); // For debugging—remove after testing
+    console.log('Playing beam sound'); // For debuggingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âremove after testing
     ensureAudioActive(true); // Changed from ensureAudioActive(true) to avoid forced resume issues
     AudioKit.sfx.beam();
     nextBeamSoundAt = nowMs + 450;
@@ -3290,7 +3337,7 @@ function tractorPull(dt) {
     horse.isJumping = true;
     horse.onGround = false;
 
-    // Lateral pull toward center — fully safe
+    // Lateral pull toward center ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â fully safe
     const dx = nz(beamTopX - pxC, 0);
     const denomHW = Math.max(8, halfWidthAt(pyMid)); // never < 8 to avoid huge pulls
     const centerFactor = clamp(Math.abs(dx) / denomHW, 0, 1);
@@ -3391,7 +3438,7 @@ function drawBoss() {
     ctx.lineWidth = 3;
     ctx.strokeStyle = '#0e0e0e';
 
-    // saucer upper disc (red) with darker underside band—reads as one unit
+    // saucer upper disc (red) with darker underside bandÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Âreads as one unit
     ctx.fillStyle = '#d43b35';
     ctx.beginPath();
     ctx.ellipse(cx, y + h * 0.55, w * 0.48, h * 0.22, 0, 0, Math.PI * 2);
@@ -3448,56 +3495,60 @@ function drawBoss() {
     ctx.fill(); ctx.stroke();
   }
 
-  /* ====== COW (dangling “stuck to the bottom”) ====== */
-  // Small stylized pixel-cow; uses rectangles & arcs, swings a bit.
-  const c = boss.cow;
-  const attachX = cx;
-  const attachY = y + h * 0.68 + c.stuckOffsetY;
-  const swingX = Math.sin(c.swing) * (c.amplitude * 14); // left/right swing
-  const cowX = Math.round(attachX - 26 + swingX);
-  const cowY = Math.round(attachY + c.bob);
+    if (!boss.cow.rescued) {
+    /* ====== COW (dangling \"stuck to the bottom\") ====== */
+    // Small stylized pixel-cow; uses rectangles & arcs, swings a bit.
+    const c = boss.cow;
+    const attachX = cx;
+    const attachY = y + h * 0.68 + c.stuckOffsetY;
+    const swingX = Math.sin(c.swing) * (c.amplitude * 14);
+    const cowX = Math.round(attachX - 26 + swingX);
+    const cowY = Math.round(attachY + c.bob);
 
-  // rope/tractor “hold”
-  ctx.strokeStyle = 'rgba(80,80,80,0.9)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(attachX, attachY); ctx.lineTo(cowX + 26, cowY + 6); ctx.stroke();
+    // rope/tractor "hold"
+    ctx.strokeStyle = 'rgba(80,80,80,0.9)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(attachX, attachY);
+    ctx.lineTo(cowX + 26, cowY + 6);
+    ctx.stroke();
 
-  // body
-  ctx.fillStyle = '#f7f3e7';
-  ctx.fillRect(cowX + 0, cowY + 6, 52, 34);
+    // body
+    ctx.fillStyle = '#f7f3e7';
+    ctx.fillRect(cowX + 0, cowY + 6, 52, 34);
 
-  // spots
-  ctx.fillStyle = '#2f2f2f';
-  ctx.fillRect(cowX + 8,  cowY + 12, 10, 8);
-  ctx.fillRect(cowX + 28, cowY + 18, 12, 10);
+    // spots
+    ctx.fillStyle = '#2f2f2f';
+    ctx.fillRect(cowX + 8, cowY + 12, 10, 8);
+    ctx.fillRect(cowX + 28, cowY + 18, 12, 10);
 
-  // head
-  ctx.fillStyle = '#f7f3e7';
-  ctx.fillRect(cowX - 12, cowY + 12, 20, 18);
-  // muzzle
-  ctx.fillStyle = '#f7a6a6';
-  ctx.fillRect(cowX - 12, cowY + 22, 20, 8);
-  // eyes
-  ctx.fillStyle = '#111';
-  ctx.fillRect(cowX - 6, cowY + 16, 3, 3);
-  ctx.fillRect(cowX + 2, cowY + 16, 3, 3);
-  // horns
-  ctx.fillStyle = '#8b5a2b';
-  ctx.fillRect(cowX - 12, cowY + 10, 4, 3);
-  ctx.fillRect(cowX + 4,  cowY + 10, 4, 3);
-  // legs
-  ctx.fillStyle = '#f7f3e7';
-  ctx.fillRect(cowX + 6,  cowY + 40, 6, 10);
-  ctx.fillRect(cowX + 18, cowY + 40, 6, 10);
-  ctx.fillRect(cowX + 34, cowY + 40, 6, 10);
-  ctx.fillStyle = '#111';
-  ctx.fillRect(cowX + 6,  cowY + 50, 6, 4);
-  ctx.fillRect(cowX + 18, cowY + 50, 6, 4);
-  ctx.fillRect(cowX + 34, cowY + 50, 6, 4);
-  // tail
-  ctx.fillStyle = '#2f2f2f';
-  ctx.fillRect(cowX + 50, cowY + 16, 3, 16);
-  ctx.fillRect(cowX + 50, cowY + 30, 6, 3);
+    // head
+    ctx.fillStyle = '#f7f3e7';
+    ctx.fillRect(cowX - 12, cowY + 12, 20, 18);
+    ctx.fillStyle = '#f7a6a6';
+    ctx.fillRect(cowX - 12, cowY + 22, 20, 8);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(cowX - 6, cowY + 16, 3, 3);
+    ctx.fillRect(cowX + 2, cowY + 16, 3, 3);
+    ctx.fillStyle = '#8b5a2b';
+    ctx.fillRect(cowX - 12, cowY + 10, 4, 3);
+    ctx.fillRect(cowX + 4,  cowY + 10, 4, 3);
+
+    // legs
+    ctx.fillStyle = '#f7f3e7';
+    ctx.fillRect(cowX + 6,  cowY + 40, 6, 10);
+    ctx.fillRect(cowX + 18, cowY + 40, 6, 10);
+    ctx.fillRect(cowX + 34, cowY + 40, 6, 10);
+    ctx.fillStyle = '#111';
+    ctx.fillRect(cowX + 6,  cowY + 50, 6, 4);
+    ctx.fillRect(cowX + 18, cowY + 50, 6, 4);
+    ctx.fillRect(cowX + 34, cowY + 50, 6, 4);
+
+    // tail
+    ctx.fillStyle = '#2f2f2f';
+    ctx.fillRect(cowX + 50, cowY + 16, 3, 16);
+    ctx.fillRect(cowX + 50, cowY + 30, 6, 3);
+  }
 
   ctx.restore();
 }
@@ -3704,20 +3755,7 @@ function pickRandomMiniGame() {
   return APACHEMON_GAMES[idx];
 }
 
-function enterMiniGame() {
-  if (miniGameActive) {
-    return;
-  }
-  if (!miniGameOverlay || !miniGameFrame) {
-    horse.score += MINI_GAME_SCORE_BONUS;
-    return;
-  }
-  const url = pickRandomMiniGame();
-  if (!url) {
-    horse.score += MINI_GAME_SCORE_BONUS;
-    return;
-  }
-
+function showMiniGameFrame(url) {
   miniGameActive = true;
   gameStateBeforeMiniGame = gameState;
   gameState = 'mini-game';
@@ -3729,12 +3767,51 @@ function enterMiniGame() {
   miniGameFrame.src = url;
 }
 
-function exitMiniGame(grantBonus = false) {
+function enterMiniGame() {
+  if (miniGameActive) {
+    return;
+  }
+
+  miniGameRewardPoints = MINI_GAME_SCORE_BONUS;
+  apacheFighterActive = false;
+
+  if (!miniGameOverlay || !miniGameFrame) {
+    horse.score += miniGameRewardPoints;
+    return;
+  }
+  const url = pickRandomMiniGame();
+  if (!url) {
+    horse.score += miniGameRewardPoints;
+    return;
+  }
+
+  showMiniGameFrame(url);
+}
+
+function launchApacheFighterGame() {
+  if (miniGameActive || apacheFighterCompleted) {
+    return;
+  }
+
+  miniGameRewardPoints = APACHE_FIGHTER_SCORE_REWARD;
+  apacheFighterActive = true;
+
+  if (!miniGameOverlay || !miniGameFrame) {
+    horse.score += miniGameRewardPoints;
+    apacheFighterCompleted = true;
+    return;
+  }
+
+  showMiniGameFrame(APACHE_FIGHTER_URL);
+}
+
+function exitMiniGame(bonus = false) {
   if (!miniGameActive) {
     return;
   }
 
   miniGameActive = false;
+  apacheFighterActive = false;
   if (miniGameOverlay) {
     miniGameOverlay.classList.add('hidden');
     miniGameOverlay.setAttribute('aria-hidden', 'true');
@@ -3743,9 +3820,14 @@ function exitMiniGame(grantBonus = false) {
     miniGameFrame.src = 'about:blank';
   }
 
-  if (grantBonus) {
-    horse.score += MINI_GAME_SCORE_BONUS;
+  if (bonus) {
+    const points = bonus === true ? miniGameRewardPoints : Number(bonus);
+    if (Number.isFinite(points) && points > 0) {
+      horse.score += points;
+    }
   }
+
+  miniGameRewardPoints = MINI_GAME_SCORE_BONUS;
 
   gameState = gameStateBeforeMiniGame || 'playing';
   gameStateBeforeMiniGame = null;
@@ -3754,7 +3836,6 @@ function exitMiniGame(grantBonus = false) {
   ensureAudioActive(true);
   syncMusicToState();
 }
-
 function isNum(v){ return Number.isFinite(v); }
 function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
@@ -3793,7 +3874,7 @@ function syncMusicToState() {
 
 function noNearbyLogs(platform, pad = 120) {
   // If any LOG is horizontally overlapping the platform lane right now,
-  // skip spawning HORSE2 to prevent the “log turned into horse2” illusion.
+  // skip spawning HORSE2 to prevent the ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œlog turned into horse2ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â illusion.
   const left  = platform.x - pad;
   const right = platform.x + platform.width + pad;
   for (const l of logs) {
@@ -4076,12 +4157,12 @@ function drawLaboys() {
 }
 function drawGoldCoins() {
   for (const g of goldCoins) {
-    // gentle 0.75–1.25x pulse
+    // gentle 0.75ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“1.25x pulse
     const t = performance.now();
     const pulse = 1 + Math.sin(t / 240) * 0.25;
 
     ctx.save();
-    // softer, subtler glow — no additive blending
+    // softer, subtler glow ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â no additive blending
     ctx.shadowColor = 'rgba(255,215,0,0.35)';   // was ~0.9
     ctx.shadowBlur  = 4 + 4 * pulse;            // was ~14 + big pulse
     ctx.drawImage(goldCoinImage, g.x, g.y + (g.bobY || 0), g.width, g.height);
@@ -4133,6 +4214,15 @@ function updateDarts(dt) {
         break;
       }
     }
+    if (boss && boss.cow && !boss.cow.rescued) {
+      const cowHitbox = getCowHitbox();
+      if (cowHitbox && rectsOverlap(d, cowHitbox)) {
+        darts.splice(i, 1);
+        handleCowRescueTrigger();
+        continue;
+      }
+    }
+
     if (!darts[i]) continue; // was removed
 
     // hit LOG
@@ -4222,6 +4312,9 @@ function gameOver() {
 }
 
 function initializeGameState() {
+  apacheFighterCompleted = false;
+  apacheFighterActive = false;
+  miniGameRewardPoints = MINI_GAME_SCORE_BONUS;
   applesCollected = 0;
   ramboUntil = 0;
   nextDartAt = 0;
@@ -4432,7 +4525,7 @@ function gameLoop(ts) {
       }
     }
 
-    // Spawn boss every ~25–35s (randomized), only if none active
+    // Spawn boss every ~25ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“35s (randomized), only if none active
     if (!inSpace && !boss && bossSpawnTimer >= 45 + Math.random() * 20) {
       spawnBoss();
       bossSpawnTimer = 0;
