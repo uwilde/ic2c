@@ -376,7 +376,7 @@ function spawnBoss(){
   SFX.stopMusic(); SFX.loopMusic('music_boss');
   // Make boss a little smaller and a bit farther from player side (closer to top)
   const width=assets.boss0.width*0.48, height=assets.boss0.height*0.48; // was ~0.54
-  boss={ x:WIDTH*0.5-width*0.5, y:-height-30, width, height, targetY:18, state:'enter', hp:700, maxHp:700, animFrame:0, animTime:0, fireTimer:1.2, patternTimer:6, patternIndex:0 };
+  boss={ x:WIDTH*0.5-width*0.5, y:-height-30, width, height, targetY:18, state:'enter', hp:500, maxHp:500, animFrame:0, animTime:0, fireTimer:1.2, patternTimer:6, patternIndex:0 };
 }
 function updateBoss(dt){
   if (!boss) return;
