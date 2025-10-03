@@ -7,9 +7,9 @@
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
-    body{ margin:0; font-family: "Press Start 2P", "Segoe UI", Tahoma, sans-serif; background:#040812; color:#f8f9fb; display:flex; align-items:center; justify-content:center; height:100vh; overflow:hidden; }
-    .fighter-shell{ position:relative; width:min(100vw,520px); height:min(100vh,780px); max-width:520px; max-height:780px; aspect-ratio:2/3; background:#050c1d; border:2px solid rgba(255,255,255,0.12); box-shadow:0 18px 35px rgba(0,0,0,0.45), inset 0 0 40px rgba(8,20,40,0.45); border-radius:14px; overflow:hidden; }
-    canvas{ width:100%; height:100%; display:block; background:#000; image-rendering: pixelated; touch-action:none; }
+    body{ margin:0; font-family: "Press Start 2P", "Segoe UI", Tahoma, sans-serif; color:#f8f9fb; display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; padding:clamp(12px,3vh,24px); overflow:hidden; background:linear-gradient(180deg,rgba(4,8,18,0.94) 0%,rgba(4,6,14,0.98) 100%), url('BG_L_1.jpg'); background-size:cover; background-position:center top; background-repeat:no-repeat; background-attachment:fixed; }
+    .fighter-shell{ position:relative; width:min(520px,100vw,calc(100vh*(2/3))); width:min(520px,100vw,calc(100dvh*(2/3))); aspect-ratio:2/3; max-width:520px; max-height:min(780px,100vh); max-height:min(780px,100dvh); background:rgba(5,12,29,0.92); border:2px solid rgba(255,255,255,0.12); box-shadow:0 18px 35px rgba(0,0,0,0.45), inset 0 0 40px rgba(8,20,40,0.45); border-radius:14px; overflow:hidden; display:flex; align-items:stretch; }
+    canvas{ width:100%; height:100%; display:block; background:#000; image-rendering:pixelated; touch-action:none; flex:1; aspect-ratio:inherit; }
     .hud{ position:absolute; top:12px; left:12px; right:12px; display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; font-size:12px; letter-spacing:.04em; text-transform:uppercase; pointer-events:none; text-shadow:0 0 6px rgba(0,0,0,.65); }
     .hud span{ background:rgba(5,10,25,.55); padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,.18); }
     .meter{ flex-basis:100%; }
@@ -53,6 +53,7 @@
     </section>
     <section id="victoryOverlay" class="overlay hidden" role="alertdialog" aria-modal="true">
       <h1>Boss Neutralized!</h1>
+      <p style="opacity:.82;font-size:12px;letter-spacing:.05em;">Returning to Apache...</p>
     </section>
   </div>
 
@@ -186,6 +187,11 @@ const player = { x: WIDTH*0.5 - 30, y: HEIGHT-140, width:72, height:72, speed:32
 const playerBullets=[], enemyBullets=[], enemies=[], powerUps=[], effects=[];
 let boss=null, bossReady=false, stageTime=0, nextEnemyAt=0.9, nextPowerAt=10, backgroundOffset=0;
 const game={ mode:'loading', lastTimestamp: performance.now() };
+let missionState='idle';
+let victoryTimer=0;
+let victoryNotified=false;
+const BOSS_EXPLOSION_INTERVAL=0.16;
+const BOSS_EXPLOSION_FRAMES=5;
 
 const ENEMY_TYPES = {
   bear: { sprite:'bearJet', speed:120, hp:3, fireDelay:1.8, bulletSpeed:190, bulletVariant:'amber', score:60 },
@@ -246,17 +252,79 @@ async function startMission(){
   player.x=WIDTH*0.5-player.width*0.5; player.y=HEIGHT-140;
   enemies.length=enemyBullets.length=playerBullets.length=powerUps.length=effects.length=0;
   boss=null; bossReady=false; stageTime=0; nextEnemyAt=0.8; nextPowerAt=9; backgroundOffset=0;
+  missionState='action';
+  victoryTimer=0;
+  victoryNotified=false;
   game.mode='playing'; setOverlayVisible(startOverlay,false); setOverlayVisible(defeatOverlay,false); setOverlayVisible(victoryOverlay,false);
 }
 function restartMission(){ startMission(); }
 function handleDefeat(){
   if (game.mode==='defeat') return;
   game.mode='defeat';
+  missionState='defeat';
   setOverlayVisible(defeatOverlay,true);
   SFX.play('explode_player',{gain:1});
   SFX.stopMusic();
 }
-function onVictory(){ setOverlayVisible(victoryOverlay,true); SFX.stopMusic(); }
+function onVictory(){
+  if (!boss || missionState==='boss-exploding' || missionState==='victory' || missionState==='complete') return;
+  missionState='boss-exploding';
+  boss.state='exploding';
+  boss.explosionFrame=0;
+  boss.explosionTimer=0;
+  boss.fireTimer=Infinity;
+  boss.patternTimer=Infinity;
+  enemies.length=0;
+  enemyBullets.length=0;
+  powerUps.length=0;
+  playerBullets.length=0;
+  player.invulnerableUntil=nowMs()+2000;
+  SFX.stopMusic();
+  SFX.play('explode_big',{gain:1});
+}
+function updateBossExplosion(dt){
+  if (!boss){
+    if (missionState==='boss-exploding') startVictorySequence();
+    return;
+  }
+  boss.explosionTimer += dt;
+  if (boss.explosionTimer >= BOSS_EXPLOSION_INTERVAL){
+    boss.explosionTimer -= BOSS_EXPLOSION_INTERVAL;
+    boss.explosionFrame++;
+    if (boss.explosionFrame >= BOSS_EXPLOSION_FRAMES){
+      boss = null;
+      startVictorySequence();
+    }
+  }
+}
+function startVictorySequence(){
+  if (missionState==='victory' || missionState==='complete') return;
+  missionState='victory';
+  victoryTimer=1.8;
+  setOverlayVisible(victoryOverlay,true);
+}
+function updateVictory(dt){
+  if (victoryTimer>0){
+    victoryTimer -= dt;
+  }
+  if (victoryTimer <= 0){
+    completeVictory();
+  }
+}
+function completeVictory(){
+  if (victoryNotified) return;
+  victoryNotified=true;
+  notifyParentVictory();
+}
+function notifyParentVictory(){
+  missionState='complete';
+  const reward=Math.max(0, Math.floor(Number.isFinite(player.score)?player.score:0));
+  try{
+    window.parent.postMessage({ type:'apachemonResult', outcome:'victory', points:reward, source:'apachefighter' }, '*');
+  }catch(err){
+    console.error('Mini-game postMessage failed', err);
+  }
+}
 
 // Power / Weapons
 function grantShield(ms=6000){ const t=nowMs(); player.shieldUntil=Math.max(player.shieldUntil,t)+ms; SFX.play('pickup',{gain:.8}); }
@@ -376,7 +444,7 @@ function spawnBoss(){
   SFX.stopMusic(); SFX.loopMusic('music_boss');
   // Make boss a little smaller and a bit farther from player side (closer to top)
   const width=assets.boss0.width*0.48, height=assets.boss0.height*0.48; // was ~0.54
-  boss={ x:WIDTH*0.5-width*0.5, y:-height-30, width, height, targetY:18, state:'enter', hp:500, maxHp:500, animFrame:0, animTime:0, fireTimer:1.2, patternTimer:6, patternIndex:0 };
+  boss={ x:WIDTH*0.5-width*0.5, y:-height-30, width, height, targetY:18, state:'enter', hp:500, maxHp:500, animFrame:0, animTime:0, fireTimer:1.2, patternTimer:6, patternIndex:0, explosionFrame:0, explosionTimer:0 };
 }
 function updateBoss(dt){
   if (!boss) return;
@@ -388,6 +456,8 @@ function updateBoss(dt){
     boss.x = clamp(WIDTH*0.5 - boss.width*0.5 + Math.sin(nowMs()/600)*60, 10, WIDTH-boss.width-10);
     if (boss.fireTimer<=0){ fireBossPattern(boss.patternIndex%3); boss.fireTimer=0.75; }
     if (boss.patternTimer<=0){ boss.patternIndex++; boss.patternTimer=6.5; }
+  } else if (boss.state==='exploding'){
+    // Explosion handled in updateBossExplosion
   }
 }
 function fireBossPattern(i){
@@ -407,7 +477,7 @@ function drawBackground(dt=0){
 }
 function drawPlayer(){ const s=assets[player.spriteKey]||assets.playerCenter; ctx.drawImage(s,player.x,player.y,player.width,player.height); }
 function drawEnemies(){ for (const e of enemies){ ctx.drawImage(e.sprite,e.x,e.y,e.width,e.height); } }
-function drawBoss(){ if (!boss) return; const f=assets[`boss${boss.animFrame}`]||assets.boss0; ctx.drawImage(f,boss.x,boss.y,boss.width,boss.height); }
+function drawBoss(){ if (!boss) return; if (boss.state==='exploding'){ const idx=Math.min(boss.explosionFrame,BOSS_EXPLOSION_FRAMES-1); const key=`bossExpl${idx}`; const frame=assets[key]||assets.bossExpl4; ctx.drawImage(frame,boss.x,boss.y,boss.width,boss.height); return; } const f=assets[`boss${boss.animFrame}`]||assets.boss0; ctx.drawImage(f,boss.x,boss.y,boss.width,boss.height); }
 function drawPlayerBullets(){ for (const b of playerBullets){ ctx.save(); const g=ctx.createLinearGradient(b.x,b.y,b.x,b.y+b.height); g.addColorStop(0,'#ffffff'); g.addColorStop(1,'#ffd1e1'); ctx.shadowBlur=10; ctx.shadowColor='#ffd1e1'; ctx.fillStyle=g; ctx.fillRect(b.x,b.y,b.width,b.height); ctx.restore(); } }
 function drawEnemyBullets(){ for (const b of enemyBullets){ const color=b.variant==='emerald'?'#65ffb8':b.variant==='magenta'?'#ff7bff':b.variant==='crimson'?'#ff4d4d':b.variant==='laser'?'#9fd2ff':'#ffb347'; const cx=b.x+b.width*0.5, cy=b.y+b.height*0.5; const angle=Math.atan2(b.vy||1,b.vx||0); ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle+Math.PI/2); ctx.shadowBlur=14; ctx.shadowColor=color; ctx.globalAlpha=.95; const h=b.height,w=Math.max(6,b.width); const grad=ctx.createLinearGradient(0,-h*0.6,0,h*0.6); grad.addColorStop(0,'#ffffff'); grad.addColorStop(1,color); ctx.fillStyle=grad; ctx.beginPath(); ctx.moveTo(0,-h*0.6); ctx.quadraticCurveTo(w*0.45,-h*0.2,0,0); ctx.quadraticCurveTo(-w*0.45,-h*0.2,0,-h*0.6); ctx.fill(); ctx.restore(); } }
 function drawPowerUps(){
@@ -453,13 +523,27 @@ function updatePlayer(dt){
   if (input.left && !input.right) player.spriteKey='playerLeft'; else if (input.right && !input.left) player.spriteKey='playerRight'; else player.spriteKey='playerCenter';
   firePlayerWeapons(dt);
   if (boss){ const box={ x:boss.x+boss.width*0.2, y:boss.y+boss.height*0.6, width:boss.width*0.6, height:20 };
-    for (let i=playerBullets.length-1;i>=0;i--){ const b=playerBullets[i]; if (rectsOverlap(b,box)){ boss.hp -= b.damage*2; SFX.play('hit_enemy',{gain:.55}); if (b.pierce>0){ b.pierce -= 1; } else { playerBullets.splice(i,1); } if (boss.hp<=0){ SFX.play('explode_big',{gain:1}); boss=null; onVictory(); } } }
+    for (let i=playerBullets.length-1;i>=0;i--){ const b=playerBullets[i]; if (rectsOverlap(b,box)){ boss.hp -= b.damage*2; SFX.play('hit_enemy',{gain:.55}); if (b.pierce>0){ b.pierce -= 1; } else { playerBullets.splice(i,1); } if (boss.hp<=0){ boss.hp=0; onVictory(); return; } } }
   }
   if (!bossReady && stageTime>=48) spawnBoss();
 }
 
 function updateGame(dt){
   if (game.mode!=='playing') return;
+  if (missionState==='boss-exploding'){
+    updateBossExplosion(dt);
+    updateHud();
+    return;
+  }
+  if (missionState==='victory'){
+    updateVictory(dt);
+    updateHud();
+    return;
+  }
+  if (missionState==='complete'){
+    updateHud();
+    return;
+  }
   stageTime += dt;
   nextEnemyAt -= dt;
   if (nextEnemyAt<=0){
@@ -492,6 +576,7 @@ function drawScene(dt){ drawBackground(dt); drawPowerUps(); drawEnemies(); drawB
 // Loop & boot
 function gameLoop(ts){ const dt = Math.min((ts - game.lastTimestamp)/1000, 0.12); game.lastTimestamp = ts; if (game.mode==='loading'){ drawBackground(0); } else { updateGame(dt); drawScene(dt); } requestAnimationFrame(gameLoop); }
 startButton.addEventListener('click', ()=>{ if (game.mode==='ready') startMission(); });
+victoryOverlay.addEventListener('click', ()=>{ if (missionState==='victory') completeVictory(); });
 retryButton.addEventListener('click', ()=>{ if (game.mode==='defeat') restartMission(); });
 loadAssets().then(()=>{ game.mode='ready'; setOverlayVisible(startOverlay,true); updateHud(); });
 setupInput(); requestAnimationFrame(gameLoop);
