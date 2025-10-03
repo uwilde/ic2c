@@ -5,6 +5,18 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+if (canvas && !canvas.hasAttribute('tabindex')) {
+  canvas.setAttribute('tabindex', '0');
+}
+function focusGameCanvas() {
+  if (!canvas || typeof canvas.focus !== 'function') return;
+  canvas.focus({ preventScroll: true });
+}
+function requestCanvasFocus() {
+  if (!canvas) return;
+  requestAnimationFrame(() => focusGameCanvas());
+}
+
 const loadingStatusEl = document.getElementById('loadingStatus');
 const loadingPercentEl = document.getElementById('loadingPercent');
 const loadingBarEl = document.querySelector('.loading-bar');
@@ -1896,6 +1908,7 @@ if (startGameButton) {
     if (gameReady) {
       startMainLoop();
     }
+    requestCanvasFocus();
   });
 }
 
@@ -2443,6 +2456,7 @@ function updateSpaceMode(dt) {
       spaceVisualApplied = false;
       scheduleNextBeer(SPACE_RESPAWN_GRACE_MS);
       nextSnipsAt = performance.now() + 2200 + Math.random() * 1600;
+      requestCanvasFocus();
     }
   } else {
     spaceTransitionProgress = 0;
@@ -3835,6 +3849,7 @@ function exitMiniGame(bonus = false) {
   startMainLoop();
   ensureAudioActive(true);
   syncMusicToState();
+  requestCanvasFocus();
 }
 function isNum(v){ return Number.isFinite(v); }
 function nz(v, fallback=0){ return isNum(v) ? v : fallback; }
@@ -4695,7 +4710,9 @@ window.addEventListener('message', (event) => {
   }
 
   if (data.outcome === 'victory') {
-    exitMiniGame(true);
+    const rawPoints = Number(data.points);
+    const reward = Number.isFinite(rawPoints) && rawPoints > 0 ? Math.floor(rawPoints) : true;
+    exitMiniGame(reward);
   } else {
     exitMiniGame(false);
   }
