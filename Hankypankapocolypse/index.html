@@ -1,0 +1,79 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Eagles Club Beat'em Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Eagles Club Beat'em Up</h1>
+    <div class="controls">
+      <button id="btnMenu">Main Menu</button>
+      <button id="btnHighScores">High Scores</button>
+      <button id="btnNew">New Game</button>
+      <button id="btnLoad">Load Game</button>
+      <div class="row">
+        <label class="small">&nbsp;Difficulty:&nbsp;</label>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="normal" selected>Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <div class="row">
+        <label class="small">&nbsp;Volume:&nbsp;</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.5">
+        <span id="volLabel" class="small">50%</span>
+      </div>
+      <span class="tag">Move: ← → | Jump: ↑ | Hit: X | Power: C | Pause: P</span>
+    </div>
+    <div class="panel">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+      <div class="small">Tip: drop your sprite PNGs into <code>assets/</code> using the file names listed in <code>assets/README.txt</code>.</div>
+    </div>
+  </div>
+
+  <!-- Menus -->
+  <div id="menuModal" class="modal active">
+    <div class="card">
+      <h2>Main Menu</h2>
+      <div class="grid">
+        <div class="choice">
+          <div class="ph">Player: <b>Boner</b></div>
+          <button class="btn" data-choose="Boner">Select Boner</button>
+        </div>
+        <div class="choice">
+          <div class="ph">Player: <b>Corky</b></div>
+          <button class="btn" data-choose="Corky">Select Corky</button>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <button id="menuNew" class="btn">New Game</button>
+        <button id="menuLoad" class="btn">Load Game</button>
+        <button id="menuScores" class="btn">High Scores</button>
+        <button id="menuClose" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoresModal" class="modal">
+    <div class="card">
+      <h2>High Scores</h2>
+      <table id="scoresTable">
+        <thead><tr><th>Rank</th><th>Name</th><th>Score</th><th>Difficulty</th><th>Date</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="row" style="justify-content:space-between;">
+        <button id="scoresClose" class="btn">Close</button>
+        <button id="scoresClear" class="btn">Clear Local Scores</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
