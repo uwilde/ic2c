@@ -75,7 +75,7 @@ const input = new InputManager();
 
 /** assets */
 const assetManifest = {
-  background: 'eaglesclub.png',
+  background: 'eaglesclub.jpg',
   players: {
     corky: {
       name: 'Corky',
