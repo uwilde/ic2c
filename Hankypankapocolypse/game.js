@@ -39,6 +39,46 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const range = (s, e) => { const a=[]; for(let i=s;i<=e;i++) a.push(i); return a; };
 const framePaths = (s, e, t) => range(s, e).map((n)=>t.replace('%', n));
 const createImage = (src) => new Promise((res, rej)=>{ const img=new Image(); img.src=src; img.onload=()=>res(img); img.onerror=(e)=>rej(e); });
+const loadAudio = (src, { loop = false, volume = 1 } = {}) => new Promise((resolve, reject)=>{
+  const audio = new Audio();
+  audio.src = src;
+  audio.loop = loop;
+  audio.volume = volume;
+  audio.preload = 'auto';
+  const cleanup = ()=>{
+    audio.removeEventListener('canplaythrough', onReady);
+    audio.removeEventListener('loadeddata', onReady);
+    audio.removeEventListener('error', onError);
+  };
+  const onReady = ()=>{ cleanup(); resolve(audio); };
+  const onError = (e)=>{ cleanup(); reject(e); };
+  audio.addEventListener('canplaythrough', onReady, { once:true });
+  audio.addEventListener('loadeddata', onReady, { once:true });
+  audio.addEventListener('error', onError, { once:true });
+  audio.load();
+});
+const playAudio = (audio, { reset = true } = {}) => {
+  if(!audio) return;
+  if(reset){
+    try{ audio.currentTime = 0; }catch(e){ /* ignore */ }
+  }
+  const promise = audio.play();
+  if(promise?.catch) promise.catch(()=>{});
+};
+const stopAudio = (audio, { reset = false } = {}) => {
+  if(!audio) return;
+  audio.pause();
+  if(reset){
+    try{ audio.currentTime = 0; }catch(e){ /* ignore */ }
+  }
+};
+let currentMusic=null;
+const setMusic = (audio) => {
+  if(currentMusic === audio) return;
+  if(currentMusic) stopAudio(currentMusic);
+  currentMusic = audio ?? null;
+  if(currentMusic) playAudio(currentMusic, { reset:true });
+};
 
 class Animation {
   constructor(frames, frameDuration, { loop = true } = {}) {
@@ -116,7 +156,24 @@ const assetManifest = {
       portrait: 'Peppers/damage1.png',
       nativeFacing: 'right'
     }
+  },
+  boss: {
+    mutant: {
+      idle: [...framePaths(1, 12, 'Entrado/Mutant/mutant%.png'), ...framePaths(14, 23, 'Entrado/Mutant/mutant%.png')],
+      blast: framePaths(1, 29, 'Entrado/Mutant/blast%.png'),
+      damage: 'Entrado/Mutant/mutant_damage.png',
+      mudball: framePaths(1, 15, 'Entrado/Mutant/mudball/mudball%.png')
+    }
   }
+};
+
+const audioManifest = {
+  menuMusic: { src:'start.mp3', loop:true, volume:0.5 },
+  gameMusic: { src:'barsong.mp3', loop:true, volume:0.65 },
+  menuNavigate: { src:'button1.mp3', volume:0.85 },
+  menuSelect: { src:'startbutton.mp3', volume:0.85 },
+  corkyPower: { src:'Corky/doplar.mp3', volume:0.9 },
+  bonerPower: { src:'Boner/transform.mp3', volume:0.9 }
 };
 
 const loadFrameSet = async (paths) => Promise.all(paths.map((p)=>createImage(p)));
@@ -154,7 +211,22 @@ const loadAssets = async () => {
     };
   }
 
-  return { background, players, bigBoner, enemies };
+  const boss = {};
+  for (const [key, data] of Object.entries(assetManifest.boss)) {
+    boss[key] = {
+      idle: await loadFrameSet(data.idle),
+      blast: await loadFrameSet(data.blast),
+      damage: await createImage(data.damage),
+      mudball: await loadFrameSet(data.mudball)
+    };
+  }
+
+  const audio = {};
+  for (const [key, data] of Object.entries(audioManifest)) {
+    audio[key] = await loadAudio(data.src, data);
+  }
+
+  return { background, players, bigBoner, enemies, boss, audio };
 };
 
 const FLOOR_Y = CANVAS_HEIGHT - 5;
@@ -211,10 +283,12 @@ class LaserBolt {
       // approximate circle hit
       const ex=e.position.x, ey=e.position.y- e.height*0.5;
       if(Math.abs(ex - this.x) < 28){
-        e.receiveDamage(24, this.dir);
-        this.alive=false;
-        this.hitSpark = new Particle(ex, ey, 0.22, 60*this.dir, -30);
-        break;
+        const hit=e.receiveDamage(24, this.dir, { isSpecial:true, type:'laser' });
+        if(hit){
+          this.alive=false;
+          this.hitSpark = new Particle(ex, ey, 0.22, 60*this.dir, -30);
+          break;
+        }
       }
     }
     if(this.travel > this.range) this.alive=false;
@@ -344,6 +418,8 @@ class Player extends Entity {
     this.bolts=[]; this.laserCooldown=0;
 
     this.puffs=[]; // small particles
+    this.isInAttackWindow=false;
+    this.powerSoundPlayed=false;
 
     this.setAnimations({
       idle: ()=>new Animation([this.assets.walk[0]], 1, {loop:false}),
@@ -362,6 +438,8 @@ class Player extends Entity {
     if(this.state===s) return;
     const factory=this.animationFactories[s]; if(!factory) return;
     this.state=s; this.currentAnimation=factory(); this.refreshMetrics();
+    if(s!=='attack') this.isInAttackWindow=false;
+    if(s==='power') this.powerSoundPlayed=false;
   }
 
   /** transformation progress for scaling during power anims */
@@ -386,6 +464,17 @@ class Player extends Entity {
       super.update(dt);
       const animation=this.currentAnimation;
       if(animation){
+        if(!this.powerSoundPlayed){
+          if(this.type==='corky'){
+            if(animation.index>=10){
+              playAudio(game.audio?.corkyPower);
+              this.powerSoundPlayed=true;
+            }
+          }else if(this.type==='boner'){
+            playAudio(game.audio?.bonerPower, { reset: true });
+            this.powerSoundPlayed=true;
+          }
+        }
         this.powerAnimationTimer+=dt;
         const frameCount=animation.frames?.length ?? 0;
         const frameDuration=animation.frameDuration ?? 0;
@@ -425,7 +514,7 @@ class Player extends Entity {
     if(this.mutation.state==='active') this.updateMutationActive(dt, enemies, world);
 
     if(this.hurtTimer<=0){
-      if(wantsAttack && this.attackCooldown===0) this.performAttack(enemies);
+      if(wantsAttack && this.attackCooldown===0) this.performAttack(enemies, world);
       else if(vx!==0 || vy!==0){ if(this.state!=='attack') this.setState('walk'); }
       else if(this.state!=='attack' && this.state!=='hurt') this.setState('idle');
     }
@@ -438,26 +527,34 @@ class Player extends Entity {
     this.updateLasers(dt, enemies, world);
 
     super.update(dt);
+    this.resolveBossCollision(world);
   }
 
-  performAttack(enemies){
+  performAttack(enemies, world){
     this.setState('attack');
     this.attackCooldown=0.45;
     if(this.mutation.enabled && !this.mutation.active) this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter+4);
     this.currentAnimation.reset();
     const damage=this.mutation.active ? this.attackPower+10 : this.attackPower;
     const hitStart=this.hitFrameWindow.start, hitEnd=this.hitFrameWindow.end;
+    const context={ isSpecial:this.mutation.active, type:this.mutation.active ? 'mutation_melee' : 'melee', world };
+    this.isInAttackWindow=false;
 
     const resolve=()=>{
       const i=this.currentAnimation.index;
-      if(i>=hitStart && i<=hitEnd) this.tryStrike(enemies, damage);
-      if(this.currentAnimation.done){ if(this.hurtTimer<=0) this.setState('idle'); }
+      const active=i>=hitStart && i<=hitEnd;
+      this.isInAttackWindow=active;
+      if(active) this.tryStrike(enemies, damage, world, context);
+      if(this.currentAnimation.done){
+        this.isInAttackWindow=false;
+        if(this.hurtTimer<=0) this.setState('idle');
+      }
     };
     const original=this.currentAnimation.update.bind(this.currentAnimation);
     this.currentAnimation.update=(dt)=>{ original(dt); resolve(); };
   }
 
-  tryStrike(enemies, damage){
+  tryStrike(enemies, damage, world, context={}){
     enemies.forEach((enemy)=>{
       if(enemy.shouldRemove || enemy.dying) return;
       if(!enemy.isAlive()) return;
@@ -466,7 +563,7 @@ class Player extends Entity {
       const f=this.facing;
       const dx=(enemy.position.x - this.position.x)*f;
       if(dx<0 || dx>reach) return;
-      if(enemy.receiveDamage(damage, f)){
+      if(enemy.receiveDamage(damage, f, context)){
         if(this.mutation.enabled && !this.mutation.active){
           this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter + this.mutationGainOnHit);
         }
@@ -474,14 +571,39 @@ class Player extends Entity {
     });
   }
 
+  resolveBossCollision(world){
+    const boss=world?.boss;
+    if(!boss || boss.shouldRemove || boss.dying || !boss.isAlive()) return;
+    const rect=boss.getCollisionBounds?.();
+    if(!rect) return;
+    const playerWidth=Math.max(10, this.width ?? 90);
+    const playerHeight=Math.max(10, this.height ?? 160);
+    const playerHalfW=playerWidth*0.5;
+    const playerLeft=this.position.x - playerHalfW;
+    const playerRight=this.position.x + playerHalfW;
+    const playerTop=this.position.y - playerHeight;
+    const playerBottom=this.position.y;
+    const overlapX=Math.min(playerRight, rect.right) - Math.max(playerLeft, rect.left);
+    const overlapY=Math.min(playerBottom, rect.bottom) - Math.max(playerTop, rect.top);
+    if(overlapX>0 && overlapY>0){
+      const center=rect.centerX ?? ((rect.left + rect.right)/2);
+      const pushDir = (this.position.x < center) ? -1 : 1;
+      const newCenter = pushDir<0 ? rect.left - playerHalfW : rect.right + playerHalfW;
+      this.position.x = newCenter;
+      this.velocity.x = 0;
+      this.position.x = clamp(this.position.x, world.bounds.left, world.bounds.right);
+    }
+  }
+
   receiveDamage(amount, sourceX){
-    if(!this.isAlive() || this.invulnerableTimer>0 || this.isDuringPowerAnimation || this.mutation.active) return;
+    if(!this.isAlive() || this.invulnerableTimer>0 || this.isDuringPowerAnimation || this.mutation.active) return false;
     this.hp=Math.max(0, this.hp - amount);
     this.hurtTimer=this.hurtDuration;
     this.setState('hurt');
     this.invulnerableTimer=0.85;
     this.velocity.x = sourceX < this.position.x ? 80 : -80;
     this.velocity.y = -20;
+    return true;
   }
 
   updateMutation(dt, input, world, enemies){
@@ -538,7 +660,20 @@ class Player extends Entity {
     const margin = 40;
     const left = cameraWorld - margin, right = cameraWorld + viewWidth + margin;
     if (!Array.isArray(enemies)) return;
-    enemies.forEach((e)=>{ if(!e || e.shouldRemove || e.dying) return; if(!e.isAlive()) return; if(e.position.x < left || e.position.x > right) return; e.hp=0; e.beginDefeat(); });
+    enemies.forEach((e)=>{
+      if(!e || e.shouldRemove || e.dying) return;
+      if(!e.isAlive()) return;
+      if(e.position.x < left || e.position.x > right) return;
+      if(e.isBoss){
+        if(typeof e.applySpecialDamage === 'function') e.applySpecialDamage('burst', this.position.x);
+        else e.receiveDamage(80, this.position.x, { isSpecial:true, type:'burst' });
+      }else if(e.isMudball){
+        e.receiveDamage(e.maxHp ?? 3, this.position.x, { isSpecial:true, type:'burst' });
+      }else{
+        e.hp=0;
+        if(typeof e.beginDefeat === 'function') e.beginDefeat();
+      }
+    });
     this.burst.hasWiped=true;
   }
 
@@ -588,6 +723,41 @@ class Player extends Entity {
     this.puffs = this.puffs.filter(p=>{ p.update(dt); return !p.dead; });
   }
 
+  drawCorkyPowerAura(ctx, cameraX){
+    if(this.type!=='corky') return;
+    if(!this.isDuringPowerAnimation) return;
+    const anim=this.currentAnimation;
+    if(!anim) return;
+    const total=anim.frames?.length ?? 0;
+    if(total<=0) return;
+    const peak=15;
+    const frameIndex=(anim.index ?? 0) + 1;
+    let intensity;
+    if(frameIndex<=peak) intensity=frameIndex/peak;
+    else {
+      const remaining=Math.max(total - peak, 1);
+      intensity=Math.max(0, 1 - (frameIndex - peak)/remaining);
+    }
+    intensity=clamp(intensity, 0, 1);
+    if(intensity<=0.02) return;
+    const screenX=Math.round(this.position.x - cameraX);
+    const screenY=Math.round(this.position.y - (this.height ?? 160)*0.55);
+    const inner=26 + 24*intensity;
+    const outer=inner + 140 + 120*intensity;
+    ctx.save();
+    ctx.globalCompositeOperation='screen';
+    const glow=ctx.createRadialGradient(screenX, screenY, Math.max(1, inner*0.45), screenX, screenY, outer);
+    glow.addColorStop(0, `rgba(255,255,255,${0.85*intensity})`);
+    glow.addColorStop(0.35, `rgba(255,245,180,${0.55*intensity})`);
+    glow.addColorStop(0.7, `rgba(255,230,110,${0.28*intensity})`);
+    glow.addColorStop(1, 'rgba(255,225,90,0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath();
+    ctx.arc(screenX, screenY, outer, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   /** rendering */
   draw(ctx, cameraX){
     // Active transform form
@@ -618,6 +788,8 @@ class Player extends Entity {
     const drawY=Math.round(this.position.y - h);
 
     this.width=w; this.height=h;
+
+    this.drawCorkyPowerAura(ctx, cameraX);
 
     ctx.save();
     ctx.translate(drawX + w/2, 0);
@@ -730,6 +902,12 @@ class Enemy extends Entity {
     this.attackCooldown=0; this.maxHp=config.maxHp ?? 60; this.hp=this.maxHp;
     this.baseScale=config.baseScale ?? computeScale(this.assets.walk[0], ENEMY_HEIGHT);
     this.hurtTimer=0; this.dying=false; this.shouldRemove=false;
+    this.exitSpeed = config.exitSpeed ?? 180;
+    this.exiting=false;
+    this.countsTowardKill = config.countsTowardKill ?? true;
+    this.onDefeated = config.onDefeated ?? null;
+    this.isBoss=false;
+    this._defeatNotified=false;
 
     const animations={
       idle: ()=>new Animation(this.assets.walk, 0.13),
@@ -749,6 +927,15 @@ class Enemy extends Entity {
   }
   update(dt, world, player){
     if(this.shouldRemove) return;
+    if(this.exiting){
+      this.state='walk';
+      this.facing=1;
+      this.velocity.x=this.exitSpeed;
+      this.velocity.y=0;
+      super.update(dt);
+      if(this.position.x > world.bounds.right + 240) this.shouldRemove=true;
+      return;
+    }
     if(this.dying){
       this.velocity.x=0; this.velocity.y=0; super.update(dt);
       if(this.currentAnimation?.done) this.shouldRemove=true; return;
@@ -800,8 +987,303 @@ class Enemy extends Entity {
   }
   beginDefeat(){
     if(this.dying) return;
+    if(this.countsTowardKill && !this._defeatNotified){
+      this._defeatNotified=true;
+      if(typeof this.onDefeated === 'function') this.onDefeated(this);
+    }
     this.dying=true; this.velocity.x=0; this.velocity.y=0; this.invulnerableTimer=999;
     if(this.animationFactories.defeated) this.setState('defeated'); else this.shouldRemove=true;
+  }
+  startExit(){
+    this.exiting=true;
+    this.invulnerableTimer=5;
+    this.setState('walk');
+    this.facing=1;
+  }
+}
+
+class Mudball extends Entity {
+  constructor(config){
+    super(config.spawnX, config.spawnY);
+    this.frames=config.frames;
+    this.baseScale=config.baseScale ?? computeScale(this.frames[0], config.targetHeight ?? 88);
+    this.setAnimations({ fly: ()=>new Animation(this.frames, config.frameDuration ?? 0.06) });
+    this.setState('fly');
+    this.maxHp=config.maxHp ?? 3; this.hp=this.maxHp;
+    this.speed=config.speed ?? 155;
+    this.turnRate=config.turnRate ?? 3.6;
+    this.damage=config.damage ?? 16;
+    this.shouldRemove=false;
+    this.countsTowardKill=false;
+    this.isMudball=true;
+    this.isBoss=false;
+    this.wasStruck=false;
+    this.nativeFacing='right';
+    this.velocity.x = config.initialVelocity ?? -125;
+    this.velocity.y = 0;
+  }
+  update(dt, world, player){
+    if(this.shouldRemove) return;
+    if(this.invulnerableTimer>0) this.invulnerableTimer=Math.max(0, this.invulnerableTimer-dt);
+    const target=player;
+    if(target){
+      const targetX=target.position.x;
+      const targetY=target.position.y - 28;
+      const dx=targetX - this.position.x;
+      const dy=targetY - this.position.y;
+      const dist=Math.max(1, Math.hypot(dx, dy));
+      const desiredVx=(dx/dist)*this.speed;
+      const desiredVy=(dy/dist)*(this.speed*0.55);
+      const blend = 1 - Math.exp(-this.turnRate*dt);
+      this.velocity.x += (desiredVx - this.velocity.x) * blend;
+      this.velocity.y += (desiredVy - this.velocity.y) * blend;
+    }
+    super.update(dt);
+    this.refreshMetrics();
+    this.position.y=clamp(this.position.y, FLOOR_Y - WALKWAY_HEIGHT + 8, FLOOR_Y - 6);
+    this.zOrder=this.position.y;
+    if(player) this.checkCollision(player);
+    if(this.position.x < world.bounds.left - 320 || this.position.x > world.bounds.right + 480) this.shouldRemove=true;
+  }
+  checkCollision(player){
+    if(!player || this.shouldRemove) return;
+    const dx=Math.abs(player.position.x - this.position.x);
+    const dy=Math.abs(player.position.y - this.position.y);
+    const reachX=((player.width ?? 80)*0.45) + ((this.width ?? 40)*0.45);
+    const reachY=((player.height ?? 160)*0.15) + ((this.height ?? 70)*0.25);
+    if(dx <= reachX && dy <= reachY){
+      player.receiveDamage(this.damage, this.position.x);
+      this.shouldRemove=true;
+    }
+  }
+  receiveDamage(amount, sourceX, context={}){
+    if(this.shouldRemove) return false;
+    const type=context.type ?? context.source ?? 'normal';
+    if(type==='melee'){
+      this.wasStruck=true;
+      this.hp=0;
+      this.shouldRemove=true;
+      this.invulnerableTimer=0;
+      return true;
+    }
+    if(this.invulnerableTimer>0) return false;
+    this.wasStruck=true;
+    const hits=context.isSpecial ? this.maxHp : 1;
+    this.hp=Math.max(0, this.hp - hits);
+    this.invulnerableTimer=0.18;
+    if(this.hp===0) this.shouldRemove=true;
+    return true;
+  }
+}
+
+class BossMutant extends Entity {
+  constructor(config){
+    super(config.spawnX, config.spawnY);
+    this.assets=config.assets;
+    this.world=config.world;
+    const base=config.baseScale ?? computeScale(this.assets.idle[0], config.targetHeight ?? 310);
+    this.baseScale = base * (config.scaleMultiplier ?? 1.25);
+    this.maxHp=config.maxHp ?? 420; this.hp=this.maxHp;
+    this.countsTowardKill=false;
+    this.isBoss=true;
+    this.shouldRemove=false;
+    this.dying=false;
+    this.vulnerable=false;
+    this.damageFlashTimer=0;
+    this.loopTimer=0;
+    this.idleDelay=config.idleDelay ?? 2.4;
+    this.currentIdleDelay=this.idleDelay;
+    this.recoveryDelay=config.recoveryDelay ?? 1.6;
+    this.onDefeated=config.onDefeated ?? null;
+    this.mudballFrames=config.mudballFrames;
+    this.spawnHandOffset=config.spawnHandOffset ?? {x:-110, y:-220};
+    this.nativeFacing='left';
+    this.facing=-1;
+    this.spawnedMudball1=false;
+    this.spawnedMudball2=false;
+    this.contactDamage=config.contactDamage ?? 20;
+    this.contactCooldown=0;
+    const collisionConfig=config.collision ?? {};
+    this.collision={
+      widthFactor: collisionConfig.widthFactor ?? 0.48,
+      heightFactor: collisionConfig.heightFactor ?? 0.85,
+      offsetXFactor: collisionConfig.offsetXFactor ?? 0.08,
+      offsetYFactor: collisionConfig.offsetYFactor ?? 0.02
+    };
+
+    this.setAnimations({
+      idle: ()=>new Animation(this.assets.idle, 0.12),
+      windup: ()=>new Animation(this.assets.blast.slice(0, 19), 0.08, {loop:false}),
+      barrage: ()=>new Animation(this.assets.blast.slice(19), 0.09, {loop:true}),
+      defeated: ()=>new Animation([this.assets.damage], 0.2, {loop:false})
+    });
+    this.setState('idle');
+  }
+  update(dt, world, player){
+    if(this.shouldRemove) return;
+    if(this.invulnerableTimer>0) this.invulnerableTimer=Math.max(0, this.invulnerableTimer - dt);
+    if(this.damageFlashTimer>0) this.damageFlashTimer=Math.max(0, this.damageFlashTimer - dt);
+    if(this.contactCooldown>0) this.contactCooldown=Math.max(0, this.contactCooldown - dt);
+    this.velocity.x=0; this.velocity.y=0;
+    super.update(dt);
+    this.position.x = clamp(this.position.x, world.bounds.right - 120, world.bounds.right - 60);
+    this.handlePlayerCollision(player);
+    switch(this.state){
+      case 'idle':
+        this.currentIdleDelay-=dt;
+        if(this.currentIdleDelay<=0) this.beginAttack();
+        break;
+      case 'windup':
+        this.handleWindupEvents(player);
+        if(this.currentAnimation?.done) this.enterBarrage();
+        break;
+      case 'barrage':
+        this.loopTimer=Math.max(0, this.loopTimer - dt);
+        if(this.loopTimer<=0) this.finishBarrage();
+        break;
+      case 'defeated':
+        if(this.currentAnimation?.done) this.shouldRemove=true;
+        break;
+      default: break;
+    }
+  }
+  beginAttack(){
+    this.spawnedMudball1=false;
+    this.spawnedMudball2=false;
+    this.setState('windup');
+  }
+  handleWindupEvents(player){
+    const anim=this.currentAnimation; if(!anim) return;
+    const idx=anim.index;
+    if(!this.spawnedMudball1 && idx>=11){ this.spawnMudball(player, 1); this.spawnedMudball1=true; }
+    if(!this.spawnedMudball2 && idx>=17){ this.spawnMudball(player, 2); this.spawnedMudball2=true; }
+  }
+  spawnMudball(player, order=1){
+    if(!this.world || !Array.isArray(this.mudballFrames)) return;
+    const scale=this.baseScale;
+    const offset=this.spawnHandOffset;
+    const spawnX=this.position.x + offset.x*scale;
+    const spawnY=this.position.y + offset.y*scale;
+    const baseSpeed=155;
+    const speedFactor = order===2 ? 0.72 : 1;
+    const speed=baseSpeed * speedFactor;
+    const initialVelocity=-125 * speedFactor;
+    const ball=new Mudball({
+      spawnX,
+      spawnY,
+      frames:this.mudballFrames,
+      targetHeight:90,
+      speed,
+      turnRate:3.9,
+      damage:20,
+      initialVelocity
+    });
+    this.world.addMudball(ball);
+    if(this.world) this.world.triggerShake(0.22, 4);
+  }
+  enterBarrage(){
+    this.vulnerable=true;
+    this.loopTimer=5;
+    this.setState('barrage');
+    if(this.currentAnimation) this.currentAnimation.reset();
+  }
+  finishBarrage(){
+    this.vulnerable=false;
+    this.currentIdleDelay=this.idleDelay + this.recoveryDelay;
+    this.setState('idle');
+  }
+  getCollisionBounds(){
+    const frame=this.currentAnimation?.frame ?? this.assets.idle?.[0];
+    const frameWidth=frame?.width ?? 1;
+    const frameHeight=frame?.height ?? 1;
+    const scale=this.baseScale;
+    const w=frameWidth*scale;
+    const h=frameHeight*scale;
+    const width=Math.max(12, w*(this.collision.widthFactor ?? 0.5));
+    const height=Math.max(12, h*(this.collision.heightFactor ?? 0.8));
+    const offsetX=w*(this.collision.offsetXFactor ?? 0);
+    const offsetY=h*(this.collision.offsetYFactor ?? 0);
+    const centerX=this.position.x + offsetX;
+    const bottom=this.position.y - offsetY;
+    const top=bottom - height;
+    return {
+      left: centerX - width/2,
+      right: centerX + width/2,
+      top,
+      bottom,
+      width,
+      height,
+      centerX
+    };
+  }
+  handlePlayerCollision(player){
+    if(!player || !player.isAlive()) return;
+    const rect=this.getCollisionBounds();
+    if(!rect) return;
+    const playerWidth=Math.max(10, player.width ?? 90);
+    const playerHeight=Math.max(10, player.height ?? 160);
+    const playerLeft=player.position.x - playerWidth*0.5;
+    const playerRight=player.position.x + playerWidth*0.5;
+    const playerTop=player.position.y - playerHeight;
+    const playerBottom=player.position.y;
+    const overlapX=Math.min(playerRight, rect.right) - Math.max(playerLeft, rect.left);
+    const overlapY=Math.min(playerBottom, rect.bottom) - Math.max(playerTop, rect.top);
+    if(overlapX>0 && overlapY>0){
+      if(this.contactCooldown<=0){
+        const hit=player.receiveDamage(this.contactDamage, this.position.x);
+        this.contactCooldown = hit ? 0.9 : 0.2;
+      }
+    }
+  }
+  receiveDamage(amount, sourceX, context={}){
+    if(this.shouldRemove || this.dying) return false;
+    if(this.invulnerableTimer>0) return false;
+    const type=context.type ?? context.source ?? 'normal';
+    const isSpecial=context.isSpecial ?? false;
+    let applied=amount;
+    if(isSpecial){
+      if(type==='burst') applied=Math.max(applied, 80);
+      else if(type==='laser') applied=Math.max(applied, 28);
+      else if(type==='mutation_melee') applied=Math.max(applied, amount*1.6);
+      else applied=Math.max(applied, amount*1.35);
+    }else if(type==='melee'){
+      applied = Math.max(4, Math.min(amount*0.35, 7));
+    }
+    this.hp=Math.max(0, this.hp - applied);
+    this.damageFlashTimer=0.32;
+    this.invulnerableTimer=isSpecial ? 0.45 : 0.35;
+    if(this.hp<=0){ this.beginDefeat(); }
+    return true;
+  }
+  applySpecialDamage(kind, sourceX){
+    const mapping={
+      burst:80,
+      laser:30,
+      mutation_melee:46
+    };
+    return this.receiveDamage(mapping[kind] ?? 36, sourceX, { isSpecial:true, type:kind });
+  }
+  beginDefeat(){
+    if(this.dying) return;
+    this.dying=true;
+    this.vulnerable=false;
+    this.setState('defeated');
+    if(typeof this.onDefeated === 'function') this.onDefeated(this);
+  }
+  draw(ctx, cameraX){
+    const frame=(this.damageFlashTimer>0 && this.assets.damage) ? this.assets.damage : this.currentAnimation?.frame;
+    if(!frame) return;
+    const scale=this.baseScale;
+    const w=frame.width*scale, h=frame.height*scale;
+    this.width=w; this.height=h;
+    const drawX=Math.round(this.position.x - cameraX - w/2);
+    const drawY=Math.round(this.position.y - h);
+    ctx.save();
+    ctx.translate(drawX + w/2, 0);
+    const orientationMultiplier = this.nativeFacing==='left' ? -1 : 1;
+    ctx.scale(this.facing*orientationMultiplier, 1);
+    ctx.drawImage(frame, -w/2, drawY, w, h);
+    ctx.restore();
   }
 }
 
@@ -812,12 +1294,18 @@ class GameWorld {
     this.bounds={ left:100, right: assets.background.width - 100 };
     this.cameraX=0; this.entities=[]; this.player=null; this.enemies=[];
     this.spawnTimer=3; this.spawnInterval=4.5; this.maxEnemies=4;
+    this.spawnEnabled=true;
+    this.defeatedCount=0;
+    this.encounterPhase='normal';
+    this.boss=null;
+    this.mudballs=new Set();
+    this.shake={ timer:0, duration:0, magnitude:0, offsetX:0, offsetY:0 };
     this.backgroundScale = CANVAS_HEIGHT / assets.background.height;
     this.backgroundWidth = assets.background.width * this.backgroundScale;
   }
   setPlayer(p){ this.player=p; this.entities.push(p); }
   spawnEnemy(){
-    if(!this.player) return;
+    if(!this.player || !this.spawnEnabled) return;
     const keys=Object.keys(this.assets.enemies);
     const key=keys[Math.floor(Math.random()*keys.length)];
     const assets=this.assets.enemies[key];
@@ -833,7 +1321,8 @@ class GameWorld {
       baseScale: enemyBaseScale * mult,
       nativeFacing: assets.nativeFacing ?? 'right',
       initialFacing: (assets.nativeFacing ?? 'right') === 'left' ? -1 : 1,
-      explode: assets.explode
+      explode: assets.explode,
+      onDefeated: (enemy)=>this.handleEnemyDefeated(enemy)
     };
     const e=new Enemy(config); this.enemies.push(e); this.entities.push(e);
   }
@@ -842,7 +1331,69 @@ class GameWorld {
     this.player.updateGameplay(dt, input, this, this.enemies);
     for(const e of this.enemies) e.update(dt, this, this.player);
     this.enemies = this.enemies.filter(e=>!e.shouldRemove);
+    for(const ball of [...this.mudballs]){ if(ball.shouldRemove) this.mudballs.delete(ball); }
+    if(this.boss && this.boss.shouldRemove) this.boss=null;
     this.updateCamera(); this.handleSpawning(dt);
+    this.updateShake(dt);
+    this.handleEncounterProgress();
+  }
+  addMudball(ball){
+    if(!ball) return;
+    this.mudballs.add(ball);
+    this.enemies.push(ball);
+  }
+  handleEnemyDefeated(enemy){
+    if(!enemy || !enemy.countsTowardKill) return;
+    this.defeatedCount+=1;
+    if(this.defeatedCount>=25) this.startBossEvac();
+  }
+  startBossEvac(){
+    if(this.encounterPhase!=='normal'){
+      this.spawnEnabled=false;
+      return;
+    }
+    this.encounterPhase='evacuate';
+    this.spawnEnabled=false;
+    this.spawnTimer=Number.POSITIVE_INFINITY;
+    for(const enemy of this.enemies){
+      if(enemy && !enemy.isBoss && enemy.countsTowardKill && typeof enemy.startExit === 'function'){
+        enemy.startExit();
+      }
+    }
+  }
+  startBossIntro(){
+    if(this.encounterPhase==='bossFight' || this.boss) return;
+    if(!this.assets.boss?.mutant) return;
+    this.encounterPhase='bossFight';
+    this.spawnBoss();
+  }
+  spawnBoss(){
+    if(this.boss || !this.assets.boss?.mutant) return;
+    const spawnX=this.bounds.right - 80;
+    const spawnY=FLOOR_Y - 10;
+    const boss=new BossMutant({
+      assets:this.assets.boss.mutant,
+      world:this,
+      spawnX,
+      spawnY,
+      mudballFrames:this.assets.boss.mutant.mudball,
+      scaleMultiplier:1.25,
+      contactDamage:24,
+      collision:{
+        widthFactor:0.46,
+        heightFactor:0.88,
+        offsetXFactor:0.1,
+        offsetYFactor:0.02
+      },
+      onDefeated:()=>this.handleBossDefeated()
+    });
+    this.boss=boss;
+    this.enemies.push(boss);
+    this.triggerShake(2.5, 11);
+  }
+  handleBossDefeated(){
+    this.encounterPhase='cleared';
+    this.triggerShake(1.5, 6);
   }
   updateCamera(){
     if(!this.player) return;
@@ -851,16 +1402,49 @@ class GameWorld {
     this.cameraX = clamp(this.player.position.x * this.backgroundScale - half, 0, maxCam);
   }
   handleSpawning(dt){
+    if(!this.spawnEnabled) return;
     if(this.enemies.length>=this.maxEnemies) return;
     this.spawnTimer-=dt;
     if(this.spawnTimer<=0){ this.spawnEnemy(); this.spawnTimer=this.spawnInterval + Math.random(); }
   }
+  handleEncounterProgress(){
+    if(this.encounterPhase==='evacuate'){
+      const remaining=this.enemies.filter(e=>e && e.countsTowardKill && !e.shouldRemove && !e.isBoss);
+      if(remaining.length===0) this.startBossIntro();
+    }
+  }
+  triggerShake(duration, magnitude=6){
+    this.shake.duration=Math.max(this.shake.duration, duration);
+    this.shake.timer=Math.max(this.shake.timer, duration);
+    this.shake.magnitude=Math.max(this.shake.magnitude, magnitude);
+  }
+  updateShake(dt){
+    if(this.shake.timer>0){
+      this.shake.timer=Math.max(0, this.shake.timer - dt);
+      const progress=this.shake.duration>0 ? this.shake.timer/this.shake.duration : 0;
+      const intensity=this.shake.magnitude * progress;
+      this.shake.offsetX=(Math.random()*2-1)*intensity;
+      this.shake.offsetY=(Math.random()*2-1)*intensity*0.6;
+      if(this.shake.timer===0){
+        this.shake.duration=0;
+        this.shake.magnitude=0;
+        this.shake.offsetX=0;
+        this.shake.offsetY=0;
+      }
+    }else{
+      this.shake.offsetX=0;
+      this.shake.offsetY=0;
+    }
+  }
   draw(ctx){
+    ctx.save();
+    ctx.translate(this.shake.offsetX ?? 0, this.shake.offsetY ?? 0);
     this.drawBackground(ctx);
     const camWorld=this.cameraX / this.backgroundScale;
     const sorted=[...this.enemies, this.player].filter(Boolean).sort((a,b)=>a.zOrder - b.zOrder);
     for(const e of sorted) e.drawShadow(ctx, camWorld);
     for(const e of sorted) e.draw(ctx, camWorld);
+    ctx.restore();
   }
   drawBackground(ctx){
     const scaledCamera=this.cameraX;
@@ -879,6 +1463,7 @@ class GameWorld {
 const game = {
   state: GAME_STATES.LOADING,
   assets: null,
+  audio: null,
   world: null,
   menu: { options: [], selectedIndex: 0, blinkTimer: 0 },
   loading: { progress: 0 }
@@ -890,6 +1475,9 @@ const initMenu = () => {
     { key: 'boner', label: 'Boiner', assets: game.assets.players.boner }
   ];
   game.menu.selectedIndex=0; game.menu.blinkTimer=0; game.menu.gridPhase=0;
+  if(game.audio){
+    game.audio.menuMusicPlaying=false;
+  }
 };
 
 const startGameWithCharacter = (characterKey) => {
@@ -923,17 +1511,32 @@ const startGameWithCharacter = (characterKey) => {
     world.setPlayer(player);
   }
 
+  if(game.audio){
+    game.audio.menuMusicPlaying=false;
+    setMusic(game.audio.gameMusic ?? null);
+  }
+
   world.spawnTimer=2.5;
   game.world=world;
   game.state=GAME_STATES.PLAYING;
 };
 
 const updateMenu = (dt) => {
+  if(game.audio?.menuMusic && !game.audio.menuMusicPlaying){
+    setMusic(game.audio.menuMusic);
+    game.audio.menuMusicPlaying=true;
+  }
   game.menu.gridPhase=(game.menu.gridPhase ?? 0) + dt*60;
   game.menu.blinkTimer+=dt;
-  if(input.wasPressed(INPUT_KEYS.LEFT)) game.menu.selectedIndex = (game.menu.selectedIndex + game.menu.options.length - 1) % game.menu.options.length;
-  else if(input.wasPressed(INPUT_KEYS.RIGHT)) game.menu.selectedIndex = (game.menu.selectedIndex + 1) % game.menu.options.length;
+  if(input.wasPressed(INPUT_KEYS.LEFT)){
+    playAudio(game.audio?.menuNavigate);
+    game.menu.selectedIndex = (game.menu.selectedIndex + game.menu.options.length - 1) % game.menu.options.length;
+  } else if(input.wasPressed(INPUT_KEYS.RIGHT)){
+    playAudio(game.audio?.menuNavigate);
+    game.menu.selectedIndex = (game.menu.selectedIndex + 1) % game.menu.options.length;
+  }
   if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+    playAudio(game.audio?.menuSelect);
     const choice=game.menu.options[game.menu.selectedIndex];
     startGameWithCharacter(choice.key);
   }
@@ -1048,6 +1651,27 @@ const drawHUD = () => {
     let status; if(p.mutation.active) status='ACTIVE'; else if(ready) status='READY'; else status='CHARGING';
     ctx.fillText(`${label}: ${status}`, mx, my+28);
   }
+
+  const boss=game.world?.boss;
+  if(boss && !boss.shouldRemove && boss.isAlive()){
+    const barW=360, barH=16;
+    const barX=(CANVAS_WIDTH - barW)/2;
+    const barY=margin;
+    ctx.fillStyle='rgba(20,8,8,0.75)';
+    ctx.fillRect(barX-3, barY-3, barW+6, barH+6);
+    const ratio=clamp(boss.hp / boss.maxHp, 0, 1);
+    ctx.fillStyle='#5a0a0f';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillStyle='#ff3b30';
+    ctx.fillRect(barX, barY, barW*ratio, barH);
+    ctx.strokeStyle='#f8f8f8';
+    ctx.strokeRect(barX, barY, barW, barH);
+    ctx.font='15px "Press Start 2P", monospace';
+    ctx.fillStyle='#fffcca';
+    ctx.textAlign='center';
+    ctx.fillText('MUTANT', CANVAS_WIDTH/2, barY - 8);
+    ctx.textAlign='left';
+  }
 };
 
 const drawLoading = () => {
@@ -1071,7 +1695,9 @@ const gameLoop = (timestamp) => {
 
 const boot = async () => {
   try{
-    game.assets = await loadAssets();
+    const assets = await loadAssets();
+    game.assets = assets;
+    game.audio = assets.audio ?? null;
     initMenu(); game.state = GAME_STATES.MENU;
   }catch(e){
     console.error('Failed to load assets', e);
