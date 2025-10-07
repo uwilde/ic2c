@@ -79,6 +79,13 @@ const setMusic = (audio) => {
   currentMusic = audio ?? null;
   if(currentMusic) playAudio(currentMusic, { reset:true });
 };
+let audioRegistry = {};
+const setAudioRegistry = (collection)=>{ audioRegistry = collection ?? {}; };
+const playSfx = (key, options) => {
+  const clip = audioRegistry?.[key];
+  if(!clip) return;
+  playAudio(clip, options ?? { reset:true });
+};
 
 class Animation {
   constructor(frames, frameDuration, { loop = true } = {}) {
@@ -173,7 +180,9 @@ const audioManifest = {
   menuNavigate: { src:'button1.mp3', volume:0.85 },
   menuSelect: { src:'startbutton.mp3', volume:0.85 },
   corkyPower: { src:'Corky/doplar.mp3', volume:0.9 },
-  bonerPower: { src:'Boner/transform.mp3', volume:0.9 }
+  bonerPower: { src:'Boner/transform.mp3', volume:0.9 },
+  hitEnemy: { src:'hit.mp3', volume:0.8 },
+  destroyEnemy: { src:'destroy.mp3', volume:0.8 }
 };
 
 const loadFrameSet = async (paths) => Promise.all(paths.map((p)=>createImage(p)));
@@ -285,6 +294,8 @@ class LaserBolt {
       if(Math.abs(ex - this.x) < 28){
         const hit=e.receiveDamage(24, this.dir, { isSpecial:true, type:'laser' });
         if(hit){
+          playSfx('hitEnemy');
+          if(!e.isAlive()) playSfx('destroyEnemy');
           this.alive=false;
           this.hitSpark = new Particle(ex, ey, 0.22, 60*this.dir, -30);
           break;
@@ -563,7 +574,12 @@ class Player extends Entity {
       const f=this.facing;
       const dx=(enemy.position.x - this.position.x)*f;
       if(dx<0 || dx>reach) return;
-      if(enemy.receiveDamage(damage, f, context)){
+      const took = enemy.receiveDamage(damage, f, context);
+      if(took){
+        if((this.type==='corky' || this.type==='boner') && context.type==='melee'){
+          playSfx('hitEnemy');
+          if(!enemy.isAlive()) playSfx('destroyEnemy');
+        }
         if(this.mutation.enabled && !this.mutation.active){
           this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter + this.mutationGainOnHit);
         }
@@ -1698,6 +1714,7 @@ const boot = async () => {
     const assets = await loadAssets();
     game.assets = assets;
     game.audio = assets.audio ?? null;
+    setAudioRegistry(game.audio);
     initMenu(); game.state = GAME_STATES.MENU;
   }catch(e){
     console.error('Failed to load assets', e);
