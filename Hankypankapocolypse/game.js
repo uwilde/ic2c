@@ -10,6 +10,7 @@ canvas.height = CANVAS_HEIGHT;
 
 const GAME_STATES = {
   LOADING: 'loading',
+  TITLE: 'title',
   MENU: 'menu',
   PLAYING: 'playing'
 };
@@ -123,6 +124,7 @@ const input = new InputManager();
 /** assets */
 const assetManifest = {
   background: 'eaglesclub.jpg',
+  cover: 'cover.jpg',
   players: {
     corky: {
       name: 'Corky',
@@ -189,6 +191,7 @@ const loadFrameSet = async (paths) => Promise.all(paths.map((p)=>createImage(p))
 
 const loadAssets = async () => {
   const background = await createImage(assetManifest.background);
+  const cover = assetManifest.cover ? await createImage(assetManifest.cover) : null;
 
   const players = {};
   for (const [key, data] of Object.entries(assetManifest.players)) {
@@ -235,7 +238,7 @@ const loadAssets = async () => {
     audio[key] = await loadAudio(data.src, data);
   }
 
-  return { background, players, bigBoner, enemies, boss, audio };
+  return { background, cover, players, bigBoner, enemies, boss, audio };
 };
 
 const FLOOR_Y = CANVAS_HEIGHT - 5;
@@ -1481,8 +1484,19 @@ const game = {
   assets: null,
   audio: null,
   world: null,
+  title: { timer: 0, flashTimer: 0, lightPhase: 0, beamPhase: Math.random() * Math.PI * 2 },
   menu: { options: [], selectedIndex: 0, blinkTimer: 0 },
   loading: { progress: 0 }
+};
+
+const initTitle = () => {
+  game.title.timer = 0;
+  game.title.flashTimer = 0;
+  game.title.lightPhase = Math.random() * Math.PI * 2;
+  game.title.beamPhase = Math.random() * Math.PI * 2;
+  if (game.audio) {
+    game.audio.menuMusicPlaying = false;
+  }
 };
 
 const initMenu = () => {
@@ -1490,10 +1504,142 @@ const initMenu = () => {
     { key: 'corky', label: 'Corky', assets: game.assets.players.corky },
     { key: 'boner', label: 'Boiner', assets: game.assets.players.boner }
   ];
-  game.menu.selectedIndex=0; game.menu.blinkTimer=0; game.menu.gridPhase=0;
+  game.menu.selectedIndex=0; game.menu.blinkTimer=0; game.menu.gridPhase=0; game.menu.sparkTimer=0;
+  game.menu.decals = Array.from({ length: 16 }, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    w: 0.12 + Math.random() * 0.22,
+    h: 0.03 + Math.random() * 0.09,
+    tilt: (Math.random() - 0.5) * 1.1,
+    tint: Math.random() < 0.5 ? 'rgba(255, 110, 246, 0.28)' : 'rgba(120, 240, 255, 0.28)'
+  }));
   if(game.audio){
     game.audio.menuMusicPlaying=false;
   }
+};
+
+const updateTitle = (dt) => {
+  game.title.timer += dt;
+  game.title.flashTimer += dt;
+  game.title.lightPhase = (game.title.lightPhase + dt * 0.75) % (Math.PI * 2);
+  game.title.beamPhase = (game.title.beamPhase + dt * 0.45) % (Math.PI * 2);
+
+  if (game.audio?.menuMusic && !game.audio.menuMusicPlaying) {
+    setMusic(game.audio.menuMusic);
+    game.audio.menuMusicPlaying = true;
+  }
+
+  if (game.title.timer > 0.25 && input.wasPressed(INPUT_KEYS.ACCEPT)) {
+    playAudio(game.audio?.menuSelect);
+    initMenu();
+    game.state = GAME_STATES.MENU;
+  }
+};
+
+const drawTitle = () => {
+  const cover = game.assets?.cover ?? game.assets?.background ?? null;
+  ctx.fillStyle = '#05060e';
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  if (cover) {
+    const scale = Math.max(CANVAS_WIDTH / cover.width, CANVAS_HEIGHT / cover.height);
+    const w = cover.width * scale;
+    const h = cover.height * scale;
+    const sway = Math.sin(game.title.lightPhase * 0.45) * 8;
+    const ox = (CANVAS_WIDTH - w) / 2 + sway;
+    const oy = (CANVAS_HEIGHT - h) / 2;
+    ctx.drawImage(cover, ox, oy, w, h);
+  }
+
+  ctx.save();
+  const vignette = ctx.createRadialGradient(
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT / 2,
+    CANVAS_WIDTH * 0.25,
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT / 2,
+    CANVAS_WIDTH * 0.75
+  );
+  vignette.addColorStop(0, 'rgba(8, 6, 20, 0.0)');
+  vignette.addColorStop(1, 'rgba(4, 2, 12, 0.7)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.restore();
+
+  const cx = CANVAS_WIDTH / 2 + Math.cos(game.title.lightPhase * 0.8) * CANVAS_WIDTH * 0.2;
+  const cy = CANVAS_HEIGHT / 2 + Math.sin(game.title.lightPhase * 1.1) * CANVAS_HEIGHT * 0.18;
+  const radius = CANVAS_WIDTH * 0.55;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const glow = ctx.createRadialGradient(cx, cy, radius * 0.15, cx, cy, radius);
+  glow.addColorStop(0, 'rgba(255, 240, 190, 0.55)');
+  glow.addColorStop(0.45, 'rgba(255, 120, 220, 0.35)');
+  glow.addColorStop(1, 'rgba(40, 60, 160, 0.08)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.translate(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+  ctx.rotate(game.title.beamPhase);
+  const beamWidth = CANVAS_WIDTH * 1.6;
+  const beamGrad = ctx.createLinearGradient(-beamWidth, 0, beamWidth, 0);
+  beamGrad.addColorStop(0, 'rgba(20, 60, 160, 0)');
+  beamGrad.addColorStop(0.35, 'rgba(255, 120, 180, 0.28)');
+  beamGrad.addColorStop(0.5, 'rgba(255, 255, 220, 0.6)');
+  beamGrad.addColorStop(0.65, 'rgba(120, 220, 255, 0.36)');
+  beamGrad.addColorStop(1, 'rgba(20, 60, 160, 0)');
+  ctx.fillStyle = beamGrad;
+  ctx.fillRect(-beamWidth, -CANVAS_HEIGHT, beamWidth * 2, CANVAS_HEIGHT * 2);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.09;
+  ctx.fillStyle = '#0d0825';
+  const stripeOffset = (game.title.timer * 120) % 4;
+  for (let y = stripeOffset; y < CANVAS_HEIGHT; y += 4) {
+    ctx.fillRect(0, y, CANVAS_WIDTH, 2);
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = '56px "Press Start 2P", monospace';
+  ctx.shadowColor = 'rgba(255, 230, 210, 0.9)';
+  ctx.shadowBlur = 26;
+  ctx.fillStyle = '#fdf3d5';
+  ctx.fillText('HANKYPANKAPOCOLYPSE', CANVAS_WIDTH / 2, 132);
+  ctx.restore();
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = '18px "Press Start 2P", monospace';
+  ctx.fillStyle = 'rgba(214, 237, 255, 0.85)';
+  ctx.fillText('THE ULTIMATE RETRO CHAOS BRAWLER', CANVAS_WIDTH / 2, 176);
+  ctx.restore();
+
+  const flash = 0.55 + 0.45 * Math.sin(game.title.flashTimer * 6);
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(255, 200, 160, 0.85)';
+  ctx.shadowBlur = 20;
+  ctx.font = '28px "Press Start 2P", monospace';
+  ctx.fillStyle = `rgba(255, 248, 210, ${flash})`;
+  ctx.fillText('PRESS START', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 116);
+  ctx.font = '18px "Press Start 2P", monospace';
+  ctx.fillStyle = `rgba(255, 255, 255, ${flash})`;
+  ctx.fillText('(ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 78);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.85;
+  ctx.textAlign = 'center';
+  ctx.font = '12px "Press Start 2P", monospace';
+  ctx.fillStyle = 'rgba(200, 215, 255, 0.85)';
+  ctx.fillText('(C) 2024 HANKYPANKA TEAM // BEST EXPERIENCED WITH LIGHTS DOWN LOW', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 32);
+  ctx.restore();
 };
 
 const startGameWithCharacter = (characterKey) => {
@@ -1543,6 +1689,7 @@ const updateMenu = (dt) => {
     game.audio.menuMusicPlaying=true;
   }
   game.menu.gridPhase=(game.menu.gridPhase ?? 0) + dt*60;
+  game.menu.sparkTimer=(game.menu.sparkTimer ?? 0) + dt;
   game.menu.blinkTimer+=dt;
   if(input.wasPressed(INPUT_KEYS.LEFT)){
     playAudio(game.audio?.menuNavigate);
@@ -1559,83 +1706,280 @@ const updateMenu = (dt) => {
 };
 
 const drawMenu = () => {
-  const bg=game.assets?.background;
-  if(bg){
-    const scale=Math.max(CANVAS_WIDTH/bg.width, CANVAS_HEIGHT/bg.height);
-    const w=bg.width*scale, h=bg.height*scale;
-    const ox=(CANVAS_WIDTH-w)/2, oy=(CANVAS_HEIGHT-h)/2;
-    ctx.drawImage(bg, ox, oy, w, h);
-  } else {
-    ctx.fillStyle='#0f0a23'; ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+  const cover = game.assets?.cover ?? game.assets?.background ?? null;
+  const timer = game.menu.sparkTimer ?? 0;
+
+  ctx.fillStyle = '#03030a';
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  if (cover) {
+    const scale = Math.max(CANVAS_WIDTH / cover.width, CANVAS_HEIGHT / cover.height) * 1.03;
+    const w = cover.width * scale;
+    const h = cover.height * scale;
+    const driftX = Math.sin(timer * 0.45) * 14;
+    const driftY = Math.cos(timer * 0.38) * 10;
+    const ox = (CANVAS_WIDTH - w) / 2 + driftX;
+    const oy = (CANVAS_HEIGHT - h) / 2 + driftY;
+    ctx.drawImage(cover, ox, oy, w, h);
   }
-  ctx.fillStyle='rgba(6,4,22,0.75)'; ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
 
   ctx.save();
-  ctx.globalAlpha=0.18; ctx.strokeStyle='#4c58ff'; ctx.lineWidth=1; ctx.setLineDash([6,18]);
-  const grid=48, phase=game.menu.gridPhase ?? 0;
-  const sx=-grid + (phase % grid);
-  for(let x=sx; x<CANVAS_WIDTH+grid; x+=grid){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_HEIGHT); ctx.stroke(); }
-  const sy=-grid + ((phase*0.6) % grid);
-  for(let y=sy; y<CANVAS_HEIGHT+grid; y+=grid){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_WIDTH,y); ctx.stroke(); }
+  const darken = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+  darken.addColorStop(0, 'rgba(12, 8, 34, 0.62)');
+  darken.addColorStop(0.55, 'rgba(8, 6, 26, 0.78)');
+  darken.addColorStop(1, 'rgba(14, 8, 24, 0.9)');
+  ctx.fillStyle = darken;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   ctx.restore();
 
   ctx.save();
-  const tg=ctx.createLinearGradient(CANVAS_WIDTH/2-220,0,CANVAS_WIDTH/2+220,0);
-  tg.addColorStop(0,'#ff5ef6'); tg.addColorStop(0.5,'#ffe066'); tg.addColorStop(1,'#5ecbff');
-  ctx.shadowColor='#ffb347'; ctx.shadowBlur=18; ctx.fillStyle=tg;
-  ctx.font='36px "Press Start 2P", monospace'; ctx.textAlign='center';
-  ctx.fillText('HANKYPANKAPOCOLYPSE', CANVAS_WIDTH/2, 86);
+  ctx.globalCompositeOperation = 'overlay';
+  const chaos = ctx.createLinearGradient(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  chaos.addColorStop(0, 'rgba(255, 92, 196, 0.22)');
+  chaos.addColorStop(0.45, 'rgba(120, 180, 255, 0.08)');
+  chaos.addColorStop(1, 'rgba(255, 189, 89, 0.26)');
+  ctx.fillStyle = chaos;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   ctx.restore();
 
-  ctx.font='16px "Press Start 2P", monospace'; ctx.fillStyle='#bfd2ff';
-  ctx.fillText('SELECT YOUR WARRIOR', CANVAS_WIDTH/2, 140);
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  ctx.strokeStyle = 'rgba(180, 210, 255, 0.55)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 22]);
+  const grid = 56;
+  const gx = -grid + ((timer * 48) % grid);
+  const gy = -grid + ((timer * 32) % grid);
+  for (let x = gx; x < CANVAS_WIDTH + grid; x += grid) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, CANVAS_HEIGHT);
+    ctx.stroke();
+  }
+  for (let y = gy; y < CANVAS_HEIGHT + grid; y += grid) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(CANVAS_WIDTH, y);
+    ctx.stroke();
+  }
+  ctx.restore();
 
-  const cardsY=172, cardW=260, cardH=280, spacing=320;
-  const centerOffset=(game.menu.options.length-1)*spacing*0.5;
+  const decals = game.menu.decals ?? [];
+  ctx.save();
+  decals.forEach((d, idx) => {
+    ctx.save();
+    const px = CANVAS_WIDTH / 2 + (d.x - 0.5) * CANVAS_WIDTH * 1.25 + Math.sin(timer * (0.7 + idx * 0.13)) * 24;
+    const py = CANVAS_HEIGHT / 2 + (d.y - 0.5) * CANVAS_HEIGHT * 1.1 + Math.cos(timer * (0.6 + idx * 0.11)) * 18;
+    ctx.translate(px, py);
+    ctx.rotate(d.tilt + Math.sin(timer * 0.9 + idx) * 0.03);
+    const w = d.w * CANVAS_WIDTH;
+    const h = d.h * CANVAS_HEIGHT;
+    const streak = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+    streak.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    streak.addColorStop(0.5, d.tint);
+    streak.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = streak;
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.restore();
+  });
+  ctx.restore();
 
-  game.menu.options.forEach((opt, i)=>{
-    const x=CANVAS_WIDTH/2 + i*spacing - centerOffset;
-    const cardX = x - cardW/2;
-    const g=ctx.createLinearGradient(0,cardsY,0,cardsY+cardH);
-    g.addColorStop(0,'rgba(8,13,48,0.95)'); g.addColorStop(1,'rgba(18,20,60,0.95)');
-    ctx.fillStyle=g; ctx.fillRect(cardX, cardsY, cardW, cardH);
-    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.strokeRect(cardX, cardsY, cardW, cardH);
+  ctx.save();
+  const headerHeight = 120;
+  ctx.beginPath();
+  ctx.moveTo(40, 36);
+  ctx.lineTo(CANVAS_WIDTH - 40, 24);
+  ctx.lineTo(CANVAS_WIDTH - 36, 24 + headerHeight);
+  ctx.lineTo(48, 36 + headerHeight + 12);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(10, 6, 36, 0.86)';
+  ctx.fill();
+  const headerGlow = ctx.createLinearGradient(40, 36, CANVAS_WIDTH - 36, 24 + headerHeight);
+  headerGlow.addColorStop(0, 'rgba(255, 96, 196, 0.4)');
+  headerGlow.addColorStop(0.5, 'rgba(255, 234, 180, 0.18)');
+  headerGlow.addColorStop(1, 'rgba(120, 196, 255, 0.35)');
+  ctx.fillStyle = headerGlow;
+  ctx.globalAlpha = 0.45;
+  ctx.fill();
+  ctx.restore();
 
-    const portrait=opt.assets.portrait;
-    const maxW=cardW-60, maxH=cardH-150;
-    const s=Math.min(maxW/portrait.width, maxH/portrait.height);
-    const w=portrait.width*s, h=portrait.height*s;
-    ctx.drawImage(portrait, x - w/2, cardsY + 36 + (maxH - h)/2, w, h);
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(255, 210, 190, 0.85)';
+  ctx.shadowBlur = 22;
+  ctx.font = '38px "Press Start 2P", monospace';
+  ctx.fillStyle = '#ffeac8';
+  ctx.fillText('CHARACTER SELECT', CANVAS_WIDTH / 2, 108);
+  ctx.shadowBlur = 0;
+  ctx.font = '16px "Press Start 2P", monospace';
+  ctx.fillStyle = '#b6c9ff';
+  ctx.fillText('STEER WITH ARROWS  //  LOCK IN WITH ENTER', CANVAS_WIDTH / 2, 142);
+  ctx.restore();
 
-    ctx.font='18px "Press Start 2P", monospace'; ctx.fillStyle='#ffe07d';
-    ctx.fillText(opt.label.toUpperCase(), x, cardsY + cardH - 40);
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.font = '12px "Press Start 2P", monospace';
+  ctx.fillStyle = 'rgba(255, 150, 220, 0.8)';
+  ctx.fillText('LOCATION: THE EAGLES CLUB BASEMENT', 48, CANVAS_HEIGHT - 152);
+  ctx.fillStyle = 'rgba(160, 220, 255, 0.8)';
+  ctx.fillText('VIBE CHECK: NEO-RETRO PANIC MODE', CANVAS_WIDTH - 430, CANVAS_HEIGHT - 152);
+  ctx.restore();
 
-    ctx.font='12px "Press Start 2P", monospace'; ctx.fillStyle='#99aaff';
-    const flavor = opt.key==='corky' ? 'Whiskey-Fueled Footwork' : 'Mutation-Ready Brawler';
-    ctx.fillText(flavor, x, cardsY + cardH - 18);
+  const cardsY = 208;
+  const cardW = 280;
+  const cardH = 310;
+  const spacing = 320;
+  const centerOffset = (game.menu.options.length - 1) * spacing * 0.5;
 
-    if(i===game.menu.selectedIndex){
-      const pulse=(Math.sin(game.menu.blinkTimer*5)+1)*0.5;
-      ctx.save();
-      const hg=ctx.createLinearGradient(cardX, cardsY, cardX+cardW, cardsY+cardH);
-      hg.addColorStop(0,`rgba(255,208,120,${0.55 + pulse*0.25})`);
-      hg.addColorStop(1,`rgba(255,99,71,${0.4 + pulse*0.25})`);
-      ctx.lineWidth=4; ctx.strokeStyle=hg;
-      ctx.shadowColor='rgba(255,225,160,0.8)'; ctx.shadowBlur=24 + pulse*14;
-      ctx.strokeRect(cardX-6, cardsY-6, cardW+12, cardH+12);
-      ctx.restore();
+  game.menu.options.forEach((opt, i) => {
+    const x = CANVAS_WIDTH / 2 + i * spacing - centerOffset;
+    const isSelected = i === game.menu.selectedIndex;
+    const baseTilt = (i - (game.menu.options.length - 1) / 2) * 0.06;
+    const wobble = Math.sin(timer * 3 + i) * (isSelected ? 0.04 : 0.02);
+    const bob = Math.sin(timer * 4.5 + i) * (isSelected ? 9 : 4);
+    const pulse = 0.5 + 0.5 * Math.sin((game.menu.blinkTimer + i * 0.3) * 5);
 
-      ctx.save(); ctx.fillStyle='rgba(255,220,160,0.25)';
-      ctx.fillRect(cardX, cardsY, cardW, 72); ctx.restore();
+    ctx.save();
+    ctx.translate(x, cardsY + bob);
+    ctx.rotate(baseTilt + wobble);
+
+    const drawCardOutline = () => {
+      ctx.beginPath();
+      ctx.moveTo(-cardW / 2 + 26, -cardH / 2);
+      ctx.lineTo(cardW / 2 - 26, -cardH / 2);
+      ctx.lineTo(cardW / 2, -cardH / 2 + 40);
+      ctx.lineTo(cardW / 2, cardH / 2 - 48);
+      ctx.lineTo(cardW / 2 - 34, cardH / 2);
+      ctx.lineTo(-cardW / 2 + 34, cardH / 2);
+      ctx.lineTo(-cardW / 2, cardH / 2 - 40);
+      ctx.lineTo(-cardW / 2, -cardH / 2 + 38);
+      ctx.closePath();
+    };
+
+    const shell = ctx.createLinearGradient(-cardW / 2, -cardH / 2, cardW / 2, cardH / 2);
+    shell.addColorStop(0, 'rgba(16, 20, 54, 0.94)');
+    shell.addColorStop(1, 'rgba(26, 14, 46, 0.94)');
+    drawCardOutline();
+    ctx.fillStyle = shell;
+    ctx.fill();
+
+    const border = ctx.createLinearGradient(-cardW / 2, 0, cardW / 2, 0);
+    if (isSelected) {
+      border.addColorStop(0, 'rgba(255, 214, 167, 0.95)');
+      border.addColorStop(1, 'rgba(255, 125, 236, 0.9)');
+    } else {
+      border.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+      border.addColorStop(1, 'rgba(180, 200, 255, 0.18)');
     }
+    drawCardOutline();
+    ctx.lineWidth = isSelected ? 4 : 2;
+    ctx.strokeStyle = border;
+    ctx.stroke();
+
+    drawCardOutline();
+    ctx.save();
+    ctx.clip();
+    const innerGlow = ctx.createLinearGradient(0, -cardH / 2, 0, cardH / 2);
+    innerGlow.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+    innerGlow.addColorStop(0.45, 'rgba(255, 255, 255, 0)');
+    innerGlow.addColorStop(1, 'rgba(255, 255, 255, 0.12)');
+    ctx.fillStyle = innerGlow;
+    ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
+    ctx.restore();
+
+    if (isSelected) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const halo = ctx.createRadialGradient(0, -cardH / 2 + 80, 0, 0, -cardH / 2 + 80, cardW * 0.8);
+      halo.addColorStop(0, `rgba(255, 230, 170, ${0.55 + pulse * 0.35})`);
+      halo.addColorStop(1, 'rgba(255, 128, 220, 0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(-cardW, -cardH, cardW * 2, cardH * 1.6);
+      ctx.restore();
+    }
+
+    const portrait = opt.assets.portrait;
+    if (portrait) {
+      const maxW = cardW - 100;
+      const maxH = cardH - 190;
+      const scale = Math.min(maxW / portrait.width, maxH / portrait.height);
+      const pw = portrait.width * scale;
+      const ph = portrait.height * scale;
+      ctx.drawImage(portrait, -pw / 2, -cardH / 2 + 80 + (maxH - ph) / 2, pw, ph);
+    }
+
+    const statsTop = -cardH / 2 + 196;
+    const statLabels = ['POWER', 'STYLE', 'CHAOS'];
+    const statValues = opt.key === 'corky' ? [0.86, 0.7, 0.64] : [0.78, 0.62, 0.92];
+    const statWidth = cardW - 160;
+    for (let s = 0; s < statLabels.length; s++) {
+      const y = statsTop + s * 24;
+      ctx.textAlign = 'left';
+      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.fillStyle = 'rgba(188, 206, 255, 0.9)';
+      ctx.fillText(statLabels[s], -cardW / 2 + 28, y - 4);
+      ctx.fillStyle = 'rgba(12, 16, 32, 0.85)';
+      ctx.fillRect(-cardW / 2 + 118, y - 10, statWidth, 10);
+      const statGrad = ctx.createLinearGradient(-cardW / 2 + 118, y - 10, -cardW / 2 + 118 + statWidth, y - 10);
+      if (isSelected) {
+        statGrad.addColorStop(0, 'rgba(255, 140, 220, 0.9)');
+        statGrad.addColorStop(1, 'rgba(255, 240, 180, 0.95)');
+      } else {
+        statGrad.addColorStop(0, 'rgba(130, 200, 255, 0.85)');
+        statGrad.addColorStop(1, 'rgba(180, 255, 210, 0.85)');
+      }
+      ctx.fillStyle = statGrad;
+      ctx.fillRect(-cardW / 2 + 118, y - 10, statWidth * statValues[s], 10);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.font = '20px "Press Start 2P", monospace';
+    ctx.fillStyle = '#ffe7a8';
+    ctx.fillText(opt.label.toUpperCase(), 0, cardH / 2 - 56);
+
+    ctx.font = '12px "Press Start 2P", monospace';
+    ctx.fillStyle = '#9fbaff';
+    const flavor = opt.key === 'corky' ? 'Whiskey-Fueled Footwork' : 'Mutation-Ready Brawler';
+    ctx.fillText(flavor, 0, cardH / 2 - 30);
+
+    ctx.restore();
   });
 
-  const pulse=0.55 + 0.45*Math.abs(Math.sin(game.menu.blinkTimer*4));
-  ctx.font='14px "Press Start 2P", monospace'; ctx.fillStyle='#b9c4ff';
-  ctx.fillText('ARROWS TO MOVE   X: ATTACK   Z: MUTATION', CANVAS_WIDTH/2, CANVAS_HEIGHT-86);
-  ctx.fillStyle=`rgba(255,238,140,${pulse})`;
-  ctx.fillText('PRESS ENTER TO BEGIN', CANVAS_WIDTH/2, CANVAS_HEIGHT-52);
+  const pulse = 0.55 + 0.45 * Math.sin(game.menu.blinkTimer * 4);
+
+  const panelWidth = 620;
+  const panelX = (CANVAS_WIDTH - panelWidth) / 2;
+  const panelY = CANVAS_HEIGHT - 122;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(panelX - 36, panelY);
+  ctx.lineTo(panelX + panelWidth + 42, panelY - 18);
+  ctx.lineTo(panelX + panelWidth + 12, panelY + 86);
+  ctx.lineTo(panelX - 24, panelY + 104);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(8, 6, 34, 0.88)';
+  ctx.fill();
+  const panelGlow = ctx.createLinearGradient(panelX, panelY, panelX + panelWidth, panelY + 60);
+  panelGlow.addColorStop(0, 'rgba(120, 200, 255, 0.25)');
+  panelGlow.addColorStop(0.5, 'rgba(255, 240, 180, 0.25)');
+  panelGlow.addColorStop(1, 'rgba(255, 110, 220, 0.25)');
+  ctx.fillStyle = panelGlow;
+  ctx.globalAlpha = 0.5;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = '14px "Press Start 2P", monospace';
+  ctx.fillStyle = '#b9c4ff';
+  ctx.fillText('ARROWS TO NAVIGATE   X: ATTACK   Z: MUTATION', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 72);
+  ctx.font = '18px "Press Start 2P", monospace';
+  ctx.fillStyle = `rgba(255, 238, 160, ${pulse})`;
+  ctx.fillText('PRESS START (ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 36);
+  ctx.restore();
 };
+
 
 const updateGame = (dt) => { if(!game.world) return; game.world.update(dt); };
 const drawGame = () => {
@@ -1702,6 +2046,7 @@ const gameLoop = (timestamp) => {
   lastTimestamp=timestamp;
   switch(game.state){
     case GAME_STATES.LOADING: drawLoading(); break;
+    case GAME_STATES.TITLE: updateTitle(dt); drawTitle(); break;
     case GAME_STATES.MENU: updateMenu(dt); drawMenu(); break;
     case GAME_STATES.PLAYING: updateGame(dt); drawGame(); break;
   }
@@ -1715,7 +2060,7 @@ const boot = async () => {
     game.assets = assets;
     game.audio = assets.audio ?? null;
     setAudioRegistry(game.audio);
-    initMenu(); game.state = GAME_STATES.MENU;
+    initTitle(); game.state = GAME_STATES.TITLE;
   }catch(e){
     console.error('Failed to load assets', e);
     ctx.fillStyle='#400'; ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
