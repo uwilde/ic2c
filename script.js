@@ -1540,7 +1540,7 @@ function openWindow(windowId) {
         maximizeWindow(windowId, true); // Always maximize when opening on mobile portrait
     } else {
         // Optionally, maximize certain windows by default
-        if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow' || windowId === 'uggWindow') {
+        if (windowId === 'apacheToob' || windowId === 'apacheWindow' || windowId === 'starblasterWindow' || windowId === 'uggWindow' || windowId === 'hankyWindow') {
             maximizeWindow(windowId, true); // Always maximize when opening
         }
     }
@@ -1575,6 +1575,8 @@ function openWindow(windowId) {
             iconSrc = 'images/starblaster.png';
         } else if (windowId === 'uggWindow') {
             iconSrc = 'images/ugg.png';
+        } else if (windowId === 'hankyWindow') {
+            iconSrc = 'images/hanky.png';
         } else if (windowId === 'apacheToob') {
             iconSrc = 'youtube/apache-toob.png';
         } else if (windowId === 'paintWindow') {
@@ -1596,6 +1598,8 @@ function openWindow(windowId) {
             title.innerText = 'Starblaster';
         } else if (windowId === 'uggWindow') {
             title.innerText = 'UGG';
+        } else if (windowId === 'hankyWindow') {
+            title.innerText = 'Hankypankapocolypse';
         } else if (windowId === 'apacheToob') {
             title.innerText = 'A-Toob';
         } else if (windowId === 'paintWindow') {
@@ -2965,7 +2969,7 @@ function adjustIframeScale(windowId) {
 
     if (!iframeWrapper || !iframeContent) return;
 
-    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow' || windowId === 'aimWindow' || windowId === 'aimMessageWindow' || windowId === 'uggWindow') {
+    if (windowId === 'apacheToob' || windowId === 'paintWindow' || windowId === 'explorerWindow' || windowId === 'aimWindow' || windowId === 'aimMessageWindow' || windowId === 'uggWindow' || windowId === 'hankyWindow') {
         // For apacheToob, make the iframe fill the wrapper without scaling
         iframeContent.style.width = '100%';
         iframeContent.style.height = '100%';
