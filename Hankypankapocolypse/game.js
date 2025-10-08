@@ -12,7 +12,8 @@ const GAME_STATES = {
   LOADING: 'loading',
   TITLE: 'title',
   MENU: 'menu',
-  PLAYING: 'playing'
+  PLAYING: 'playing',
+  LEVEL2: 'level2'
 };
 
 const INPUT_KEYS = {
@@ -86,6 +87,76 @@ const playSfx = (key, options) => {
   const clip = audioRegistry?.[key];
   if(!clip) return;
   playAudio(clip, options ?? { reset:true });
+};
+
+const level2Manager = {
+  loading:false,
+  loaded:false,
+  initialized:false,
+  update: null,
+  draw: null,
+  pending: []
+};
+
+const loadLevel2Module = (onReady) => {
+  if(level2Manager.loaded){
+    onReady?.();
+    return;
+  }
+  if(level2Manager.loading){
+    if(onReady) level2Manager.pending.push(onReady);
+    return;
+  }
+  if(typeof document==='undefined'){
+    console.warn('level2.js requires a browser environment');
+    if(onReady) onReady();
+    return;
+  }
+  level2Manager.loading=true;
+  if(onReady) level2Manager.pending.push(onReady);
+  const script=document.createElement('script');
+  script.src='level2.js';
+  script.onload=()=> {
+    level2Manager.loaded=true;
+    level2Manager.loading=false;
+    const callbacks=[...level2Manager.pending];
+    level2Manager.pending.length=0;
+    callbacks.forEach(cb=>cb?.());
+  };
+  script.onerror=(err)=> {
+    level2Manager.loading=false;
+    console.error('Failed to load level2.js', err);
+  };
+  const host=document.body || document.head || document.documentElement;
+  if(host) host.appendChild(script);
+  else {
+    level2Manager.loading=false;
+    console.error('Unable to attach level2.js script element');
+  }
+};
+
+const enterLevel2 = () => {
+  if(level2Manager.initialized){
+    game.state = GAME_STATES.LEVEL2;
+    if(level2Manager.update==null || level2Manager.draw==null){
+      const module = window.level2 ?? {};
+      level2Manager.update = typeof module.update==='function' ? module.update.bind(module) : null;
+      level2Manager.draw = typeof module.draw==='function' ? module.draw.bind(module) : null;
+    }
+    return;
+  }
+  loadLevel2Module(()=> {
+    const module = window.level2 ?? {};
+    if(typeof module.init==='function'){
+      module.init({ canvas, ctx, game, playAudio, setMusic });
+    }
+    level2Manager.update = typeof module.update==='function' ? module.update.bind(module) : null;
+    level2Manager.draw = typeof module.draw==='function' ? module.draw.bind(module) : null;
+    level2Manager.initialized=true;
+    setMusic(null);
+    game.world=null;
+    game.state=GAME_STATES.LEVEL2;
+  });
 };
 
 class Animation {
@@ -178,13 +249,94 @@ const assetManifest = {
 
 const audioManifest = {
   menuMusic: { src:'start.mp3', loop:true, volume:0.5 },
-  gameMusic: { src:'barsong.mp3', loop:true, volume:0.65 },
+  gameMusic: { src:'barsong.mp3', loop:true, volume:0.5 },
   menuNavigate: { src:'button1.mp3', volume:0.85 },
   menuSelect: { src:'startbutton.mp3', volume:0.85 },
   corkyPower: { src:'Corky/doplar.mp3', volume:0.9 },
   bonerPower: { src:'Boner/transform.mp3', volume:0.9 },
   hitEnemy: { src:'hit.mp3', volume:0.8 },
-  destroyEnemy: { src:'destroy.mp3', volume:0.8 }
+  destroyEnemy: { src:'destroy.mp3', volume:0.8 },
+  mutantSplat: { src:'Entrado/Mutant/splat.mp3', volume:0.55 },
+  bigBonerLaser: { src:'BigBoner/laser.mp3', loop:true, volume:0.65 },
+  mutantRumble: { src:'Entrado/Mutant/rumble.mp3', volume:0.85 },
+  stepWood1: { src:'step_wood1.mp3', volume:0.4 },
+  stepWood2: { src:'step_wood2.mp3', volume:0.4 },
+  stepWood3: { src:'step_wood3.mp3', volume:0.4 },
+  stepWood4: { src:'step_wood4.mp3', volume:0.4 },
+  stepWood5: { src:'step_wood5.mp3', volume:0.4 }
+};
+
+const FOOTSTEP_AUDIO_KEYS = ['stepWood1','stepWood2','stepWood3','stepWood4','stepWood5'];
+const ACTIVE_FOOTSTEP_CLONES = [];
+const FOOTSTEP_CONFIG = {
+  player: {
+    corky: new Set([2,5,7,9]),
+    boner: new Set([0,3,7])
+  },
+  enemy: {
+    entrado: new Set([0,3,7,12]),
+    peppers: new Set([1,3,6,10,13,15])
+  }
+};
+
+const getFootstepTracker = (entity) => {
+  if(!entity._footstepTracker){
+    entity._footstepTracker = { prevIndex:-1, lastTrigger:-1 };
+  }
+  return entity._footstepTracker;
+};
+
+const resetFootstepTracker = (tracker) => {
+  tracker.prevIndex=-1;
+  tracker.lastTrigger=-1;
+};
+
+const playRandomFootstep = () => {
+  const candidates = FOOTSTEP_AUDIO_KEYS
+    .map((key)=>audioRegistry?.[key])
+    .filter(Boolean);
+  if(!candidates.length) return;
+  const base = candidates[Math.floor(Math.random()*candidates.length)];
+  if(!base) return;
+  if(typeof base.cloneNode === 'function'){
+    const clone = base.cloneNode();
+    clone.volume = base.volume ?? 0.4;
+    clone.currentTime = 0;
+    ACTIVE_FOOTSTEP_CLONES.push(clone);
+    const release=()=> {
+      const idx=ACTIVE_FOOTSTEP_CLONES.indexOf(clone);
+      if(idx>=0) ACTIVE_FOOTSTEP_CLONES.splice(idx,1);
+      clone.removeEventListener('ended', release);
+      clone.removeEventListener('error', release);
+    };
+    clone.addEventListener('ended', release, { once:true });
+    clone.addEventListener('error', release, { once:true });
+    const promise = clone.play();
+    if(promise?.catch) promise.catch(()=>{});
+  }else{
+    playAudio(base, { reset:true });
+  }
+};
+
+const tryPlayFootstep = (entity, category, key) => {
+  if(!category || !key) return;
+  const config = FOOTSTEP_CONFIG?.[category]?.[key];
+  const tracker = getFootstepTracker(entity);
+  if(!config || config.size===0){
+    resetFootstepTracker(tracker);
+    return;
+  }
+  if(entity.state!=='walk' || !entity.currentAnimation){
+    resetFootstepTracker(tracker);
+    return;
+  }
+  const idx = entity.currentAnimation.index ?? 0;
+  if(tracker.prevIndex>idx) tracker.lastTrigger=-1;
+  if(config.has(idx) && tracker.lastTrigger!==idx){
+    playRandomFootstep();
+    tracker.lastTrigger=idx;
+  }
+  tracker.prevIndex=idx;
 };
 
 const loadFrameSet = async (paths) => Promise.all(paths.map((p)=>createImage(p)));
@@ -279,7 +431,7 @@ class LaserBolt {
   constructor(x,y,dir){
     this.x=x; this.y=y; this.dir=dir;
     this.speed=880;             // fast
-    this.range=420;
+    this.range=CANVAS_WIDTH + 120;
     this.travel=0;
     this.alive=true;
     this.hitSpark=null;
@@ -338,7 +490,7 @@ class Entity {
   }
   setAnimations(f){ this.animationFactories=f; }
   setState(s){
-    if(this.state===s) return;
+    if(this.state===s && this.currentAnimation) return;
     const factory=this.animationFactories[s];
     if(!factory) throw new Error(`Missing animation factory for ${s}`);
     this.state=s; this.currentAnimation=factory(); this.refreshMetrics();
@@ -434,6 +586,10 @@ class Player extends Entity {
     this.puffs=[]; // small particles
     this.isInAttackWindow=false;
     this.powerSoundPlayed=false;
+    this.powerHealAmount = config.powerHealAmount ?? Math.max(6, Math.round(this.maxHp * 0.08));
+    this.healedThisPower=false;
+    this.laserAudioRef=null;
+    this.laserLoopActive=false;
 
     this.setAnimations({
       idle: ()=>new Animation([this.assets.walk[0]], 1, {loop:false}),
@@ -449,11 +605,44 @@ class Player extends Entity {
 
   setAnimations(f){ this.animationFactories=f; }
   setState(s){
-    if(this.state===s) return;
+    if(this.state===s && this.currentAnimation) return;
     const factory=this.animationFactories[s]; if(!factory) return;
     this.state=s; this.currentAnimation=factory(); this.refreshMetrics();
     if(s!=='attack') this.isInAttackWindow=false;
     if(s==='power') this.powerSoundPlayed=false;
+  }
+
+  heal(amount){
+    if(amount<=0) return 0;
+    const before=this.hp;
+    this.hp=Math.min(this.maxHp, this.hp + amount);
+    return this.hp-before;
+  }
+  applyPowerHeal(){
+    if(this.healedThisPower) return;
+    const restored=this.heal(this.powerHealAmount);
+    if(restored>0) this.healedThisPower=true;
+  }
+  playLaserLoop(){
+    if(this.type!=='boner') return;
+    const clip=game.audio?.bigBonerLaser;
+    if(!clip) return;
+    this.laserAudioRef=clip;
+    if(this.laserLoopActive) return;
+    try{
+      clip.volume = Math.min(1, 0.65);
+      clip.loop = true;
+      clip.currentTime = 0;
+    }catch(e){ /* ignore */ }
+    playAudio(clip, { reset:false });
+    this.laserLoopActive=true;
+  }
+  stopLaserLoop(){
+    if(!this.laserLoopActive) return;
+    const clip=this.laserAudioRef ?? game.audio?.bigBonerLaser;
+    if(clip) stopAudio(clip, { reset:false });
+    this.laserLoopActive=false;
+    this.laserAudioRef=null;
   }
 
   /** transformation progress for scaling during power anims */
@@ -464,6 +653,22 @@ class Player extends Entity {
   }
 
   updateGameplay(dt, input, world, enemies){
+    if(world?.victorySequence?.active){
+      if(this.hurtTimer>0){
+        this.hurtTimer=Math.max(0, this.hurtTimer-dt);
+      }
+      this.velocity.x=0;
+      this.velocity.y=0;
+      if(this.hurtTimer===0 && this.state!=='idle' && this.state!=='power'){
+        this.setState('idle');
+      }
+      this.updateLasers(dt, enemies, world);
+      super.update(dt);
+      if(this.type==='boner') this.stopLaserLoop();
+      tryPlayFootstep(this, 'player', this.type);
+      return;
+    }
+
     if(this.hurtTimer>0){
       this.hurtTimer=Math.max(0, this.hurtTimer-dt);
       if(this.hurtTimer===0 && this.isAlive()) this.setState('idle');
@@ -526,6 +731,7 @@ class Player extends Entity {
     this.velocity.x=vx; this.velocity.y=vy;
 
     if(this.mutation.state==='active') this.updateMutationActive(dt, enemies, world);
+    else if(this.type==='boner') this.stopLaserLoop();
 
     if(this.hurtTimer<=0){
       if(wantsAttack && this.attackCooldown===0) this.performAttack(enemies, world);
@@ -542,6 +748,7 @@ class Player extends Entity {
 
     super.update(dt);
     this.resolveBossCollision(world);
+    tryPlayFootstep(this, 'player', this.type);
   }
 
   performAttack(enemies, world){
@@ -572,19 +779,32 @@ class Player extends Entity {
     enemies.forEach((enemy)=>{
       if(enemy.shouldRemove || enemy.dying) return;
       if(!enemy.isAlive()) return;
-      if(Math.abs(enemy.position.y - this.position.y) > 40) return;
-      const reach=this.attackHitbox.width;
+      const enemyHeight=enemy.height ?? (enemy.currentAnimation?.frame?.height ?? 160) * (enemy.baseScale ?? 1);
+      const yTolerance = enemy.isBoss ? Math.max(90, enemyHeight*0.55) : 40;
+      if(Math.abs(enemy.position.y - this.position.y) > yTolerance) return;
+      const enemyWidth = enemy.width ?? (enemy.currentAnimation?.frame?.width ?? 100) * (enemy.baseScale ?? 1);
+      const reach=this.attackHitbox.width + (enemy.isBoss ? enemyWidth*0.35 : 0);
+      const minReach = enemy.isBoss ? -enemyWidth*0.25 : 0;
       const f=this.facing;
       const dx=(enemy.position.x - this.position.x)*f;
-      if(dx<0 || dx>reach) return;
+      if(dx<minReach || dx>reach) return;
       const took = enemy.receiveDamage(damage, f, context);
       if(took){
-        if((this.type==='corky' || this.type==='boner') && context.type==='melee'){
+        if(context.type==='melee' || context.type==='mutation_melee'){
+          playSfx('hitEnemy');
+          if(!enemy.isAlive()) playSfx('destroyEnemy');
+        }else if((this.type==='corky' || this.type==='boner') && enemy?.isBoss){
           playSfx('hitEnemy');
           if(!enemy.isAlive()) playSfx('destroyEnemy');
         }
         if(this.mutation.enabled && !this.mutation.active){
-          this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter + this.mutationGainOnHit);
+          let gain;
+          if(enemy.isBoss){
+            gain=Math.max(1, Math.round(this.mutationGainOnHit*0.2));
+          }else{
+            gain=Math.max(1, Math.round(this.mutationGainOnHit*0.6));
+          }
+          this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter + gain);
         }
       }
     });
@@ -622,6 +842,7 @@ class Player extends Entity {
     this.invulnerableTimer=0.85;
     this.velocity.x = sourceX < this.position.x ? 80 : -80;
     this.velocity.y = -20;
+    if(this.type==='boner') this.stopLaserLoop();
     return true;
   }
 
@@ -631,9 +852,11 @@ class Player extends Entity {
       if(m.meter>=m.max && input.wasPressed(INPUT_KEYS.POWER)){
         if(!this.animationFactories.power){ m.active=false; m.state='idle'; m.meter=m.max; console.warn(`[Player:${this.type}] Power animation missing`); return; }
         m.active=true; this.isDuringPowerAnimation=true; this.powerAnimationTimer=0; this.velocity.x=0; this.velocity.y=0;
+        this.healedThisPower=false;
         m.state = (m.mode==='burst') ? 'burst' : 'charging';
         this.setState('power');
         if(this.state!=='power' || !this.currentAnimation){ this.isDuringPowerAnimation=false; this.powerAnimationTimer=0; m.active=false; m.state='idle'; return; }
+        this.applyPowerHeal();
       }
     } else if (m.mode==='transform' && m.state==='active'){
       m.timer=Math.max(0, m.timer - dt);
@@ -645,10 +868,23 @@ class Player extends Entity {
 
   updateMutationActive(dt, enemies, world){
     if(!this.mutation.active || this.mutation.state!=='active') return;
+    if(this.type==='boner') this.playLaserLoop();
 
     // Big Boner walk cycle
     if(this.bigBonerWalk){
-      this.bigBonerWalk.update(dt);
+      const isMoving = Math.abs(this.velocity.x)>1 || Math.abs(this.velocity.y)>1;
+      if(isMoving){
+        this.bigBonerWalk.update(dt);
+      }else{
+        const frames=this.bigBonerWalk.frames ?? [];
+        if(frames.length>1){
+          this.bigBonerWalk.index=1;
+        }else{
+          this.bigBonerWalk.index=0;
+        }
+        this.bigBonerWalk.elapsed=0;
+        this.bigBonerWalk.done=false;
+      }
       const frame=this.bigBonerWalk.frame;
       const scale=this.bigBonerScale;
       this.width=frame.width*scale; this.height=frame.height*scale;
@@ -714,6 +950,8 @@ class Player extends Entity {
     if(this.mutation.mode==='burst'){ this.finishBurst(); return; }
     this.mutation.state='active'; this.mutation.timer=8; this.invulnerableTimer=0.3;
     if(this.bigBonerWalk) this.bigBonerWalk.reset();
+    this.applyPowerHeal();
+    if(this.type==='boner') this.playLaserLoop();
   }
 
   exitMutation(){
@@ -721,16 +959,21 @@ class Player extends Entity {
     this.mutation.state='draining'; this.mutation.active=false;
     this.isDuringPowerAnimation=true; this.powerAnimationTimer=0; this.pendingMutationReverse=true;
     this.setState('powerReverse');
+    if(this.type==='boner') this.stopLaserLoop();
   }
 
   finishMutationCooldown(){
     if(this.mutation.mode==='burst'){ this.finishBurst(); return; }
     this.mutation.state='idle'; this.mutation.meter=0; this.mutation.timer=0; this.setState('idle');
+    this.healedThisPower=false;
+    if(this.type==='boner') this.stopLaserLoop();
   }
 
   finishBurst(){
     if(this.burst){ this.burst.intensity=0; this.burst.hasWiped=false; }
     this.mutation.active=false; this.mutation.state='idle'; this.mutation.meter=0; this.mutation.timer=0; this.setState('idle');
+    this.healedThisPower=false;
+    if(this.type==='boner') this.stopLaserLoop();
   }
 
   /** laser/particle housekeeping */
@@ -859,21 +1102,24 @@ class Player extends Entity {
     // faint beam flicker for style
     const originX = this.position.x - cameraX + this.eyeOffset.x * this.facing;
     const originY = this.position.y - this.eyeOffset.y;
-    const endX = originX + 360 * this.facing;
-    const endYTop = originY - 6;
-    const endYBot = originY + 6;
+    const beamTargetX = this.facing > 0 ? CANVAS_WIDTH + 40 : -40;
 
     ctx.save();
     ctx.globalCompositeOperation='lighter';
-    const drawBeam=(yEnd)=>{
-      const grad=ctx.createLinearGradient(originX, originY, endX, yEnd);
-      grad.addColorStop(0, 'rgba(255,255,215,0.25)');
+    const drawBeam=(offsetY)=>{
+      const targetY = originY + offsetY;
+      const grad=ctx.createLinearGradient(originX, originY, beamTargetX, targetY);
+      grad.addColorStop(0, 'rgba(255,255,215,0.3)');
       grad.addColorStop(1, 'rgba(255,70,0,0)');
       ctx.lineWidth=4;
       ctx.strokeStyle=grad;
-      ctx.beginPath(); ctx.moveTo(originX, originY); ctx.lineTo(endX, yEnd); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(originX, originY);
+      ctx.lineTo(beamTargetX, targetY);
+      ctx.stroke();
     };
-    drawBeam(endYTop); drawBeam(endYBot);
+    drawBeam(-6);
+    drawBeam(6);
     ctx.restore();
 
     // actual bolts
@@ -927,6 +1173,7 @@ class Enemy extends Entity {
     this.onDefeated = config.onDefeated ?? null;
     this.isBoss=false;
     this._defeatNotified=false;
+    this.enemyKey = config.enemyKey ?? null;
 
     const animations={
       idle: ()=>new Animation(this.assets.walk, 0.13),
@@ -952,6 +1199,7 @@ class Enemy extends Entity {
       this.velocity.x=this.exitSpeed;
       this.velocity.y=0;
       super.update(dt);
+      tryPlayFootstep(this, 'enemy', this.enemyKey);
       if(this.position.x > world.bounds.right + 240) this.shouldRemove=true;
       return;
     }
@@ -983,6 +1231,7 @@ class Enemy extends Entity {
     if(this.attackCooldown>0) this.attackCooldown=Math.max(0, this.attackCooldown - dt);
     this.position.x=clamp(this.position.x, world.bounds.left, world.bounds.right);
     super.update(dt);
+    tryPlayFootstep(this, 'enemy', this.enemyKey);
   }
   tryAttack(player){
     if(this.attackCooldown>0) return;
@@ -1040,6 +1289,7 @@ class Mudball extends Entity {
     this.nativeFacing='right';
     this.velocity.x = config.initialVelocity ?? -125;
     this.velocity.y = 0;
+    this.playedSplat=false;
   }
   update(dt, world, player){
     if(this.shouldRemove) return;
@@ -1073,6 +1323,10 @@ class Mudball extends Entity {
     if(dx <= reachX && dy <= reachY){
       player.receiveDamage(this.damage, this.position.x);
       this.shouldRemove=true;
+      if(!this.playedSplat){
+        playAudio(game.audio?.mutantSplat);
+        this.playedSplat=true;
+      }
     }
   }
   receiveDamage(amount, sourceX, context={}){
@@ -1083,6 +1337,10 @@ class Mudball extends Entity {
       this.hp=0;
       this.shouldRemove=true;
       this.invulnerableTimer=0;
+      if(!this.playedSplat){
+        playAudio(game.audio?.mutantSplat);
+        this.playedSplat=true;
+      }
       return true;
     }
     if(this.invulnerableTimer>0) return false;
@@ -1091,6 +1349,10 @@ class Mudball extends Entity {
     this.hp=Math.max(0, this.hp - hits);
     this.invulnerableTimer=0.18;
     if(this.hp===0) this.shouldRemove=true;
+    if(this.shouldRemove && !this.playedSplat){
+      playAudio(game.audio?.mutantSplat);
+      this.playedSplat=true;
+    }
     return true;
   }
 }
@@ -1120,8 +1382,15 @@ class BossMutant extends Entity {
     this.facing=-1;
     this.spawnedMudball1=false;
     this.spawnedMudball2=false;
+    this.mudballPush1=false;
+    this.mudballPush2=false;
     this.contactDamage=config.contactDamage ?? 20;
     this.contactCooldown=0;
+    this.chipDamageMin=config.chipDamageMin ?? 4;
+    this.chipDamageMax=config.chipDamageMax ?? 8;
+    if(this.chipDamageMax<this.chipDamageMin) this.chipDamageMax=this.chipDamageMin;
+    this.specialLaserDamage=config.specialLaserDamage ?? 5;
+    this.splatPlayed=false;
     const collisionConfig=config.collision ?? {};
     this.collision={
       widthFactor: collisionConfig.widthFactor ?? 0.48,
@@ -1169,13 +1438,43 @@ class BossMutant extends Entity {
   beginAttack(){
     this.spawnedMudball1=false;
     this.spawnedMudball2=false;
+    this.mudballPush1=false;
+    this.mudballPush2=false;
+    this.splatPlayed=false;
     this.setState('windup');
   }
   handleWindupEvents(player){
     const anim=this.currentAnimation; if(!anim) return;
     const idx=anim.index;
+    if(!this.mudballPush1 && idx>=10){
+      this.mudballPush1=true;
+      this.applyMudballShockwave(player, this.world, 1);
+    }
+    if(!this.splatPlayed && idx>=11){
+      this.splatPlayed=true;
+      playAudio(game.audio?.mutantSplat);
+    }
     if(!this.spawnedMudball1 && idx>=11){ this.spawnMudball(player, 1); this.spawnedMudball1=true; }
+    if(!this.mudballPush2 && idx>=16){
+      this.mudballPush2=true;
+      this.applyMudballShockwave(player, this.world, 1.2);
+    }
     if(!this.spawnedMudball2 && idx>=17){ this.spawnMudball(player, 2); this.spawnedMudball2=true; }
+  }
+  applyMudballShockwave(player, world, intensity=1){
+    if(!player || !player.isAlive?.()) return;
+    const range=260;
+    const vertical=140;
+    if(player.position.x >= this.position.x) return;
+    const dx=this.position.x - player.position.x;
+    if(dx>range) return;
+    if(Math.abs(player.position.y - this.position.y)>vertical) return;
+    const push=-320*intensity;
+    player.velocity.x = Math.min(player.velocity.x, push);
+    const clampLeft=(world?.bounds?.left ?? 0) + 40;
+    player.position.x = Math.max(clampLeft, player.position.x + push*0.08);
+    player.hurtTimer=Math.max(player.hurtTimer ?? 0, 0.24);
+    if(player.state!=='hurt') player.setState('hurt');
   }
   spawnMudball(player, order=1){
     if(!this.world || !Array.isArray(this.mudballFrames)) return;
@@ -1259,25 +1558,33 @@ class BossMutant extends Entity {
     if(this.invulnerableTimer>0) return false;
     const type=context.type ?? context.source ?? 'normal';
     const isSpecial=context.isSpecial ?? false;
+    const chipActive = type==='melee' && !this.vulnerable && !isSpecial;
     let applied=amount;
     if(isSpecial){
       if(type==='burst') applied=Math.max(applied, 80);
-      else if(type==='laser') applied=Math.max(applied, 28);
-      else if(type==='mutation_melee') applied=Math.max(applied, amount*1.6);
-      else applied=Math.max(applied, amount*1.35);
+      else if(type==='laser') applied=this.specialLaserDamage;
+      else if(type==='mutation_melee') applied=Math.max(applied, amount*1.4);
+      else applied=Math.max(applied, amount*1.25);
     }else if(type==='melee'){
-      applied = Math.max(4, Math.min(amount*0.35, 7));
+      if(chipActive){
+        const chipBase = amount*0.12;
+        applied = clamp(chipBase, this.chipDamageMin, this.chipDamageMax);
+      }else{
+        const scaled = amount*0.25;
+        applied = clamp(scaled, 5, 10);
+      }
     }
     this.hp=Math.max(0, this.hp - applied);
     this.damageFlashTimer=0.32;
-    this.invulnerableTimer=isSpecial ? 0.45 : 0.35;
+    const invul = isSpecial ? 0.45 : (chipActive ? 0.25 : 0.35);
+    this.invulnerableTimer=invul;
     if(this.hp<=0){ this.beginDefeat(); }
     return true;
   }
   applySpecialDamage(kind, sourceX){
     const mapping={
       burst:80,
-      laser:30,
+      laser:this.specialLaserDamage,
       mutation_melee:46
     };
     return this.receiveDamage(mapping[kind] ?? 36, sourceX, { isSpecial:true, type:kind });
@@ -1308,7 +1615,7 @@ class BossMutant extends Entity {
 
 /** World */
 class GameWorld {
-  constructor(assets){
+  constructor(assets, options={}){
     this.assets=assets;
     this.bounds={ left:100, right: assets.background.width - 100 };
     this.cameraX=0; this.entities=[]; this.player=null; this.enemies=[];
@@ -1321,6 +1628,15 @@ class GameWorld {
     this.shake={ timer:0, duration:0, magnitude:0, offsetX:0, offsetY:0 };
     this.backgroundScale = CANVAS_HEIGHT / assets.background.height;
     this.backgroundWidth = assets.background.width * this.backgroundScale;
+    this.onLevelComplete = options.onLevelComplete ?? null;
+    this.victorySequenceDefaultDuration = options.victoryDuration ?? 4.2;
+    this.victorySequence = {
+      active:false,
+      timer:0,
+      duration:this.victorySequenceDefaultDuration,
+      origin:null,
+      notified:false
+    };
   }
   setPlayer(p){ this.player=p; this.entities.push(p); }
   spawnEnemy(){
@@ -1341,7 +1657,8 @@ class GameWorld {
       nativeFacing: assets.nativeFacing ?? 'right',
       initialFacing: (assets.nativeFacing ?? 'right') === 'left' ? -1 : 1,
       explode: assets.explode,
-      onDefeated: (enemy)=>this.handleEnemyDefeated(enemy)
+      onDefeated: (enemy)=>this.handleEnemyDefeated(enemy),
+      enemyKey: key
     };
     const e=new Enemy(config); this.enemies.push(e); this.entities.push(e);
   }
@@ -1352,9 +1669,15 @@ class GameWorld {
     this.enemies = this.enemies.filter(e=>!e.shouldRemove);
     for(const ball of [...this.mudballs]){ if(ball.shouldRemove) this.mudballs.delete(ball); }
     if(this.boss && this.boss.shouldRemove) this.boss=null;
-    this.updateCamera(); this.handleSpawning(dt);
+    this.updateCamera();
+    if(!this.victorySequence.active){
+      this.handleSpawning(dt);
+      this.handleEncounterProgress();
+    }else{
+      this.spawnEnabled=false;
+    }
+    this.updateVictorySequence(dt);
     this.updateShake(dt);
-    this.handleEncounterProgress();
   }
   addMudball(ball){
     if(!ball) return;
@@ -1365,6 +1688,36 @@ class GameWorld {
     if(!enemy || !enemy.countsTowardKill) return;
     this.defeatedCount+=1;
     if(this.defeatedCount>=25) this.startBossEvac();
+  }
+  beginVictorySequence(boss){
+    if(this.victorySequence.active) return;
+    this.spawnEnabled=false;
+    const originX = boss?.position?.x ?? this.player?.position?.x ?? (this.bounds.right - 80);
+    const originY = boss?.position?.y ?? this.player?.position?.y ?? FLOOR_Y;
+    this.victorySequence = {
+      active:true,
+      timer:0,
+      duration:this.victorySequenceDefaultDuration,
+      origin:{ x: originX, y: originY },
+      notified:false
+    };
+    if(this.player){
+      this.player.velocity.x=0;
+      this.player.velocity.y=0;
+      if(this.player.hurtTimer<=0) this.player.setState('idle');
+      if(this.player.type==='boner') this.player.stopLaserLoop();
+    }
+    for(const enemy of this.enemies){
+      if(enemy && enemy!==boss && enemy.isAlive && !enemy.isBoss){
+        if(typeof enemy.startExit==='function') enemy.startExit();
+        enemy.shouldRemove=true;
+      }
+    }
+    for(const ball of this.mudballs){
+      if(ball) ball.shouldRemove=true;
+    }
+    this.triggerShake(2.6, 14);
+    playAudio(game.audio?.mutantRumble);
   }
   startBossEvac(){
     if(this.encounterPhase!=='normal'){
@@ -1404,15 +1757,16 @@ class GameWorld {
         offsetXFactor:0.1,
         offsetYFactor:0.02
       },
-      onDefeated:()=>this.handleBossDefeated()
+      onDefeated:(mutant)=>this.handleBossDefeated(mutant)
     });
     this.boss=boss;
     this.enemies.push(boss);
     this.triggerShake(2.5, 11);
+    playAudio(game.audio?.mutantRumble);
   }
-  handleBossDefeated(){
+  handleBossDefeated(boss){
     this.encounterPhase='cleared';
-    this.triggerShake(1.5, 6);
+    this.beginVictorySequence(boss);
   }
   updateCamera(){
     if(!this.player) return;
@@ -1427,6 +1781,7 @@ class GameWorld {
     if(this.spawnTimer<=0){ this.spawnEnemy(); this.spawnTimer=this.spawnInterval + Math.random(); }
   }
   handleEncounterProgress(){
+    if(this.victorySequence.active) return;
     if(this.encounterPhase==='evacuate'){
       const remaining=this.enemies.filter(e=>e && e.countsTowardKill && !e.shouldRemove && !e.isBoss);
       if(remaining.length===0) this.startBossIntro();
@@ -1436,6 +1791,25 @@ class GameWorld {
     this.shake.duration=Math.max(this.shake.duration, duration);
     this.shake.timer=Math.max(this.shake.timer, duration);
     this.shake.magnitude=Math.max(this.shake.magnitude, magnitude);
+  }
+  updateVictorySequence(dt){
+    if(!this.victorySequence.active) return;
+    const seq=this.victorySequence;
+    seq.timer+=dt;
+    const progress=clamp(seq.timer/seq.duration, 0, 1);
+    if(this.player){
+      this.player.velocity.x=0;
+      this.player.velocity.y=0;
+    }
+    if(progress<1){
+      const wave=Math.sin(progress*Math.PI);
+      const magnitude=8 + 14*Math.max(0, wave);
+      this.triggerShake(0.08, magnitude);
+    }
+    if(seq.timer>=seq.duration && !seq.notified){
+      seq.notified=true;
+      if(typeof this.onLevelComplete==='function') this.onLevelComplete();
+    }
   }
   updateShake(dt){
     if(this.shake.timer>0){
@@ -1464,6 +1838,35 @@ class GameWorld {
     for(const e of sorted) e.drawShadow(ctx, camWorld);
     for(const e of sorted) e.draw(ctx, camWorld);
     ctx.restore();
+    this.drawVictoryOverlay(ctx);
+  }
+  drawVictoryOverlay(ctx){
+    if(!this.victorySequence.active) return;
+    const seq=this.victorySequence;
+    const progress=clamp(seq.timer/seq.duration, 0, 1);
+    const eased=progress*progress*(3 - 2*progress);
+    const camWorld=this.cameraX / this.backgroundScale;
+    const baseOrigin=seq.origin ?? this.player?.position ?? { x: CANVAS_WIDTH/2, y: CANVAS_HEIGHT/2 };
+    let originX=(baseOrigin.x - camWorld) + (this.shake.offsetX ?? 0);
+    let originY=(baseOrigin.y) + (this.shake.offsetY ?? 0) - 140;
+    const maxRadius=Math.sqrt(CANVAS_WIDTH*CANVAS_WIDTH + CANVAS_HEIGHT*CANVAS_HEIGHT) + 220;
+    const radius=140 + eased * maxRadius;
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    const glow=ctx.createRadialGradient(originX, originY, Math.max(1, radius*0.18), originX, originY, radius);
+    glow.addColorStop(0, `rgba(255,255,235,${0.88})`);
+    glow.addColorStop(0.35, `rgba(255,220,160,${0.68})`);
+    glow.addColorStop(1, 'rgba(255,220,160,0)');
+    ctx.fillStyle=glow;
+    ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+    ctx.restore();
+    const fade=Math.max(0, Math.min(1, (seq.timer - seq.duration*0.6)/(seq.duration*0.4)));
+    if(fade>0){
+      ctx.save();
+      ctx.fillStyle=`rgba(255,255,255,${fade})`;
+      ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+      ctx.restore();
+    }
   }
   drawBackground(ctx){
     const scaledCamera=this.cameraX;
@@ -1610,14 +2013,14 @@ const drawTitle = () => {
   ctx.shadowColor = 'rgba(255, 230, 210, 0.9)';
   ctx.shadowBlur = 26;
   ctx.fillStyle = '#fdf3d5';
-  ctx.fillText('HANKYPANKAPOCOLYPSE', CANVAS_WIDTH / 2, 132);
+  ctx.fillText('', CANVAS_WIDTH / 2, 132);
   ctx.restore();
 
   ctx.save();
   ctx.textAlign = 'center';
   ctx.font = '18px "Press Start 2P", monospace';
   ctx.fillStyle = 'rgba(214, 237, 255, 0.85)';
-  ctx.fillText('THE ULTIMATE RETRO CHAOS BRAWLER', CANVAS_WIDTH / 2, 176);
+  ctx.fillText('THE ULTIMATE CHAOS', CANVAS_WIDTH / 2, 176);
   ctx.restore();
 
   const flash = 0.55 + 0.45 * Math.sin(game.title.flashTimer * 6);
@@ -1638,12 +2041,12 @@ const drawTitle = () => {
   ctx.textAlign = 'center';
   ctx.font = '12px "Press Start 2P", monospace';
   ctx.fillStyle = 'rgba(200, 215, 255, 0.85)';
-  ctx.fillText('(C) 2024 HANKYPANKA TEAM // BEST EXPERIENCED WITH LIGHTS DOWN LOW', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 32);
+  ctx.fillText('(C) 2024 HANKYPANK TEAM // BEST EXPERIENCED WITH LIGHTS DOWN LOW', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 32);
   ctx.restore();
 };
 
 const startGameWithCharacter = (characterKey) => {
-  const world = new GameWorld(game.assets);
+  const world = new GameWorld(game.assets, { onLevelComplete: enterLevel2 });
   const spawnX=200, spawnY=FLOOR_Y - 12;
 
   if(characterKey==='corky'){
@@ -2049,6 +2452,11 @@ const gameLoop = (timestamp) => {
     case GAME_STATES.TITLE: updateTitle(dt); drawTitle(); break;
     case GAME_STATES.MENU: updateMenu(dt); drawMenu(); break;
     case GAME_STATES.PLAYING: updateGame(dt); drawGame(); break;
+    case GAME_STATES.LEVEL2:
+      if(typeof level2Manager.update==='function') level2Manager.update(dt);
+      if(typeof level2Manager.draw==='function') level2Manager.draw(ctx);
+      else drawLoading();
+      break;
   }
   input.postUpdate();
   requestAnimationFrame(gameLoop);
