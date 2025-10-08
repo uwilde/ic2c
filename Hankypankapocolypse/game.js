@@ -195,6 +195,7 @@ const input = new InputManager();
 /** assets */
 const assetManifest = {
   background: 'eaglesclub.jpg',
+  walkMask: 'eaglesclub_path.jpg',
   cover: 'cover.jpg',
   players: {
     corky: {
@@ -264,6 +265,26 @@ const audioManifest = {
   stepWood3: { src:'step_wood3.mp3', volume:0.4 },
   stepWood4: { src:'step_wood4.mp3', volume:0.4 },
   stepWood5: { src:'step_wood5.mp3', volume:0.4 }
+};
+
+const buildWalkMask = (img) => {
+  if(!img) return null;
+  const canvas=document.createElement('canvas');
+  canvas.width=img.width;
+  canvas.height=img.height;
+  const ctx=canvas.getContext('2d', { willReadFrequently:true });
+  ctx.drawImage(img, 0, 0);
+  const buffer=ctx.getImageData(0,0,img.width,img.height).data;
+  const total=img.width*img.height;
+  const data=new Uint8Array(total);
+  for(let i=0;i<total;i++){
+    const r=buffer[i*4];
+    const g=buffer[i*4+1];
+    const b=buffer[i*4+2];
+    data[i]=(r>200 && g<70 && b<70) ? 1 : 0;
+  }
+  canvas.width=0; canvas.height=0;
+  return { width: img.width, height: img.height, data };
 };
 
 const FOOTSTEP_AUDIO_KEYS = ['stepWood1','stepWood2','stepWood3','stepWood4','stepWood5'];
@@ -343,6 +364,8 @@ const loadFrameSet = async (paths) => Promise.all(paths.map((p)=>createImage(p))
 
 const loadAssets = async () => {
   const background = await createImage(assetManifest.background);
+  const walkMaskImage = assetManifest.walkMask ? await createImage(assetManifest.walkMask) : null;
+  const walkMask = walkMaskImage ? buildWalkMask(walkMaskImage) : null;
   const cover = assetManifest.cover ? await createImage(assetManifest.cover) : null;
 
   const players = {};
@@ -390,7 +413,7 @@ const loadAssets = async () => {
     audio[key] = await loadAudio(data.src, data);
   }
 
-  return { background, cover, players, bigBoner, enemies, boss, audio };
+  return { background, cover, walkMask, players, bigBoner, enemies, boss, audio };
 };
 
 const FLOOR_Y = CANVAS_HEIGHT - 5;
@@ -1617,6 +1640,7 @@ class BossMutant extends Entity {
 class GameWorld {
   constructor(assets, options={}){
     this.assets=assets;
+    this.walkMask=assets.walkMask ?? null;
     this.bounds={ left:100, right: assets.background.width - 100 };
     this.cameraX=0; this.entities=[]; this.player=null; this.enemies=[];
     this.spawnTimer=3; this.spawnInterval=4.5; this.maxEnemies=4;
@@ -1638,7 +1662,11 @@ class GameWorld {
       notified:false
     };
   }
-  setPlayer(p){ this.player=p; this.entities.push(p); }
+  setPlayer(p){
+    this.player=p;
+    this.entities.push(p);
+    this.snapEntityToWalkMask(p);
+  }
   spawnEnemy(){
     if(!this.player || !this.spawnEnabled) return;
     const keys=Object.keys(this.assets.enemies);
@@ -1660,12 +1688,20 @@ class GameWorld {
       onDefeated: (enemy)=>this.handleEnemyDefeated(enemy),
       enemyKey: key
     };
-    const e=new Enemy(config); this.enemies.push(e); this.entities.push(e);
+    const e=new Enemy(config); this.enemies.push(e); this.entities.push(e); this.snapEntityToWalkMask(e);
   }
   update(dt){
     if(!this.player) return;
+    const prevPlayerX=this.player.position.x;
+    const prevPlayerY=this.player.position.y;
     this.player.updateGameplay(dt, input, this, this.enemies);
-    for(const e of this.enemies) e.update(dt, this, this.player);
+    this.enforceWalkMask(this.player, prevPlayerX, prevPlayerY);
+    for(const e of this.enemies){
+      const prevX=e.position.x;
+      const prevY=e.position.y;
+      e.update(dt, this, this.player);
+      this.enforceWalkMask(e, prevX, prevY);
+    }
     this.enemies = this.enemies.filter(e=>!e.shouldRemove);
     for(const ball of [...this.mudballs]){ if(ball.shouldRemove) this.mudballs.delete(ball); }
     if(this.boss && this.boss.shouldRemove) this.boss=null;
@@ -1761,12 +1797,151 @@ class GameWorld {
     });
     this.boss=boss;
     this.enemies.push(boss);
+    this.snapEntityToWalkMask(boss);
     this.triggerShake(2.5, 11);
     playAudio(game.audio?.mutantRumble);
   }
   handleBossDefeated(boss){
     this.encounterPhase='cleared';
     this.beginVictorySequence(boss);
+  }
+  maskCoordsFromWorld(x, y){
+    const mask=this.walkMask;
+    if(!mask) return { x, y };
+    const mx=clamp(Math.round(x), 0, mask.width-1);
+    const my=clamp(Math.round(y / this.backgroundScale), 0, mask.height-1);
+    return { x:mx, y:my };
+  }
+  worldCoordsFromMask(mx, my){
+    if(!this.walkMask) return { x:mx, y:my };
+    return {
+      x:clamp(mx, 0, this.walkMask.width-1),
+      y:clamp(my, 0, this.walkMask.height-1) * this.backgroundScale
+    };
+  }
+  isMaskWalkable(mx, my){
+    const mask=this.walkMask;
+    if(!mask) return true;
+    if(mx<0 || my<0 || mx>=mask.width || my>=mask.height) return false;
+    return mask.data[my*mask.width + mx]===1;
+  }
+  findNearestWalkableMask(mx, my, maxRadius=48){
+    const mask=this.walkMask;
+    if(!mask) return { x:mx, y:my };
+    const ix=clamp(mx, 0, mask.width-1);
+    const iy=clamp(my, 0, mask.height-1);
+    if(this.isMaskWalkable(ix, iy)) return { x:ix, y:iy };
+    for(let r=1; r<=maxRadius; r++){
+      for(let dy=-r; dy<=r; dy++){
+        for(let dx=-r; dx<=r; dx++){
+          if(Math.max(Math.abs(dx), Math.abs(dy))!==r) continue;
+          const nx=ix+dx;
+          const ny=iy+dy;
+          if(this.isMaskWalkable(nx, ny)) return { x:nx, y:ny };
+        }
+      }
+    }
+    return null;
+  }
+  findDirectionalWalkableMask(prevX, prevY, targetX, targetY, maxRadius=40){
+    const mask=this.walkMask;
+    if(!mask) return null;
+    const targetMask=this.maskCoordsFromWorld(targetX, targetY);
+    const desiredDX=targetX - prevX;
+    const desiredDY=targetY - prevY;
+    const desiredLen=Math.hypot(desiredDX, desiredDY);
+    let best=null;
+    let bestScore=Number.POSITIVE_INFINITY;
+    for(let r=0; r<=maxRadius; r++){
+      for(let dy=-r; dy<=r; dy++){
+        for(let dx=-r; dx<=r; dx++){
+          if(r>0 && Math.max(Math.abs(dx), Math.abs(dy))!==r) continue;
+          const mx=targetMask.x + dx;
+          const my=targetMask.y + dy;
+          if(!this.isMaskWalkable(mx, my)) continue;
+          const world=this.worldCoordsFromMask(mx, my);
+          const diffX=world.x - targetX;
+          const diffY=world.y - targetY;
+          let score=diffX*diffX + diffY*diffY;
+          if(desiredLen>0){
+            const progress=((world.x - prevX)*desiredDX + (world.y - prevY)*desiredDY)/desiredLen;
+            if(progress < -2){
+              score += 10000;
+            }else if(progress < 0){
+              score += Math.abs(progress) * 400;
+            }else{
+              score -= Math.min(progress, desiredLen) * 12;
+            }
+          }
+          if(!best || score<bestScore){
+            best={ x:mx, y:my, world };
+            bestScore=score;
+          }
+        }
+      }
+      if(best && bestScore<=4) break;
+    }
+    return best;
+  }
+  snapEntityToWalkMask(entity){
+    if(!entity || entity.isMudball || entity.exiting) return;
+    if(!this.walkMask){
+      entity._lastSafeMask=this.maskCoordsFromWorld(entity.position.x, entity.position.y);
+      return;
+    }
+    const maskPos=this.maskCoordsFromWorld(entity.position.x, entity.position.y);
+    const safeMask=this.isMaskWalkable(maskPos.x, maskPos.y)
+      ? maskPos
+      : this.findNearestWalkableMask(maskPos.x, maskPos.y, 96);
+    if(safeMask){
+      const world=this.worldCoordsFromMask(safeMask.x, safeMask.y);
+      entity.position.x=world.x;
+      entity.position.y=world.y;
+      entity._lastSafeMask={ ...safeMask };
+    }else{
+      entity._lastSafeMask={ ...maskPos };
+    }
+  }
+  enforceWalkMask(entity, prevX, prevY){
+    if(!entity || entity.isMudball || entity.exiting) return;
+    if(!this.walkMask){
+      entity._lastSafeMask=this.maskCoordsFromWorld(entity.position.x, entity.position.y);
+      return;
+    }
+    const currentMask=this.maskCoordsFromWorld(entity.position.x, entity.position.y);
+    if(this.isMaskWalkable(currentMask.x, currentMask.y)){
+      entity._lastSafeMask={ ...currentMask };
+      return;
+    }
+    const directional=this.findDirectionalWalkableMask(prevX, prevY, entity.position.x, entity.position.y, 48);
+    if(directional){
+      entity.position.x=directional.world.x;
+      entity.position.y=directional.world.y;
+      const moveDX=entity.position.x - prevX;
+      const moveDY=entity.position.y - prevY;
+      const moveLen=Math.hypot(moveDX, moveDY);
+      if(moveLen>0){
+        const currentVx=entity.velocity.x;
+        const currentVy=entity.velocity.y;
+        const dot=(currentVx*moveDX + currentVy*moveDY)/(moveLen*moveLen);
+        const projected=Math.max(0, dot);
+        entity.velocity.x=moveDX * projected;
+        entity.velocity.y=moveDY * projected;
+      }
+      entity._lastSafeMask={ x:directional.x, y:directional.y };
+      return;
+    }
+    const fallbackMask=this.findNearestWalkableMask(currentMask.x, currentMask.y, 64)
+      || entity._lastSafeMask
+      || this.maskCoordsFromWorld(prevX, prevY);
+    if(fallbackMask){
+      const world=this.worldCoordsFromMask(fallbackMask.x, fallbackMask.y);
+      entity.position.x=world.x;
+      entity.position.y=world.y;
+      entity.velocity.x=0;
+      entity.velocity.y=0;
+      entity._lastSafeMask={ x:fallbackMask.x, y:fallbackMask.y };
+    }
   }
   updateCamera(){
     if(!this.player) return;
