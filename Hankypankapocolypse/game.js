@@ -13,6 +13,7 @@ const GAME_STATES = {
   TITLE: 'title',
   MENU: 'menu',
   PLAYING: 'playing',
+  PAUSED: 'paused',
   LEVEL2: 'level2'
 };
 
@@ -23,6 +24,8 @@ const INPUT_KEYS = {
   DOWN: 'ArrowDown',
   ATTACK: 'KeyX',
   POWER: 'KeyZ',
+  JUMP: 'Space',
+  PAUSE: 'Escape',
   ACCEPT: 'Enter'
 };
 
@@ -33,6 +36,7 @@ const preventDefaultKeys = new Set([
   INPUT_KEYS.DOWN,
   INPUT_KEYS.ATTACK,
   INPUT_KEYS.POWER,
+  INPUT_KEYS.PAUSE,
   'Space'
 ]);
 
@@ -40,13 +44,25 @@ const preventDefaultKeys = new Set([
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const range = (s, e) => { const a=[]; for(let i=s;i<=e;i++) a.push(i); return a; };
 const framePaths = (s, e, t) => range(s, e).map((n)=>t.replace('%', n));
-const createImage = (src) => new Promise((res, rej)=>{ const img=new Image(); img.src=src; img.onload=()=>res(img); img.onerror=(e)=>rej(e); });
+const createImage = (src) => new Promise((res, rej)=>{
+  const img = new Image();
+  img.onload = () => res(img);
+  img.onerror = (e) => {
+    console.error('Failed to load image asset:', src, e);
+    const error = new Error(`Failed to load image asset: ${src}`);
+    error.originalEvent = e;
+    rej(error);
+  };
+  img.src = src;
+});
 const loadAudio = (src, { loop = false, volume = 1 } = {}) => new Promise((resolve, reject)=>{
   const audio = new Audio();
   audio.src = src;
   audio.loop = loop;
   audio.volume = volume;
   audio.preload = 'auto';
+  audio._baseVolume = volume ?? 1;
+  audio._category = 'sfx';
   const cleanup = ()=>{
     audio.removeEventListener('canplaythrough', onReady);
     audio.removeEventListener('loadeddata', onReady);
@@ -59,8 +75,85 @@ const loadAudio = (src, { loop = false, volume = 1 } = {}) => new Promise((resol
   audio.addEventListener('error', onError, { once:true });
   audio.load();
 });
+const AUDIO_SETTING_STORAGE_KEY='hp_audio_settings';
+const DEFAULT_AUDIO_SETTINGS={ master:1, music:1, sfx:1 };
+const VOLUME_KEYS=['master','music','sfx'];
+const VOLUME_LABELS={ master:'Master', music:'Music', sfx:'SFX' };
+const AUDIO_CATEGORIES={
+  menuMusic:'music',
+  gameMusic:'music'
+};
+const clamp01=(v)=>clamp(v,0,1);
+const loadStoredAudioSettings=()=>{
+  if(typeof localStorage==='undefined') return { ...DEFAULT_AUDIO_SETTINGS };
+  try{
+    const raw=localStorage.getItem(AUDIO_SETTING_STORAGE_KEY);
+    if(!raw) return { ...DEFAULT_AUDIO_SETTINGS };
+    const data=JSON.parse(raw);
+    return {
+      master: clamp01(typeof data.master==='number'?data.master:DEFAULT_AUDIO_SETTINGS.master),
+      music: clamp01(typeof data.music==='number'?data.music:DEFAULT_AUDIO_SETTINGS.music),
+      sfx: clamp01(typeof data.sfx==='number'?data.sfx:DEFAULT_AUDIO_SETTINGS.sfx)
+    };
+  }catch(e){
+    console.warn('Failed to load audio settings', e);
+    return { ...DEFAULT_AUDIO_SETTINGS };
+  }
+};
+const storedAudioSettings=loadStoredAudioSettings();
+const isAudioClip = (clip) => !!clip && typeof clip === 'object' && typeof clip.volume === 'number';
+let audioRegistry = {};
+const registerAudioClip=(key, clip)=>{
+  if(!isAudioClip(clip)) return;
+  clip._key=key;
+  clip._category=AUDIO_CATEGORIES[key] ?? clip._category ?? 'sfx';
+  if(typeof clip._baseVolume!=='number') clip._baseVolume=clip.volume ?? 1;
+  audioRegistry=audioRegistry ?? {};
+  audioRegistry[key]=clip;
+};
+const getAudioSettings=()=> (game?.settings?.audio) ?? storedAudioSettings;
+const applyVolumeToClip=(clip, categoryOverride)=>{
+  if(!isAudioClip(clip)) return;
+  const settings=getAudioSettings();
+  const base=typeof clip._baseVolume==='number' ? clip._baseVolume : (clip.volume ?? 1);
+  const category=categoryOverride ?? clip._category ?? 'sfx';
+  const master=settings.master ?? 1;
+  const categoryVolume = category==='music' ? (settings.music ?? 1) : (settings.sfx ?? 1);
+  clip.volume=clamp01(base * master * categoryVolume);
+};
+const applyAudioSettings=()=>{
+  if(!audioRegistry) return;
+  for(const clip of Object.values(audioRegistry)){
+    applyVolumeToClip(clip);
+  }
+  if(currentMusic) applyVolumeToClip(currentMusic);
+};
+const saveAudioSettings=()=>{
+  if(typeof localStorage==='undefined') return;
+  try{
+    const settings=getAudioSettings();
+    localStorage.setItem(AUDIO_SETTING_STORAGE_KEY, JSON.stringify(settings));
+  }catch(e){
+    console.warn('Failed to save audio settings', e);
+  }
+};
+const setAudioSetting=(key, value)=>{
+  if(!VOLUME_KEYS.includes(key)) return;
+  if(!game.settings) game.settings={ audio:{ ...DEFAULT_AUDIO_SETTINGS } };
+  if(!game.settings.audio) game.settings.audio={ ...DEFAULT_AUDIO_SETTINGS };
+  game.settings.audio[key]=clamp01(value);
+  storedAudioSettings[key]=game.settings.audio[key];
+  applyAudioSettings();
+  saveAudioSettings();
+};
+const adjustAudioSetting=(key, delta)=>{
+  const current=getAudioSettings()[key] ?? 1;
+  setAudioSetting(key, current + delta);
+  return getAudioSettings()[key];
+};
 const playAudio = (audio, { reset = true } = {}) => {
   if(!audio) return;
+  applyVolumeToClip(audio);
   if(reset){
     try{ audio.currentTime = 0; }catch(e){ /* ignore */ }
   }
@@ -79,10 +172,22 @@ const setMusic = (audio) => {
   if(currentMusic === audio) return;
   if(currentMusic) stopAudio(currentMusic);
   currentMusic = audio ?? null;
-  if(currentMusic) playAudio(currentMusic, { reset:true });
+  if(currentMusic){
+    applyVolumeToClip(currentMusic, currentMusic._category);
+    playAudio(currentMusic, { reset:true });
+  }
 };
-let audioRegistry = {};
-const setAudioRegistry = (collection)=>{ audioRegistry = collection ?? {}; };
+const setAudioRegistry = (collection)=>{
+  if(!collection || typeof collection!=='object'){
+    audioRegistry={};
+  }else{
+    audioRegistry={};
+    for(const [key,value] of Object.entries(collection)){
+      if(isAudioClip(value)) audioRegistry[key]=value;
+    }
+  }
+  applyAudioSettings();
+};
 const playSfx = (key, options) => {
   const clip = audioRegistry?.[key];
   if(!clip) return;
@@ -204,6 +309,13 @@ const assetManifest = {
       walk: framePaths(1, 10, 'Corky/walk%.png'),
       attack: framePaths(1, 6, 'Corky/kick%.png'),
       hurt: framePaths(1, 2, 'Corky/hurt%.png'),
+      jump: [
+        'Corky/jump/prepare.png',
+        'Corky/jump/jump1.png',
+        'Corky/jump/jump2.png',
+        'Corky/jump/landing1.png',
+        'Corky/jump/landing2.png'
+      ],
       power: framePaths(1, 21, 'Corky/power%.png'),
       portrait: 'corky_left_1.png'
     },
@@ -213,6 +325,13 @@ const assetManifest = {
       walk: framePaths(1, 9, 'Boner/walk%.png'),
       attack: framePaths(1, 7, 'Boner/punch%.png'),
       hurt: framePaths(1, 2, 'Boner/hurt%.png'),
+      jump: [
+        'Boner/jump/prepare.png',
+        'Boner/jump/jump1.png',
+        'Boner/jump/jump2.png',
+        'Boner/jump/landing1.png',
+        'Boner/jump/landing2.png'
+      ],
       power: framePaths(1, 9, 'Boner/power%.png'),
       portrait: 'boner_right_1.png'
     }
@@ -243,7 +362,8 @@ const assetManifest = {
       idle: [...framePaths(1, 12, 'Entrado/Mutant/mutant%.png'), ...framePaths(14, 23, 'Entrado/Mutant/mutant%.png')],
       blast: framePaths(1, 29, 'Entrado/Mutant/blast%.png'),
       damage: 'Entrado/Mutant/mutant_damage.png',
-      mudball: framePaths(1, 15, 'Entrado/Mutant/mudball/mudball%.png')
+      mudball: framePaths(1, 14, 'Entrado/Mutant/mudball/mudball%.png'),
+      mudballSplat: framePaths(1, 3, 'Entrado/Mutant/mudball/mudballsplat%.png')
     }
   }
 };
@@ -287,6 +407,34 @@ const buildWalkMask = (img) => {
   return { width: img.width, height: img.height, data };
 };
 
+const buildAlphaMask = (img, threshold = 20) => {
+  if(!img || typeof document==='undefined') return null;
+  const canvas=document.createElement('canvas');
+  canvas.width=img.width;
+  canvas.height=img.height;
+  const ctx=canvas.getContext('2d', { willReadFrequently:true });
+  ctx.drawImage(img, 0, 0);
+  const buffer=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  const total=canvas.width*canvas.height;
+  const mask=new Uint8Array(total);
+  for(let i=0;i<total;i++){
+    const alpha=buffer[i*4+3];
+    mask[i]=alpha>threshold ? 1 : 0;
+  }
+  canvas.width=0; canvas.height=0;
+  return { width: img.width, height: img.height, data: mask, threshold };
+};
+
+const ensureAlphaMask = (img) => {
+  if(!img) return null;
+  if(!img._alphaMask){
+    if(img.width && img.height){
+      img._alphaMask=buildAlphaMask(img);
+    }
+  }
+  return img._alphaMask ?? null;
+};
+
 const FOOTSTEP_AUDIO_KEYS = ['stepWood1','stepWood2','stepWood3','stepWood4','stepWood5'];
 const ACTIVE_FOOTSTEP_CLONES = [];
 const FOOTSTEP_CONFIG = {
@@ -321,7 +469,11 @@ const playRandomFootstep = () => {
   if(!base) return;
   if(typeof base.cloneNode === 'function'){
     const clone = base.cloneNode();
-    clone.volume = base.volume ?? 0.4;
+    const baseVol = typeof base._baseVolume === 'number' ? base._baseVolume : (base.volume ?? 0.4);
+    clone._baseVolume = baseVol;
+    clone._category = base._category ?? 'sfx';
+    clone.volume = baseVol;
+    applyVolumeToClip(clone);
     clone.currentTime = 0;
     ACTIVE_FOOTSTEP_CLONES.push(clone);
     const release=()=> {
@@ -378,7 +530,22 @@ const loadAssets = async () => {
       hurt: await loadFrameSet(data.hurt),
       portrait: await createImage(data.portrait)
     };
-    if (data.power) players[key].power = await loadFrameSet(data.power);
+    players[key].walk.forEach(ensureAlphaMask);
+    players[key].attack.forEach(ensureAlphaMask);
+    players[key].hurt.forEach(ensureAlphaMask);
+    if (data.jump?.length) {
+      const jumpFrames = await loadFrameSet(data.jump);
+      jumpFrames.forEach(ensureAlphaMask);
+      players[key].jump = {
+        prepare: jumpFrames[0] ? [jumpFrames[0]] : [],
+        air: jumpFrames.slice(1, 3).filter(Boolean),
+        landing: jumpFrames.slice(3).filter(Boolean)
+      };
+    }
+    if (data.power) {
+      players[key].power = await loadFrameSet(data.power);
+      players[key].power.forEach(ensureAlphaMask);
+    }
   }
 
   const bigBoner = {
@@ -386,6 +553,7 @@ const loadAssets = async () => {
     portrait: await createImage(assetManifest.bigBoner.portrait),
     nativeFacing: assetManifest.bigBoner.nativeFacing ?? 'right'
   };
+  bigBoner.walk.forEach(ensureAlphaMask);
 
   const enemies = {};
   for (const [key, data] of Object.entries(assetManifest.enemies)) {
@@ -396,6 +564,9 @@ const loadAssets = async () => {
       nativeFacing: data.nativeFacing ?? 'right',
       explode: data.explode ? await loadFrameSet(data.explode) : null
     };
+    enemies[key].walk.forEach(ensureAlphaMask);
+    enemies[key].hurt.forEach(ensureAlphaMask);
+    if(enemies[key].explode) enemies[key].explode.forEach(ensureAlphaMask);
   }
 
   const boss = {};
@@ -404,14 +575,24 @@ const loadAssets = async () => {
       idle: await loadFrameSet(data.idle),
       blast: await loadFrameSet(data.blast),
       damage: await createImage(data.damage),
-      mudball: await loadFrameSet(data.mudball)
+      mudball: await loadFrameSet(data.mudball),
+      mudballSplat: data.mudballSplat ? await loadFrameSet(data.mudballSplat) : null
     };
+    boss[key].idle.forEach(ensureAlphaMask);
+    boss[key].blast.forEach(ensureAlphaMask);
+    if(boss[key].mudball) boss[key].mudball.forEach(ensureAlphaMask);
+    if(boss[key].mudballSplat) boss[key].mudballSplat.forEach(ensureAlphaMask);
   }
 
   const audio = {};
   for (const [key, data] of Object.entries(audioManifest)) {
-    audio[key] = await loadAudio(data.src, data);
+    const clip = await loadAudio(data.src, data);
+    clip._baseVolume = data.volume ?? clip._baseVolume ?? 1;
+    clip._category = AUDIO_CATEGORIES[key] ?? clip._category ?? 'sfx';
+    audio[key] = clip;
+    registerAudioClip(key, clip);
   }
+  applyAudioSettings();
 
   return { background, cover, walkMask, players, bigBoner, enemies, boss, audio };
 };
@@ -562,6 +743,78 @@ class Entity {
   isAlive(){ return this.hp>0; }
 }
 
+const getEntityBounds = (info) => {
+  if(!info) return null;
+  return {
+    left: info.left,
+    top: info.top,
+    right: info.left + info.width,
+    bottom: info.top + info.height,
+    width: info.width,
+    height: info.height
+  };
+};
+
+const getEntityCollisionInfo = (entity) => {
+  if(!entity) return null;
+  entity.refreshMetrics?.();
+  const frame=entity.currentAnimation?.frame;
+  if(!frame) return null;
+  const mask=ensureAlphaMask(frame);
+  if(!mask) return null;
+  const width=entity.width ?? 0;
+  const height=entity.height ?? 0;
+  if(width<=0 || height<=0) return null;
+  const left=entity.position.x - width*0.5;
+  const top=entity.position.y - height;
+  const scaleX=width / mask.width;
+  const scaleY=height / mask.height;
+  if(scaleX<=0 || scaleY<=0) return null;
+  const flip = ((entity.facing ?? 1) * (entity.nativeFacing==='left' ? -1 : 1)) < 0;
+  return { entity, mask, left, top, width, height, scaleX, scaleY, flip };
+};
+
+const collisionInfoHasOpaque = (info, worldX, worldY) => {
+  if(!info) return false;
+  const localX=worldX - info.left;
+  const localY=worldY - info.top;
+  if(localX<0 || localX>=info.width || localY<0 || localY>=info.height) return false;
+  let imgX=localX / info.scaleX;
+  const imgY=localY / info.scaleY;
+  if(info.flip){
+    imgX = (info.mask.width - 1) - imgX;
+  }
+  const ix=Math.floor(imgX);
+  const iy=Math.floor(imgY);
+  if(ix<0 || ix>=info.mask.width || iy<0 || iy>=info.mask.height) return false;
+  const idx=iy*info.mask.width + ix;
+  return info.mask.data[idx] > 0;
+};
+
+const entitiesOverlapOpaque = (entityA, entityB, step=1) => {
+  if(!entityA || !entityB) return false;
+  const infoA=getEntityCollisionInfo(entityA);
+  const infoB=getEntityCollisionInfo(entityB);
+  if(!infoA || !infoB) return false;
+  const boundsA=getEntityBounds(infoA);
+  const boundsB=getEntityBounds(infoB);
+  if(!boundsA || !boundsB) return false;
+  const left=Math.max(boundsA.left, boundsB.left);
+  const right=Math.min(boundsA.right, boundsB.right);
+  const top=Math.max(boundsA.top, boundsB.top);
+  const bottom=Math.min(boundsA.bottom, boundsB.bottom);
+  if(left>=right || top>=bottom) return false;
+  const sampleStep=Math.max(1, step|0);
+  for(let y=Math.floor(top); y<bottom; y+=sampleStep){
+    for(let x=Math.floor(left); x<right; x+=sampleStep){
+      if(collisionInfoHasOpaque(infoA, x+0.5, y+0.5) && collisionInfoHasOpaque(infoB, x+0.5, y+0.5)){
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 class Player extends Entity {
   constructor(config){
     super(config.spawnX, config.spawnY);
@@ -584,6 +837,7 @@ class Player extends Entity {
     this.eyeOffset=config.eyeOffset ?? {x:30,y:75};
     this.bigBonerAssets=config.bigBonerAssets ?? null;
     this.bigBonerWalk = this.bigBonerAssets ? new Animation(this.bigBonerAssets.walk, 0.09) : null;
+    this.jumpAssets = this.assets.jump ?? null;
 
     // exact 1.5x target vs Boner base scale
     this.bigBonerScale = (config.baseScale ?? 1) * 1.5;
@@ -613,6 +867,20 @@ class Player extends Entity {
     this.healedThisPower=false;
     this.laserAudioRef=null;
     this.laserLoopActive=false;
+    this.knockback={ timeLeft:0, duration:0, initialVelocity:0 };
+    this.jump = {
+      active:false,
+      phase:'ground',
+      timer:0,
+      height:0,
+      peakHeight:34,
+      prepareDuration:0.12,
+      airDuration:0.26,
+      landingDuration:0.18,
+      forwardVelocity:0,
+      direction:1,
+      currentBoostX:0
+    };
 
     this.setAnimations({
       idle: ()=>new Animation([this.assets.walk[0]], 1, {loop:false}),
@@ -620,7 +888,16 @@ class Player extends Entity {
       attack: ()=>new Animation(this.assets.attack, 0.07, {loop:false}),
       hurt: ()=>new Animation(this.assets.hurt, 0.15, {loop:false}),
       power: this.assets.power ? ()=>{ const a=new Animation(this.assets.power, 0.09, {loop:false}); a.reset(); return a; } : null,
-      powerReverse: this.assets.power ? ()=>{ const r=[...this.assets.power].reverse(); const a=new Animation(r, 0.09, {loop:false}); a.reset(); return a; } : null
+      powerReverse: this.assets.power ? ()=>{ const r=[...this.assets.power].reverse(); const a=new Animation(r, 0.09, {loop:false}); a.reset(); return a; } : null,
+      jumpPrepare: (this.jumpAssets?.prepare?.length)
+        ? ()=>new Animation(this.jumpAssets.prepare, this.jump.prepareDuration/Math.max(1,this.jumpAssets.prepare.length), {loop:false})
+        : null,
+      jumpAir: (this.jumpAssets?.air?.length)
+        ? ()=>new Animation(this.jumpAssets.air, 0.08, {loop:false})
+        : null,
+      jumpLand: (this.jumpAssets?.landing?.length)
+        ? ()=>new Animation(this.jumpAssets.landing, 0.08, {loop:false})
+        : null
     });
 
     this.setState('idle');
@@ -633,6 +910,103 @@ class Player extends Entity {
     this.state=s; this.currentAnimation=factory(); this.refreshMetrics();
     if(s!=='attack') this.isInAttackWindow=false;
     if(s==='power') this.powerSoundPlayed=false;
+  }
+  applyKnockback(velocity, duration=0.35){
+    if(!Number.isFinite(duration) || duration<=0) duration=0.1;
+    if(!Number.isFinite(velocity)) velocity=0;
+    const absIncoming=Math.abs(velocity);
+    const absCurrent=Math.abs(this.knockback.initialVelocity);
+    if(absIncoming < absCurrent && this.knockback.timeLeft>0) return;
+    this.knockback.timeLeft=duration;
+    this.knockback.duration=duration;
+    this.knockback.initialVelocity=velocity;
+  }
+  startJump(){
+    if(this.jump.active) return false;
+    if(!this.jumpAssets) return false;
+    if(!this.jumpAssets.prepare?.length || !this.jumpAssets.air?.length) return false;
+    if(this.hurtTimer>0 || this.state==='hurt') return false;
+    if(this.isDuringPowerAnimation) return false;
+    if(this.mutation.state==='active') return false;
+    if(this.state==='attack') return false;
+    this.knockback.timeLeft=0;
+    this.knockback.initialVelocity=0;
+    this.knockback.duration=0;
+    this.jump.active=true;
+    this.jump.phase='prepare';
+    this.jump.timer=0;
+    this.jump.height=0;
+    this.jump.direction=this.facing || 1;
+    this.jump.forwardVelocity=this.jump.direction * (this.speed * 1.18);
+    this.jump.currentBoostX=0;
+    if(this.animationFactories.jumpPrepare){
+      this.setState('jumpPrepare');
+    }
+    return true;
+  }
+  finishJump(){
+    this.jump.active=false;
+    this.jump.phase='ground';
+    this.jump.timer=0;
+    this.jump.height=0;
+    this.jump.forwardVelocity=0;
+    this.jump.currentBoostX=0;
+    if(this.hurtTimer<=0){
+      if(Math.abs(this.velocity.x)>6 || Math.abs(this.velocity.y)>6) this.setState('walk');
+      else this.setState('idle');
+    }
+  }
+  updateJump(dt){
+    if(!this.jump.active){
+      this.jump.currentBoostX=0;
+      return;
+    }
+    this.jump.timer+=dt;
+    switch(this.jump.phase){
+      case 'prepare': {
+        this.jump.currentBoostX=0;
+        const prepareTime=this.jump.prepareDuration;
+        if(this.jump.timer>=prepareTime){
+          this.jump.phase='air';
+          this.jump.timer=0;
+          this.jump.height=0;
+          if(this.animationFactories.jumpAir){
+            this.setState('jumpAir');
+          }
+        }
+        break;
+      }
+      case 'air': {
+        const airTime=this.jump.airDuration;
+        const progress=clamp(this.jump.timer/airTime, 0, 1);
+        this.jump.height = Math.sin(progress*Math.PI) * this.jump.peakHeight;
+        const easing=Math.max(0.25, 1 - progress*0.6);
+        this.jump.currentBoostX = this.jump.forwardVelocity * easing;
+        if(this.jump.timer>=airTime){
+          this.jump.phase='landing';
+          this.jump.timer=0;
+          this.jump.height=Math.max(this.jump.height, 0);
+          this.jump.forwardVelocity*=0.45;
+          if(this.animationFactories.jumpLand){
+            this.setState('jumpLand');
+          }
+        }
+        break;
+      }
+      case 'landing': {
+        this.jump.height=Math.max(0, this.jump.height - dt*this.jump.peakHeight*6);
+        this.jump.currentBoostX = this.jump.forwardVelocity;
+        this.jump.forwardVelocity *= 0.72;
+        if(this.jump.timer>=this.jump.landingDuration){
+          this.finishJump();
+        }
+        break;
+      }
+      default:
+        this.jump.currentBoostX=0;
+        this.finishJump();
+        break;
+    }
   }
 
   heal(amount){
@@ -653,10 +1027,12 @@ class Player extends Entity {
     this.laserAudioRef=clip;
     if(this.laserLoopActive) return;
     try{
-      clip.volume = Math.min(1, 0.65);
+      clip._baseVolume = Math.min(1, 0.65);
+      clip._category = clip._category ?? 'sfx';
       clip.loop = true;
       clip.currentTime = 0;
     }catch(e){ /* ignore */ }
+    applyVolumeToClip(clip);
     playAudio(clip, { reset:false });
     this.laserLoopActive=true;
   }
@@ -685,6 +1061,7 @@ class Player extends Entity {
       if(this.hurtTimer===0 && this.state!=='idle' && this.state!=='power'){
         this.setState('idle');
       }
+      this.updateJump(dt);
       this.updateLasers(dt, enemies, world);
       super.update(dt);
       if(this.type==='boner') this.stopLaserLoop();
@@ -703,6 +1080,7 @@ class Player extends Entity {
     // During power animation: freeze motion & drive transform logic
     if(this.isDuringPowerAnimation){
       this.velocity.x=0; this.velocity.y=0;
+      this.updateJump(dt);
       super.update(dt);
       const animation=this.currentAnimation;
       if(animation){
@@ -741,22 +1119,52 @@ class Player extends Entity {
     }
 
     // regular movement
+    let knockVelocity=0;
+    let knockControlFactor=1;
+    if(this.knockback.timeLeft>0){
+      const duration=this.knockback.duration || 0.0001;
+      const normalized=clamp(this.knockback.timeLeft / duration, 0, 1);
+      knockVelocity=this.knockback.initialVelocity * normalized;
+      knockControlFactor=Math.max(0, 1 - normalized);
+      this.knockback.timeLeft=Math.max(0, this.knockback.timeLeft - dt);
+      if(this.knockback.timeLeft<=0) this.knockback.initialVelocity=0;
+    }
+
     const movingLeft=input.isDown(INPUT_KEYS.LEFT);
     const movingRight=input.isDown(INPUT_KEYS.RIGHT);
     const movingUp=input.isDown(INPUT_KEYS.UP);
     const movingDown=input.isDown(INPUT_KEYS.DOWN);
     const wantsAttack=input.wasPressed(INPUT_KEYS.ATTACK);
-    let vx=0, vy=0;
-    if(movingLeft){ vx-=this.speed; this.facing=-1; }
-    if(movingRight){ vx+=this.speed; this.facing=1; }
-    if(movingUp) vy-=this.depthSpeed;
-    if(movingDown) vy+=this.depthSpeed;
+    const wantsJump=input.wasPressed(INPUT_KEYS.JUMP);
+    if(wantsJump) this.startJump();
+    let inputVx=0, inputVy=0;
+    if(movingLeft){ inputVx-=this.speed; if(!movingRight) this.facing=-1; }
+    if(movingRight){ inputVx+=this.speed; if(!movingLeft) this.facing=1; }
+    if(movingUp) inputVy-=this.depthSpeed;
+    if(movingDown) inputVy+=this.depthSpeed;
+
+    let vx=inputVx;
+    let vy=inputVy;
+    if(knockVelocity!==0 || this.knockback.timeLeft>0){
+      vx = knockVelocity + inputVx * knockControlFactor;
+      vy = inputVy * knockControlFactor;
+      if(knockVelocity<0) this.facing=-1;
+      else if(knockVelocity>0) this.facing=1;
+    }
+    const preJumpFacing=this.facing;
+    this.updateJump(dt);
+    if(this.jump.active){
+      vx += this.jump.currentBoostX ?? 0;
+      if(Math.abs(inputVx)<1 && Math.abs(knockVelocity)<1){
+        this.facing = this.jump.direction || preJumpFacing;
+      }
+    }
     this.velocity.x=vx; this.velocity.y=vy;
 
     if(this.mutation.state==='active') this.updateMutationActive(dt, enemies, world);
     else if(this.type==='boner') this.stopLaserLoop();
 
-    if(this.hurtTimer<=0){
+    if(this.hurtTimer<=0 && !this.jump.active){
       if(wantsAttack && this.attackCooldown===0) this.performAttack(enemies, world);
       else if(vx!==0 || vy!==0){ if(this.state!=='attack') this.setState('walk'); }
       else if(this.state!=='attack' && this.state!=='hurt') this.setState('idle');
@@ -765,16 +1173,25 @@ class Player extends Entity {
     // keep in bounds
     this.position.x=clamp(this.position.x, world.bounds.left, world.bounds.right);
     this.position.y=clamp(this.position.y, FLOOR_Y - WALKWAY_HEIGHT, FLOOR_Y);
+    if((!this.jump.active || this.jump.phase==='landing') && this.knockback.timeLeft<=0){
+      if(this.position.x<=world.bounds.left+0.5 && this.velocity.x<0) this.velocity.x=0;
+      if(this.position.x>=world.bounds.right-0.5 && this.velocity.x>0) this.velocity.x=0;
+    }
 
     // update lasers & particles
     this.updateLasers(dt, enemies, world);
 
     super.update(dt);
+    this.position.x=clamp(this.position.x, world.bounds.left, world.bounds.right);
+    this.position.y=clamp(this.position.y, FLOOR_Y - WALKWAY_HEIGHT, FLOOR_Y);
     this.resolveBossCollision(world);
-    tryPlayFootstep(this, 'player', this.type);
+    if(!this.jump.active || this.jump.phase==='landing'){
+      tryPlayFootstep(this, 'player', this.type);
+    }
   }
 
   performAttack(enemies, world){
+    if(this.jump.active) return;
     this.setState('attack');
     this.attackCooldown=0.45;
     if(this.mutation.enabled && !this.mutation.active) this.mutation.meter=Math.min(this.mutation.max, this.mutation.meter+4);
@@ -836,6 +1253,7 @@ class Player extends Entity {
   resolveBossCollision(world){
     const boss=world?.boss;
     if(!boss || boss.shouldRemove || boss.dying || !boss.isAlive()) return;
+    if(this.jump?.active && this.jump.height>6) return;
     const rect=boss.getCollisionBounds?.();
     if(!rect) return;
     const playerWidth=Math.max(10, this.width ?? 90);
@@ -861,6 +1279,7 @@ class Player extends Entity {
     if(!this.isAlive() || this.invulnerableTimer>0 || this.isDuringPowerAnimation || this.mutation.active) return false;
     this.hp=Math.max(0, this.hp - amount);
     this.hurtTimer=this.hurtDuration;
+    if(this.jump.active) this.finishJump();
     this.setState('hurt');
     this.invulnerableTimer=0.85;
     this.velocity.x = sourceX < this.position.x ? 80 : -80;
@@ -1026,7 +1445,8 @@ class Player extends Entity {
     intensity=clamp(intensity, 0, 1);
     if(intensity<=0.02) return;
     const screenX=Math.round(this.position.x - cameraX);
-    const screenY=Math.round(this.position.y - (this.height ?? 160)*0.55);
+    const hopOffset=this.jump?.height ?? 0;
+    const screenY=Math.round(this.position.y - hopOffset*0.6 - (this.height ?? 160)*0.55);
     const inner=26 + 24*intensity;
     const outer=inner + 140 + 120*intensity;
     ctx.save();
@@ -1069,8 +1489,9 @@ class Player extends Entity {
     const scale = base * scaleMul;
 
     const w=frame.width*scale, h=frame.height*scale;
+    const hopOffset = this.jump?.height ?? 0;
     const drawX=Math.round(this.position.x - cameraX - w/2);
-    const drawY=Math.round(this.position.y - h);
+    const drawY=Math.round(this.position.y - h - hopOffset);
 
     this.width=w; this.height=h;
 
@@ -1085,6 +1506,20 @@ class Player extends Entity {
 
     // particles that play during charge/reverse
     this.puffs.forEach(p=>p.draw(ctx, cameraX));
+  }
+  drawShadow(ctx, cameraX){
+    if(!ctx) return;
+    const hop=this.jump?.height ?? 0;
+    const peak=Math.max(1, this.jump?.peakHeight ?? 30);
+    const scaleFactor=clamp(1 - hop/peak, 0.45, 1);
+    const shadowWidth=Math.max(24, (this.width ?? 80)*0.4*scaleFactor);
+    const shadowHeight=Math.max(10, 12*scaleFactor);
+    const shadowX=Math.round(this.position.x - cameraX - shadowWidth/2);
+    const shadowY=Math.round(this.position.y - shadowHeight/2);
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(shadowX + shadowWidth/2, shadowY + shadowHeight/2, shadowWidth/2, shadowHeight/2, 0, 0, Math.PI*2);
+    ctx.fill();
   }
 
   drawBigBoner(ctx, cameraX){
@@ -1185,9 +1620,15 @@ class Enemy extends Entity {
     this.assets=config.assets; this.nativeFacing=config.nativeFacing ?? this.nativeFacing;
     this.facing=config.initialFacing ?? this.facing;
     this.explodeFrames=config.explode ?? null;
+    this.aggression=config.aggression ?? 1;
+    this.difficultyTier=config.difficultyTier ?? 0;
+    this.difficultyLabel=config.difficultyLabel ?? null;
     this.speed=config.speed ?? 110; this.depthSpeed=config.depthSpeed ?? 100;
     this.attackRange=config.attackRange ?? 55; this.attackDamage=config.attackDamage ?? 10;
-    this.attackCooldown=0; this.maxHp=config.maxHp ?? 60; this.hp=this.maxHp;
+    this.attackCooldown=0; this.attackSuppressedTimer=0;
+    this.attackCooldownBase=config.attackCooldownBase ?? 1.05;
+    this.attackCooldownVariance=Math.max(0, config.attackCooldownVariance ?? 0.4);
+    this.maxHp=config.maxHp ?? 60; this.hp=this.maxHp;
     this.baseScale=config.baseScale ?? computeScale(this.assets.walk[0], ENEMY_HEIGHT);
     this.hurtTimer=0; this.dying=false; this.shouldRemove=false;
     this.exitSpeed = config.exitSpeed ?? 180;
@@ -1231,6 +1672,11 @@ class Enemy extends Entity {
       if(this.currentAnimation?.done) this.shouldRemove=true; return;
     }
     if(!this.isAlive()){ this.beginDefeat(); return; }
+    player = player ?? world?.player ?? null;
+    if(!player){
+      super.update(dt);
+      return;
+    }
 
     if(this.hurtTimer>0){
       this.hurtTimer=Math.max(0, this.hurtTimer - dt);
@@ -1252,25 +1698,37 @@ class Enemy extends Entity {
     }
 
     if(this.attackCooldown>0) this.attackCooldown=Math.max(0, this.attackCooldown - dt);
+    if(this.attackSuppressedTimer>0) this.attackSuppressedTimer=Math.max(0, this.attackSuppressedTimer - dt);
     this.position.x=clamp(this.position.x, world.bounds.left, world.bounds.right);
     super.update(dt);
     tryPlayFootstep(this, 'enemy', this.enemyKey);
   }
   tryAttack(player){
-    if(this.attackCooldown>0) return;
-    this.setState('attack'); this.attackCooldown=1.1;
+    if(this.attackCooldown>0 || this.attackSuppressedTimer>0) return;
+    this.setState('attack');
+    const variance=Math.max(0, this.attackCooldownVariance);
+    this.attackCooldown=this.attackCooldownBase + (variance>0 ? Math.random()*variance : 0);
     const resolve=()=>{
       const i=this.currentAnimation.index;
-      if(i===2 && player) player.receiveDamage(this.attackDamage, this.position.x);
+      if(i===2 && player && this.canStrikePlayer(player)){
+        player.receiveDamage(this.attackDamage, this.position.x);
+      }
       if(this.currentAnimation.done) this.setState('walk');
     };
     const original=this.currentAnimation.update.bind(this.currentAnimation);
     this.currentAnimation.update=(dt)=>{ original(dt); resolve(); };
   }
+  canStrikePlayer(player){
+    if(!player || !player.isAlive?.()) return false;
+    if(this.attackSuppressedTimer>0) return false;
+    if(player.state==='attack') return false;
+    return entitiesOverlapOpaque(this, player, 1);
+  }
   receiveDamage(amount, sourceX){
     if(this.dying) return false;
     const took=super.receiveDamage(amount, sourceX);
     if(!took) return false;
+    this.attackSuppressedTimer=Math.max(this.attackSuppressedTimer, 0.3);
     this.hp=Math.max(0, this.hp);
     if(!this.isAlive()) this.beginDefeat();
     else { this.hurtTimer=0.35; this.setState('hurt'); }
@@ -1296,87 +1754,121 @@ class Enemy extends Entity {
 class Mudball extends Entity {
   constructor(config){
     super(config.spawnX, config.spawnY);
-    this.frames=config.frames;
-    this.baseScale=config.baseScale ?? computeScale(this.frames[0], config.targetHeight ?? 88);
-    this.setAnimations({ fly: ()=>new Animation(this.frames, config.frameDuration ?? 0.06) });
-    this.setState('fly');
-    this.maxHp=config.maxHp ?? 3; this.hp=this.maxHp;
-    this.speed=config.speed ?? 155;
-    this.turnRate=config.turnRate ?? 3.6;
-    this.damage=config.damage ?? 16;
-    this.shouldRemove=false;
+    this.frames=config.frames ?? [];
+    this.splatFrames=config.splatFrames ?? [];
+    const baseFrame=this.frames[0] ?? null;
+    this.baseScale=config.baseScale ?? (baseFrame ? computeScale(baseFrame, config.targetHeight ?? 110) : 1);
+    this.setAnimations({
+      drop: ()=>new Animation(this.frames, config.frameDuration ?? 0.05),
+      splat: ()=>new Animation(this.splatFrames.length ? this.splatFrames : (this.frames.length ? [this.frames[this.frames.length-1]] : []), config.splatFrameDuration ?? 0.07, { loop:false })
+    });
+    this.setState('drop');
+    this.damage=config.damage ?? 20;
+    this.gravity=config.gravity ?? 900;
+    this.maxFallSpeed=config.maxFallSpeed ?? 560;
+    this.groundY=config.groundY ?? (FLOOR_Y - 6);
+    this.velocity.x = config.horizontalVelocity ?? 0;
+    this.velocity.y = config.initialVelocityY ?? 0;
+    this.startHeight=Math.max(1, this.groundY - this.position.y);
     this.countsTowardKill=false;
     this.isMudball=true;
     this.isBoss=false;
-    this.wasStruck=false;
-    this.nativeFacing='right';
-    this.velocity.x = config.initialVelocity ?? -125;
-    this.velocity.y = 0;
     this.playedSplat=false;
+    this.shouldRemove=false;
+    this.maxHp=config.maxHp ?? 1;
+    this.hp=this.maxHp;
+    this.nativeFacing='right';
   }
   update(dt, world, player){
     if(this.shouldRemove) return;
     if(this.invulnerableTimer>0) this.invulnerableTimer=Math.max(0, this.invulnerableTimer-dt);
-    const target=player;
-    if(target){
-      const targetX=target.position.x;
-      const targetY=target.position.y - 28;
-      const dx=targetX - this.position.x;
-      const dy=targetY - this.position.y;
-      const dist=Math.max(1, Math.hypot(dx, dy));
-      const desiredVx=(dx/dist)*this.speed;
-      const desiredVy=(dy/dist)*(this.speed*0.55);
-      const blend = 1 - Math.exp(-this.turnRate*dt);
-      this.velocity.x += (desiredVx - this.velocity.x) * blend;
-      this.velocity.y += (desiredVy - this.velocity.y) * blend;
-    }
-    super.update(dt);
+    if(this.currentAnimation) this.currentAnimation.update(dt);
     this.refreshMetrics();
-    this.position.y=clamp(this.position.y, FLOOR_Y - WALKWAY_HEIGHT + 8, FLOOR_Y - 6);
-    this.zOrder=this.position.y;
-    if(player) this.checkCollision(player);
-    if(this.position.x < world.bounds.left - 320 || this.position.x > world.bounds.right + 480) this.shouldRemove=true;
+    if(this.state==='drop'){
+      this.velocity.y = Math.min(this.maxFallSpeed, this.velocity.y + this.gravity*dt);
+      this.position.x += this.velocity.x * dt;
+      this.position.y += this.velocity.y * dt;
+      this.zOrder=this.position.y;
+      if(player) this.checkCollision(player);
+      if(this.position.y >= this.groundY){
+        this.triggerImpact({ impactY:this.groundY });
+      }
+      const bounds=world?.bounds;
+      if(bounds){
+        if(this.position.x < bounds.left - 360 || this.position.x > bounds.right + 360){
+          this.shouldRemove=true;
+        }
+      }
+    }else if(this.state==='splat'){
+      this.zOrder=this.groundY;
+      if(this.currentAnimation?.done || !this.splatFrames.length){
+        this.shouldRemove=true;
+      }
+    }
+  }
+  triggerImpact({ impactY=null, removeInstantly=false }={}){
+    if(typeof impactY === 'number') this.position.y = impactY;
+    this.velocity.x=0;
+    this.velocity.y=0;
+    if(!this.playedSplat){
+      playAudio(game.audio?.mutantSplat);
+      this.playedSplat=true;
+    }
+    if(removeInstantly || !this.splatFrames.length){
+      this.shouldRemove=true;
+      return;
+    }
+    if(typeof impactY === 'number') this.groundY=impactY;
+    if(this.state!=='splat'){
+      this.setState('splat');
+    }
   }
   checkCollision(player){
-    if(!player || this.shouldRemove) return;
+    if(!player || this.shouldRemove || this.state!=='drop') return;
+    const playerWidth=Math.max(60, player.width ?? 90);
+    const playerHeight=Math.max(110, player.height ?? 170);
     const dx=Math.abs(player.position.x - this.position.x);
-    const dy=Math.abs(player.position.y - this.position.y);
-    const reachX=((player.width ?? 80)*0.45) + ((this.width ?? 40)*0.45);
-    const reachY=((player.height ?? 160)*0.15) + ((this.height ?? 70)*0.25);
+    const playerCenterY=player.position.y - playerHeight*0.5;
+    const ballCenterY=this.position.y - Math.max(20, (this.height ?? 70)*0.3);
+    const dy=Math.abs(playerCenterY - ballCenterY);
+    const reachX=(playerWidth*0.5) + Math.max(26, (this.width ?? 60)*0.4);
+    const reachY=(playerHeight*0.5) + Math.max(26, (this.height ?? 60)*0.45);
     if(dx <= reachX && dy <= reachY){
       player.receiveDamage(this.damage, this.position.x);
-      this.shouldRemove=true;
-      if(!this.playedSplat){
-        playAudio(game.audio?.mutantSplat);
-        this.playedSplat=true;
-      }
+      const impactY=Math.min(player.position.y - playerHeight*0.35, this.groundY);
+      this.triggerImpact({ impactY, removeInstantly:false });
     }
   }
   receiveDamage(amount, sourceX, context={}){
     if(this.shouldRemove) return false;
     const type=context.type ?? context.source ?? 'normal';
-    if(type==='melee'){
-      this.wasStruck=true;
-      this.hp=0;
-      this.shouldRemove=true;
-      this.invulnerableTimer=0;
-      if(!this.playedSplat){
-        playAudio(game.audio?.mutantSplat);
-        this.playedSplat=true;
-      }
+    if(type==='melee' || context.isSpecial || type==='projectile' || type==='burst'){
+      this.triggerImpact({ impactY:this.position.y, removeInstantly:false });
       return true;
     }
-    if(this.invulnerableTimer>0) return false;
-    this.wasStruck=true;
-    const hits=context.isSpecial ? this.maxHp : 1;
-    this.hp=Math.max(0, this.hp - hits);
-    this.invulnerableTimer=0.18;
-    if(this.hp===0) this.shouldRemove=true;
-    if(this.shouldRemove && !this.playedSplat){
-      playAudio(game.audio?.mutantSplat);
-      this.playedSplat=true;
-    }
-    return true;
+    return false;
+  }
+  drawShadow(ctx, cameraX){
+    if(!ctx) return;
+    if(!this.width || !this.height) this.refreshMetrics();
+    const groundY=this.groundY ?? this.position.y;
+    const heightAbove=Math.max(0, groundY - Math.min(this.position.y, groundY));
+    const baseHeight=Math.max(1, this.startHeight);
+    const progress=clamp(1 - heightAbove / baseHeight, 0, 1);
+    const bodyWidth=this.width ?? 60;
+    const minWidth=Math.max(22, bodyWidth * 0.32);
+    const maxWidth=Math.max(minWidth * 2.2, bodyWidth * 0.9);
+    const shadowWidth=minWidth + (maxWidth - minWidth) * progress;
+    const shadowHeight=Math.max(12, shadowWidth * 0.42);
+    const screenX=Math.round(this.position.x - cameraX);
+    const screenY=Math.round(groundY - shadowHeight/2);
+    ctx.save();
+    ctx.globalAlpha=0.5;
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.beginPath();
+    ctx.ellipse(screenX, screenY, shadowWidth/2, shadowHeight/2, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
   }
 }
 
@@ -1400,20 +1892,20 @@ class BossMutant extends Entity {
     this.recoveryDelay=config.recoveryDelay ?? 1.6;
     this.onDefeated=config.onDefeated ?? null;
     this.mudballFrames=config.mudballFrames;
+    this.mudballSplatFrames=config.mudballSplatFrames ?? null;
     this.spawnHandOffset=config.spawnHandOffset ?? {x:-110, y:-220};
     this.nativeFacing='left';
     this.facing=-1;
-    this.spawnedMudball1=false;
-    this.spawnedMudball2=false;
     this.mudballPush1=false;
     this.mudballPush2=false;
+    this.pendingMudballSpawns=[];
+    this.spawnedMudballVolley=false;
     this.contactDamage=config.contactDamage ?? 20;
     this.contactCooldown=0;
-    this.chipDamageMin=config.chipDamageMin ?? 4;
-    this.chipDamageMax=config.chipDamageMax ?? 8;
+    this.chipDamageMin=config.chipDamageMin ?? 3;
+    this.chipDamageMax=config.chipDamageMax ?? 6;
     if(this.chipDamageMax<this.chipDamageMin) this.chipDamageMax=this.chipDamageMin;
     this.specialLaserDamage=config.specialLaserDamage ?? 5;
-    this.splatPlayed=false;
     const collisionConfig=config.collision ?? {};
     this.collision={
       widthFactor: collisionConfig.widthFactor ?? 0.48,
@@ -1439,6 +1931,7 @@ class BossMutant extends Entity {
     super.update(dt);
     this.position.x = clamp(this.position.x, world.bounds.right - 120, world.bounds.right - 60);
     this.handlePlayerCollision(player);
+    this.updatePendingMudballSpawns(dt, player);
     switch(this.state){
       case 'idle':
         this.currentIdleDelay-=dt;
@@ -1459,11 +1952,10 @@ class BossMutant extends Entity {
     }
   }
   beginAttack(){
-    this.spawnedMudball1=false;
-    this.spawnedMudball2=false;
     this.mudballPush1=false;
     this.mudballPush2=false;
-    this.splatPlayed=false;
+    this.spawnedMudballVolley=false;
+    this.pendingMudballSpawns.length=0;
     this.setState('windup');
   }
   handleWindupEvents(player){
@@ -1473,16 +1965,49 @@ class BossMutant extends Entity {
       this.mudballPush1=true;
       this.applyMudballShockwave(player, this.world, 1);
     }
-    if(!this.splatPlayed && idx>=11){
-      this.splatPlayed=true;
-      playAudio(game.audio?.mutantSplat);
+    if(!this.spawnedMudballVolley && idx>=11){
+      this.spawnedMudballVolley=true;
+      this.queueMudballVolley(player);
     }
-    if(!this.spawnedMudball1 && idx>=11){ this.spawnMudball(player, 1); this.spawnedMudball1=true; }
     if(!this.mudballPush2 && idx>=16){
       this.mudballPush2=true;
       this.applyMudballShockwave(player, this.world, 1.2);
     }
-    if(!this.spawnedMudball2 && idx>=17){ this.spawnMudball(player, 2); this.spawnedMudball2=true; }
+  }
+  queueMudballVolley(player){
+    const baseGravity=880;
+    const baseTerminal=520;
+    const baseDelay=0.5;
+    const patterns=[
+      { delay:0, offsetX:-90, gravityScale:0.9, terminalScale:0.92, horizontalVelocity:-74 },
+      { delay:0.75, offsetX:-44, gravityScale:0.96, terminalScale:0.98, horizontalVelocity:-42 },
+      { delay:1.45, offsetX:-8, gravityScale:1, terminalScale:1.02, horizontalVelocity:-14 },
+      { delay:2.1, offsetX:24, gravityScale:1.05, terminalScale:1.06, horizontalVelocity:12 },
+      { delay:2.7, offsetX:56, gravityScale:1.1, terminalScale:1.12, horizontalVelocity:28 },
+      { delay:3.25, offsetX:92, gravityScale:1.16, terminalScale:1.18, horizontalVelocity:46 }
+    ];
+    for(const pattern of patterns){
+      this.pendingMudballSpawns.push({
+        timer: baseDelay + pattern.delay,
+        offsetX: pattern.offsetX,
+        gravity: baseGravity * pattern.gravityScale,
+        maxFallSpeed: baseTerminal * pattern.terminalScale,
+        horizontalVelocity: pattern.horizontalVelocity
+      });
+    }
+  }
+  updatePendingMudballSpawns(dt, player){
+    if(!this.pendingMudballSpawns.length) return;
+    const remaining=[];
+    for(const spawn of this.pendingMudballSpawns){
+      spawn.timer-=dt;
+      if(spawn.timer<=0){
+        this.spawnMudball(player, spawn);
+      }else{
+        remaining.push(spawn);
+      }
+    }
+    this.pendingMudballSpawns=remaining;
   }
   applyMudballShockwave(player, world, intensity=1){
     if(!player || !player.isAlive?.()) return;
@@ -1492,35 +2017,47 @@ class BossMutant extends Entity {
     const dx=this.position.x - player.position.x;
     if(dx>range) return;
     if(Math.abs(player.position.y - this.position.y)>vertical) return;
-    const push=-320*intensity;
-    player.velocity.x = Math.min(player.velocity.x, push);
-    const clampLeft=(world?.bounds?.left ?? 0) + 40;
-    player.position.x = Math.max(clampLeft, player.position.x + push*0.08);
-    player.hurtTimer=Math.max(player.hurtTimer ?? 0, 0.24);
-    if(player.state!=='hurt') player.setState('hurt');
+    const collision=this.getCollisionBounds();
+    const width=collision?.width ?? this.width ?? 240;
+    const desiredDisplacement=-Math.abs(width * 2 * intensity);
+    const clampLeft=(world?.bounds?.left ?? 0) + Math.max(40, width * 0.25);
+    const targetX=Math.max(clampLeft, player.position.x + desiredDisplacement);
+    const displacement = targetX - player.position.x;
+    if(Math.abs(displacement)<0.5) return;
+    const duration = clamp(0.38 + 0.12 * intensity, 0.3, 0.75);
+    const initialVelocity = (2 * displacement) / duration;
+    if(typeof player.applyKnockback === 'function'){
+      player.applyKnockback(initialVelocity, duration);
+    }else{
+      player.velocity.x = initialVelocity;
+    }
   }
-  spawnMudball(player, order=1){
+  spawnMudball(player, config={}){
     if(!this.world || !Array.isArray(this.mudballFrames)) return;
-    const scale=this.baseScale;
-    const offset=this.spawnHandOffset;
-    const spawnX=this.position.x + offset.x*scale;
-    const spawnY=this.position.y + offset.y*scale;
-    const baseSpeed=155;
-    const speedFactor = order===2 ? 0.72 : 1;
-    const speed=baseSpeed * speedFactor;
-    const initialVelocity=-125 * speedFactor;
+    const target=(player && player.isAlive?.()) ? player : this.world.player;
+    const bounds=this.world?.bounds ?? { left:0, right:CANVAS_WIDTH };
+    const padding=90;
+    const baseX=target?.position?.x ?? (this.position.x - 160);
+    const jitter=(config.positionJitter ?? 42) * (Math.random()-0.5);
+    const spawnX=clamp(baseX + (config.offsetX ?? 0) + jitter, bounds.left + padding, bounds.right - padding);
+    const playerY=target?.position?.y ?? FLOOR_Y;
+    const verticalOffset = (CANVAS_HEIGHT * 0.85) + 160 + Math.random()*90;
+    const spawnY=Math.min(this.position.y - 140, playerY - verticalOffset);
+    const groundY=FLOOR_Y - 6;
     const ball=new Mudball({
       spawnX,
       spawnY,
       frames:this.mudballFrames,
-      targetHeight:90,
-      speed,
-      turnRate:3.9,
-      damage:20,
-      initialVelocity
+      splatFrames:this.mudballSplatFrames,
+      targetHeight:110,
+      damage:config.damage ?? 24,
+      gravity:config.gravity ?? 900,
+      maxFallSpeed:config.maxFallSpeed ?? 560,
+      horizontalVelocity:config.horizontalVelocity ?? 0,
+      groundY
     });
     this.world.addMudball(ball);
-    if(this.world) this.world.triggerShake(0.22, 4);
+    if(this.world) this.world.triggerShake(0.18, 3.2);
   }
   enterBarrage(){
     this.vulnerable=true;
@@ -1590,11 +2127,11 @@ class BossMutant extends Entity {
       else applied=Math.max(applied, amount*1.25);
     }else if(type==='melee'){
       if(chipActive){
-        const chipBase = amount*0.12;
+        const chipBase = amount*0.1;
         applied = clamp(chipBase, this.chipDamageMin, this.chipDamageMax);
       }else{
-        const scaled = amount*0.25;
-        applied = clamp(scaled, 5, 10);
+        const scaled = amount*0.2;
+        applied = clamp(scaled, 3, 6);
       }
     }
     this.hp=Math.max(0, this.hp - applied);
@@ -1643,9 +2180,10 @@ class GameWorld {
     this.walkMask=assets.walkMask ?? null;
     this.bounds={ left:100, right: assets.background.width - 100 };
     this.cameraX=0; this.entities=[]; this.player=null; this.enemies=[];
-    this.spawnTimer=3; this.spawnInterval=4.5; this.maxEnemies=4;
+    this.spawnTimer=0.8; this.spawnInterval=3.2; this.maxEnemies=5;
     this.spawnEnabled=true;
     this.defeatedCount=0;
+    this.defeatedTarget=options.defeatedTarget ?? 30;
     this.encounterPhase='normal';
     this.boss=null;
     this.mudballs=new Set();
@@ -1662,6 +2200,24 @@ class GameWorld {
       notified:false
     };
   }
+  getActiveEnemyCount(){
+    return this.enemies.filter(e=>
+      e &&
+      !e.shouldRemove &&
+      !e.dying &&
+      !e.isBoss &&
+      !e.isMudball &&
+      e.countsTowardKill
+    ).length;
+  }
+  computeNextSpawnDelay(){
+    const active=this.getActiveEnemyCount();
+    const deficit=Math.max(0, this.maxEnemies - active);
+    if(deficit>=3) return 0.7 + Math.random()*0.5;
+    if(deficit===2) return 1 + Math.random()*0.7;
+    if(deficit===1) return 1.4 + Math.random()*0.9;
+    return 2 + Math.random()*1.5;
+  }
   setPlayer(p){
     this.player=p;
     this.entities.push(p);
@@ -1672,21 +2228,72 @@ class GameWorld {
     const keys=Object.keys(this.assets.enemies);
     const key=keys[Math.floor(Math.random()*keys.length)];
     const assets=this.assets.enemies[key];
-    const spawnX=this.player.position.x + (Math.random()>0.5 ? 600 : -600);
+    const playerX=this.player.position.x;
+    let leftCount=0, rightCount=0;
+    for(const e of this.enemies){
+      if(!e || e.shouldRemove || e.isBoss || !e.countsTowardKill) continue;
+      if(e.position.x < playerX) leftCount++; else rightCount++;
+    }
+    let spawnSide = Math.random()<0.5 ? 1 : -1;
+    if(leftCount===0 && rightCount>0) spawnSide=-1;
+    else if(rightCount===0 && leftCount>0) spawnSide=1;
+    const spawnDistance=460 + Math.random()*180;
+    let spawnX=playerX + spawnSide*spawnDistance;
+    const minSpacing=140;
+    let adjustAttempts=0;
+    const clampSpawn=(x)=>clamp(x, this.bounds.left+80, this.bounds.right-80);
+    spawnX=clampSpawn(spawnX);
+    while(adjustAttempts<8){
+      const overlap=this.enemies.some(e=>
+        e &&
+        !e.shouldRemove &&
+        !e.isBoss &&
+        e.countsTowardKill &&
+        Math.abs(e.position.x - spawnX) < minSpacing
+      );
+      if(!overlap) break;
+      spawnX += spawnSide * (minSpacing + 32);
+      spawnX=clampSpawn(spawnX);
+      if(Math.sign(spawnX - playerX)!==spawnSide){
+        spawnX = clampSpawn(playerX + spawnSide * (minSpacing * (adjustAttempts+2)));
+      }
+      adjustAttempts+=1;
+    }
     const enemyBaseScale = computeScale(assets.walk[0], ENEMY_HEIGHT + Math.random()*12);
     const mult = SCALE_OVERRIDES.enemies[key] ?? 1;
+    const difficultyTable=[
+      { label:'grunt', speed:0.9, depth:0.92, attack:0.9, hp:0.85, cooldown:1.2, variance:0.45 },
+      { label:'fighter', speed:1, depth:1, attack:1, hp:1, cooldown:0.95, variance:0.35 },
+      { label:'enforcer', speed:1.22, depth:1.08, attack:1.35, hp:1.4, cooldown:0.75, variance:0.28 }
+    ];
+    const roll=Math.random();
+    const difficultyTier = roll<0.35 ? 0 : (roll<0.75 ? 1 : 2);
+    const difficulty = difficultyTable[difficultyTier];
+    const baseSpeed = 95 + Math.random()*35;
+    const baseDepthSpeed = 110 + Math.random()*28;
+    const baseAttackDamage = 9 + Math.random()*7;
+    const baseHp = 58 + Math.random()*20;
+    const baseAttackRange = 52 + Math.random()*8;
     const config={
       assets,
-      spawnX: clamp(spawnX, this.bounds.left+80, this.bounds.right-80),
+      spawnX,
       spawnY: FLOOR_Y - 40 - Math.random()*90,
-      speed: 90 + Math.random()*40,
-      attackDamage: 8 + Math.random()*6,
+      speed: Math.max(70, baseSpeed * difficulty.speed),
+      depthSpeed: Math.max(70, baseDepthSpeed * difficulty.depth),
+      attackRange: Math.round(baseAttackRange * difficulty.depth),
+      attackDamage: Math.max(6, Math.round(baseAttackDamage * difficulty.attack)),
+      maxHp: Math.max(40, Math.round(baseHp * difficulty.hp)),
       baseScale: enemyBaseScale * mult,
       nativeFacing: assets.nativeFacing ?? 'right',
       initialFacing: (assets.nativeFacing ?? 'right') === 'left' ? -1 : 1,
       explode: assets.explode,
       onDefeated: (enemy)=>this.handleEnemyDefeated(enemy),
-      enemyKey: key
+      enemyKey: key,
+      difficultyTier,
+      difficultyLabel: difficulty.label,
+      attackCooldownBase: Math.max(0.55, difficulty.cooldown),
+      attackCooldownVariance: Math.max(0.15, difficulty.variance),
+      aggression: difficulty.attack
     };
     const e=new Enemy(config); this.enemies.push(e); this.entities.push(e); this.snapEntityToWalkMask(e);
   }
@@ -1723,7 +2330,7 @@ class GameWorld {
   handleEnemyDefeated(enemy){
     if(!enemy || !enemy.countsTowardKill) return;
     this.defeatedCount+=1;
-    if(this.defeatedCount>=25) this.startBossEvac();
+    if(this.defeatedCount>=this.defeatedTarget) this.startBossEvac();
   }
   beginVictorySequence(boss){
     if(this.victorySequence.active) return;
@@ -1785,6 +2392,7 @@ class GameWorld {
       spawnX,
       spawnY,
       mudballFrames:this.assets.boss.mutant.mudball,
+      mudballSplatFrames:this.assets.boss.mutant.mudballSplat,
       scaleMultiplier:1.25,
       contactDamage:24,
       collision:{
@@ -1927,6 +2535,17 @@ class GameWorld {
         const projected=Math.max(0, dot);
         entity.velocity.x=moveDX * projected;
         entity.velocity.y=moveDY * projected;
+        const maxSpeed=Math.max(
+          entity.speed ?? 0,
+          entity.depthSpeed ?? 0,
+          Math.hypot(currentVx, currentVy)
+        );
+        const mag=Math.hypot(entity.velocity.x, entity.velocity.y);
+        if(maxSpeed>0 && mag>maxSpeed){
+          const scale=maxSpeed/mag;
+          entity.velocity.x*=scale;
+          entity.velocity.y*=scale;
+        }
       }
       entity._lastSafeMask={ x:directional.x, y:directional.y };
       return;
@@ -1951,9 +2570,20 @@ class GameWorld {
   }
   handleSpawning(dt){
     if(!this.spawnEnabled) return;
-    if(this.enemies.length>=this.maxEnemies) return;
     this.spawnTimer-=dt;
-    if(this.spawnTimer<=0){ this.spawnEnemy(); this.spawnTimer=this.spawnInterval + Math.random(); }
+    let guard=0;
+    while(this.spawnTimer<=0 && guard<5){
+      if(this.getActiveEnemyCount()>=this.maxEnemies){
+        this.spawnTimer=this.computeNextSpawnDelay();
+        break;
+      }
+      this.spawnEnemy();
+      this.spawnTimer+=this.computeNextSpawnDelay();
+      guard+=1;
+    }
+    if(this.spawnTimer<=0){
+      this.spawnTimer=this.computeNextSpawnDelay();
+    }
   }
   handleEncounterProgress(){
     if(this.victorySequence.active) return;
@@ -2062,8 +2692,11 @@ const game = {
   assets: null,
   audio: null,
   world: null,
+  settings: { audio: { ...storedAudioSettings } },
+  session: { characterKey:null },
+  pause: null,
   title: { timer: 0, flashTimer: 0, lightPhase: 0, beamPhase: Math.random() * Math.PI * 2 },
-  menu: { options: [], selectedIndex: 0, blinkTimer: 0 },
+  menu: { options: [], selectedIndex: 0, blinkTimer: 0, section:'characters', volumeIndex:0, sparkTimer:0, gridPhase:0 },
   loading: { progress: 0 }
 };
 
@@ -2083,6 +2716,8 @@ const initMenu = () => {
     { key: 'boner', label: 'Boiner', assets: game.assets.players.boner }
   ];
   game.menu.selectedIndex=0; game.menu.blinkTimer=0; game.menu.gridPhase=0; game.menu.sparkTimer=0;
+  game.menu.section='characters';
+  game.menu.volumeIndex=0;
   game.menu.decals = Array.from({ length: 16 }, () => ({
     x: Math.random(),
     y: Math.random(),
@@ -2223,6 +2858,7 @@ const drawTitle = () => {
 const startGameWithCharacter = (characterKey) => {
   const world = new GameWorld(game.assets, { onLevelComplete: enterLevel2 });
   const spawnX=200, spawnY=FLOOR_Y - 12;
+  game.session.characterKey = characterKey;
 
   if(characterKey==='corky'){
     const base=computeScale(game.assets.players.corky.walk[0], PLAYER_HEIGHT);
@@ -2232,7 +2868,7 @@ const startGameWithCharacter = (characterKey) => {
       type:'corky', name:'Corky', assets:game.assets.players.corky,
       spawnX, spawnY, attackPower:18, hitFrameWindow:{start:2,end:4},
       baseScale:scale, mutationEnabled:true, mutationMode:'burst', mutationLabel:'POWER',
-      mutationGainOnHit:18, burstPeakFrame:15, burstRadius:520,
+      mutationGainOnHit:12, burstPeakFrame:15, burstRadius:520,
       nativeFacing: game.assets.players.corky.nativeFacing
     });
     world.setPlayer(player);
@@ -2242,7 +2878,7 @@ const startGameWithCharacter = (characterKey) => {
       type:'boner', name:'Boiner', assets:game.assets.players.boner,
       spawnX, spawnY, attackPower:16, hitFrameWindow:{start:3,end:5},
       baseScale: bonerBase,
-      mutationEnabled:true, mutationMode:'transform', mutationGainOnHit:22,
+      mutationEnabled:true, mutationMode:'transform', mutationGainOnHit:16,
       bigBonerAssets: game.assets.bigBoner,
       eyeOffset:{x:20, y:80},
       nativeFacing: game.assets.players.boner.nativeFacing,
@@ -2269,23 +2905,105 @@ const updateMenu = (dt) => {
   game.menu.gridPhase=(game.menu.gridPhase ?? 0) + dt*60;
   game.menu.sparkTimer=(game.menu.sparkTimer ?? 0) + dt;
   game.menu.blinkTimer+=dt;
-  if(input.wasPressed(INPUT_KEYS.LEFT)){
-    playAudio(game.audio?.menuNavigate);
-    game.menu.selectedIndex = (game.menu.selectedIndex + game.menu.options.length - 1) % game.menu.options.length;
-  } else if(input.wasPressed(INPUT_KEYS.RIGHT)){
-    playAudio(game.audio?.menuNavigate);
-    game.menu.selectedIndex = (game.menu.selectedIndex + 1) % game.menu.options.length;
+  const section=game.menu.section ?? 'characters';
+  if(section==='characters'){
+    if(input.wasPressed(INPUT_KEYS.LEFT)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.selectedIndex = (game.menu.selectedIndex + game.menu.options.length - 1) % game.menu.options.length;
+    } else if(input.wasPressed(INPUT_KEYS.RIGHT)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.selectedIndex = (game.menu.selectedIndex + 1) % game.menu.options.length;
+    }
+    if(input.wasPressed(INPUT_KEYS.UP) || input.wasPressed(INPUT_KEYS.DOWN)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.section='volume';
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      playAudio(game.audio?.menuSelect);
+      const choice=game.menu.options[game.menu.selectedIndex];
+      startGameWithCharacter(choice.key);
+    }
+  }else{
+    if(input.wasPressed(INPUT_KEYS.UP)){
+      if(game.menu.volumeIndex===0){
+        playAudio(game.audio?.menuNavigate);
+        game.menu.section='characters';
+      }else{
+        playAudio(game.audio?.menuNavigate);
+        game.menu.volumeIndex = (game.menu.volumeIndex + VOLUME_KEYS.length - 1) % VOLUME_KEYS.length;
+      }
+    }else if(input.wasPressed(INPUT_KEYS.DOWN)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.volumeIndex = (game.menu.volumeIndex + 1) % VOLUME_KEYS.length;
+    }else if(input.wasPressed(INPUT_KEYS.LEFT)){
+      const key=VOLUME_KEYS[game.menu.volumeIndex];
+      adjustAudioSetting(key, -0.05);
+      playAudio(game.audio?.menuNavigate);
+    }else if(input.wasPressed(INPUT_KEYS.RIGHT)){
+      const key=VOLUME_KEYS[game.menu.volumeIndex];
+      adjustAudioSetting(key, 0.05);
+      playAudio(game.audio?.menuNavigate);
+    }else if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      playAudio(game.audio?.menuSelect);
+      game.menu.section='characters';
+    }
   }
-  if(input.wasPressed(INPUT_KEYS.ACCEPT)){
-    playAudio(game.audio?.menuSelect);
-    const choice=game.menu.options[game.menu.selectedIndex];
-    startGameWithCharacter(choice.key);
+};
+
+const drawVolumeControlsPanel = ({ centerX, startY, activeIndex=0, highlight=false, width=360, alpha=0.95, header=null } = {}) => {
+  const settings=getAudioSettings();
+  const rowSpacing=52;
+  const barHeight=12;
+  if(header){
+    ctx.save();
+    ctx.textAlign='center';
+    ctx.font='16px "Press Start 2P", monospace';
+    ctx.globalAlpha=alpha;
+    ctx.fillStyle=highlight ? '#ffe7b4' : 'rgba(212, 226, 255, 0.85)';
+    ctx.fillText(header, centerX, startY - 28);
+    ctx.restore();
   }
+  VOLUME_KEYS.forEach((key, idx)=>{
+    const value=settings[key] ?? 1;
+    const label=VOLUME_LABELS[key] ?? key;
+    const y = startY + idx * rowSpacing;
+    const barX = centerX - width/2;
+    const isActive = highlight && idx===activeIndex;
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.textAlign='left';
+    ctx.font='14px "Press Start 2P", monospace';
+    ctx.fillStyle = isActive ? '#ffeac1' : 'rgba(214, 224, 255, 0.92)';
+    ctx.fillText(label, barX, y);
+    const baseColor='rgba(18, 12, 40, 0.78)';
+    ctx.fillStyle=baseColor;
+    ctx.fillRect(barX, y + 16, width, barHeight);
+    const gradient=ctx.createLinearGradient(barX, y + 16, barX + width, y + 16);
+    if(isActive){
+      gradient.addColorStop(0, 'rgba(255, 196, 120, 0.9)');
+      gradient.addColorStop(1, 'rgba(255, 120, 188, 0.9)');
+    }else{
+      gradient.addColorStop(0, 'rgba(120, 180, 255, 0.8)');
+      gradient.addColorStop(1, 'rgba(170, 120, 255, 0.8)');
+    }
+    ctx.fillStyle=gradient;
+    ctx.fillRect(barX, y + 16, width * clamp01(value), barHeight);
+    ctx.lineWidth=isActive ? 3 : 1.5;
+    ctx.strokeStyle=isActive ? 'rgba(255, 231, 180, 0.95)' : 'rgba(255,255,255,0.55)';
+    ctx.strokeRect(barX, y + 16, width, barHeight);
+    ctx.textAlign='right';
+    ctx.fillStyle=isActive ? '#ffeac1' : 'rgba(214, 224, 255, 0.9)';
+    ctx.fillText(`${Math.round(value*100)}%`, barX + width, y);
+    ctx.restore();
+  });
 };
 
 const drawMenu = () => {
   const cover = game.assets?.cover ?? game.assets?.background ?? null;
   const timer = game.menu.sparkTimer ?? 0;
+  const section = game.menu.section ?? 'characters';
+  const selectingCharacters = section==='characters';
 
   ctx.fillStyle = '#03030a';
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -2392,16 +3110,16 @@ const drawMenu = () => {
   ctx.shadowBlur = 0;
   ctx.font = '16px "Press Start 2P", monospace';
   ctx.fillStyle = '#b6c9ff';
-  ctx.fillText('STEER WITH ARROWS  //  LOCK IN WITH ENTER', CANVAS_WIDTH / 2, 142);
+  ctx.fillText('LEFT/RIGHT: PICK A HERO  //  ENTER: START  //  UP/DOWN: VOLUME', CANVAS_WIDTH / 2, 142);
   ctx.restore();
 
   ctx.save();
   ctx.textAlign = 'left';
   ctx.font = '12px "Press Start 2P", monospace';
   ctx.fillStyle = 'rgba(255, 150, 220, 0.8)';
-  ctx.fillText('LOCATION: THE EAGLES CLUB BASEMENT', 48, CANVAS_HEIGHT - 152);
+  ctx.fillText('LOCATION: THE EAGLES CLUB BASEMENT', 48, 174);
   ctx.fillStyle = 'rgba(160, 220, 255, 0.8)';
-  ctx.fillText('VIBE CHECK: NEO-RETRO PANIC MODE', CANVAS_WIDTH - 430, CANVAS_HEIGHT - 152);
+  ctx.fillText('VIBE CHECK: NEO-RETRO PANIC MODE', CANVAS_WIDTH - 430, 174);
   ctx.restore();
 
   const cardsY = 208;
@@ -2413,9 +3131,10 @@ const drawMenu = () => {
   game.menu.options.forEach((opt, i) => {
     const x = CANVAS_WIDTH / 2 + i * spacing - centerOffset;
     const isSelected = i === game.menu.selectedIndex;
+    const isFocused = selectingCharacters && isSelected;
     const baseTilt = (i - (game.menu.options.length - 1) / 2) * 0.06;
-    const wobble = Math.sin(timer * 3 + i) * (isSelected ? 0.04 : 0.02);
-    const bob = Math.sin(timer * 4.5 + i) * (isSelected ? 9 : 4);
+    const wobble = Math.sin(timer * 3 + i) * (isFocused ? 0.04 : 0.02);
+    const bob = Math.sin(timer * 4.5 + i) * (isFocused ? 9 : 4);
     const pulse = 0.5 + 0.5 * Math.sin((game.menu.blinkTimer + i * 0.3) * 5);
 
     ctx.save();
@@ -2443,7 +3162,7 @@ const drawMenu = () => {
     ctx.fill();
 
     const border = ctx.createLinearGradient(-cardW / 2, 0, cardW / 2, 0);
-    if (isSelected) {
+    if (isFocused) {
       border.addColorStop(0, 'rgba(255, 214, 167, 0.95)');
       border.addColorStop(1, 'rgba(255, 125, 236, 0.9)');
     } else {
@@ -2451,7 +3170,7 @@ const drawMenu = () => {
       border.addColorStop(1, 'rgba(180, 200, 255, 0.18)');
     }
     drawCardOutline();
-    ctx.lineWidth = isSelected ? 4 : 2;
+    ctx.lineWidth = isFocused ? 4 : 2;
     ctx.strokeStyle = border;
     ctx.stroke();
 
@@ -2466,7 +3185,7 @@ const drawMenu = () => {
     ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
     ctx.restore();
 
-    if (isSelected) {
+    if (isFocused) {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       const halo = ctx.createRadialGradient(0, -cardH / 2 + 80, 0, 0, -cardH / 2 + 80, cardW * 0.8);
@@ -2500,7 +3219,7 @@ const drawMenu = () => {
       ctx.fillStyle = 'rgba(12, 16, 32, 0.85)';
       ctx.fillRect(-cardW / 2 + 118, y - 10, statWidth, 10);
       const statGrad = ctx.createLinearGradient(-cardW / 2 + 118, y - 10, -cardW / 2 + 118 + statWidth, y - 10);
-      if (isSelected) {
+      if (isFocused) {
         statGrad.addColorStop(0, 'rgba(255, 140, 220, 0.9)');
         statGrad.addColorStop(1, 'rgba(255, 240, 180, 0.95)');
       } else {
@@ -2523,6 +3242,24 @@ const drawMenu = () => {
 
     ctx.restore();
   });
+
+  const volumeHighlight = section==='volume';
+  drawVolumeControlsPanel({
+    centerX: CANVAS_WIDTH / 2,
+    startY: CANVAS_HEIGHT - 230,
+    activeIndex: game.menu.volumeIndex ?? 0,
+    highlight: volumeHighlight,
+    width: 420,
+    header: 'VOLUME'
+  });
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.font = '12px "Press Start 2P", monospace';
+  ctx.fillStyle = volumeHighlight ? '#ffe9ba' : 'rgba(214, 224, 255, 0.82)';
+  const volumeHint = volumeHighlight ? 'LEFT/RIGHT: ADJUST  //  ENTER: BACK' : 'PRESS UP/DOWN TO TUNE VOLUME';
+  ctx.fillText(volumeHint, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 104);
+  ctx.restore();
 
   const pulse = 0.55 + 0.45 * Math.sin(game.menu.blinkTimer * 4);
 
@@ -2551,7 +3288,7 @@ const drawMenu = () => {
   ctx.textAlign = 'center';
   ctx.font = '14px "Press Start 2P", monospace';
   ctx.fillStyle = '#b9c4ff';
-  ctx.fillText('ARROWS TO NAVIGATE   X: ATTACK   Z: MUTATION', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 72);
+  ctx.fillText('X: ATTACK   Z: POWER   SPACE: JUMP   ESC: PAUSE', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 72);
   ctx.font = '18px "Press Start 2P", monospace';
   ctx.fillStyle = `rgba(255, 238, 160, ${pulse})`;
   ctx.fillText('PRESS START (ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 36);
@@ -2559,11 +3296,278 @@ const drawMenu = () => {
 };
 
 
-const updateGame = (dt) => { if(!game.world) return; game.world.update(dt); };
+const updateGame = (dt) => {
+  if(!game.world) return;
+  if(input.wasPressed(INPUT_KEYS.PAUSE)){
+    enterPause();
+    return;
+  }
+  game.world.update(dt);
+};
 const drawGame = () => {
   if(!game.world) return;
   ctx.fillStyle='#000'; ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
   game.world.draw(ctx); drawHUD();
+};
+
+const PAUSE_MENU_OPTIONS=[
+  { key:'resume', label:'Resume' },
+  { key:'restart', label:'Restart Level' },
+  { key:'volume', label:'Volume Options' },
+  { key:'menu', label:'Main Menu' }
+];
+const PAUSE_CONFIRM_OPTIONS=['Cancel','Confirm'];
+const PAUSE_CONFIRM_MESSAGES={
+  restart:'Restart the current level?',
+  menu:'Return to the main menu?'
+};
+
+const initPauseMenu = () => {
+  game.pause = {
+    options: PAUSE_MENU_OPTIONS,
+    selectedIndex: 0,
+    mode: 'options',
+    volumeIndex: 0,
+    confirm: null
+  };
+  return game.pause;
+};
+
+const enterPause = () => {
+  if(game.state!==GAME_STATES.PLAYING) return;
+  initPauseMenu();
+  game.state=GAME_STATES.PAUSED;
+};
+
+const resumeGame = () => {
+  if(game.state!==GAME_STATES.PAUSED) return;
+  game.pause=null;
+  game.state=GAME_STATES.PLAYING;
+};
+
+const restartCurrentLevel = () => {
+  const key = game.session?.characterKey ?? game.menu.options?.[0]?.key ?? 'corky';
+  resumeGame();
+  startGameWithCharacter(key);
+};
+
+const returnToMainMenu = () => {
+  game.pause=null;
+  game.world=null;
+  game.session.characterKey=null;
+  initMenu();
+  game.state=GAME_STATES.MENU;
+  if(game.audio){
+    game.audio.menuMusicPlaying=false;
+    setMusic(game.audio.menuMusic ?? null);
+    game.audio.menuMusicPlaying=true;
+  }
+};
+
+const requestPauseConfirmation = (action) => {
+  const pause = game.pause ?? initPauseMenu();
+  pause.confirm = { action, selection:1 };
+  pause.mode='confirm';
+};
+
+const handlePauseSelection = (key) => {
+  switch(key){
+    case 'resume':
+      playAudio(game.audio?.menuSelect);
+      resumeGame();
+      break;
+    case 'restart':
+      playAudio(game.audio?.menuNavigate);
+      requestPauseConfirmation('restart');
+      break;
+    case 'volume':
+      playAudio(game.audio?.menuNavigate);
+      if(!game.pause) initPauseMenu();
+      game.pause.confirm=null;
+      game.pause.mode='volume';
+      game.pause.volumeIndex=game.pause.volumeIndex ?? 0;
+      break;
+    case 'menu':
+      playAudio(game.audio?.menuNavigate);
+      requestPauseConfirmation('menu');
+      break;
+    default:
+      break;
+  }
+};
+
+const updatePause = (dt) => {
+  if(game.state!==GAME_STATES.PAUSED){
+    return;
+  }
+  const pause = game.pause ?? initPauseMenu();
+  if(pause.mode==='confirm'){
+    pause.confirm = pause.confirm ?? { action:null, selection:1 };
+    const confirm=pause.confirm;
+    if(input.wasPressed(INPUT_KEYS.PAUSE)){
+      playAudio(game.audio?.menuNavigate);
+      pause.mode='options';
+      pause.confirm=null;
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.LEFT) || input.wasPressed(INPUT_KEYS.UP)){
+      playAudio(game.audio?.menuNavigate);
+      confirm.selection = (confirm.selection + PAUSE_CONFIRM_OPTIONS.length - 1) % PAUSE_CONFIRM_OPTIONS.length;
+    }else if(input.wasPressed(INPUT_KEYS.RIGHT) || input.wasPressed(INPUT_KEYS.DOWN)){
+      playAudio(game.audio?.menuNavigate);
+      confirm.selection = (confirm.selection + 1) % PAUSE_CONFIRM_OPTIONS.length;
+    }else if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      const isConfirm = confirm.selection === 1;
+      if(isConfirm){
+        playAudio(game.audio?.menuSelect);
+        const action=confirm.action;
+        pause.confirm=null;
+        if(action==='restart'){
+          restartCurrentLevel();
+        }else if(action==='menu'){
+          returnToMainMenu();
+        }else{
+          pause.mode='options';
+        }
+      }else{
+        playAudio(game.audio?.menuNavigate);
+        pause.confirm=null;
+        pause.mode='options';
+      }
+    }
+    return;
+  }
+  if(pause.mode==='volume'){
+    pause.confirm=null;
+    if(input.wasPressed(INPUT_KEYS.PAUSE)){
+      resumeGame();
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      playAudio(game.audio?.menuSelect);
+      pause.mode='options';
+      pause.confirm=null;
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.UP)){
+      if(pause.volumeIndex===0){
+        playAudio(game.audio?.menuNavigate);
+        pause.mode='options';
+        pause.confirm=null;
+      }else{
+        playAudio(game.audio?.menuNavigate);
+        pause.volumeIndex=(pause.volumeIndex + VOLUME_KEYS.length - 1) % VOLUME_KEYS.length;
+      }
+    }else if(input.wasPressed(INPUT_KEYS.DOWN)){
+      playAudio(game.audio?.menuNavigate);
+      pause.volumeIndex=(pause.volumeIndex + 1) % VOLUME_KEYS.length;
+    }else if(input.wasPressed(INPUT_KEYS.LEFT)){
+      const key=VOLUME_KEYS[pause.volumeIndex];
+      adjustAudioSetting(key, -0.05);
+      playAudio(game.audio?.menuNavigate);
+    }else if(input.wasPressed(INPUT_KEYS.RIGHT)){
+      const key=VOLUME_KEYS[pause.volumeIndex];
+      adjustAudioSetting(key, 0.05);
+      playAudio(game.audio?.menuNavigate);
+    }
+    return;
+  }
+  if(input.wasPressed(INPUT_KEYS.PAUSE)){
+    resumeGame();
+    return;
+  }
+  if(input.wasPressed(INPUT_KEYS.UP)){
+    playAudio(game.audio?.menuNavigate);
+    pause.selectedIndex = (pause.selectedIndex + pause.options.length - 1) % pause.options.length;
+  }else if(input.wasPressed(INPUT_KEYS.DOWN)){
+    playAudio(game.audio?.menuNavigate);
+    pause.selectedIndex = (pause.selectedIndex + 1) % pause.options.length;
+  }else if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+    const choice=pause.options[pause.selectedIndex];
+    if(choice) handlePauseSelection(choice.key);
+  }
+};
+
+const drawPause = () => {
+  if(game.state!==GAME_STATES.PAUSED){
+    return;
+  }
+  drawGame();
+  const pause = game.pause ?? initPauseMenu();
+  ctx.save();
+  ctx.fillStyle='rgba(6, 6, 18, 0.72)';
+  ctx.fillRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
+  ctx.restore();
+
+  ctx.save();
+  ctx.textAlign='center';
+  ctx.font='36px "Press Start 2P", monospace';
+  ctx.fillStyle='#ffeac8';
+  ctx.shadowColor='rgba(0,0,0,0.6)';
+  ctx.shadowBlur=16;
+  ctx.fillText('PAUSED', CANVAS_WIDTH/2, 120);
+  ctx.shadowBlur=0;
+  ctx.restore();
+
+  const listX = CANVAS_WIDTH/2;
+  const listStartY = CANVAS_HEIGHT/2 - 30;
+  ctx.save();
+  ctx.textAlign='center';
+  pause.options.forEach((opt, idx)=>{
+    const y = listStartY + idx*44;
+    const isActive = (pause.mode==='options' && idx===pause.selectedIndex) ||
+      (pause.mode==='volume' && opt.key==='volume') ||
+      (pause.mode==='confirm' && pause.confirm?.action===opt.key);
+    ctx.font = isActive ? '22px "Press Start 2P", monospace' : '20px "Press Start 2P", monospace';
+    ctx.fillStyle = isActive ? '#ffe7b4' : 'rgba(215, 226, 255, 0.9)';
+    ctx.fillText(opt.label, listX, y);
+  });
+  ctx.restore();
+
+  const volumeMode = pause.mode==='volume';
+  drawVolumeControlsPanel({
+    centerX: CANVAS_WIDTH/2,
+    startY: CANVAS_HEIGHT/2 + 90,
+    activeIndex: pause.volumeIndex ?? 0,
+    highlight: volumeMode,
+    width: 380,
+    header: 'VOLUME'
+  });
+
+  const confirmMode = pause.mode==='confirm';
+  const confirm=pause.confirm;
+  if(confirmMode && confirm){
+    const message = PAUSE_CONFIRM_MESSAGES[confirm.action] ?? 'Are you sure?';
+    ctx.save();
+    ctx.textAlign='center';
+    ctx.font='16px "Press Start 2P", monospace';
+    ctx.fillStyle='#ffe9ba';
+    ctx.fillText(message, CANVAS_WIDTH/2, CANVAS_HEIGHT/2 + 32);
+    ctx.font='14px "Press Start 2P", monospace';
+    PAUSE_CONFIRM_OPTIONS.forEach((label, idx)=>{
+      const x = CANVAS_WIDTH/2 + (idx===0 ? -100 : 100);
+      const y = CANVAS_HEIGHT/2 + 64;
+      const isSel = confirm.selection===idx;
+      ctx.fillStyle = isSel ? '#ffe7b4' : 'rgba(215,226,255,0.9)';
+      ctx.fillText(label.toUpperCase(), x, y);
+    });
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.textAlign='center';
+  ctx.font='12px "Press Start 2P", monospace';
+  if(confirmMode){
+    ctx.fillStyle='#ffe8b8';
+    ctx.fillText('ENTER: CONFIRM  //  ESC: BACK', CANVAS_WIDTH/2, CANVAS_HEIGHT - 64);
+  }else if(volumeMode){
+    ctx.fillStyle='#ffe8b8';
+    ctx.fillText('LEFT/RIGHT: ADJUST  //  ENTER: BACK  //  ESC: RESUME', CANVAS_WIDTH/2, CANVAS_HEIGHT - 64);
+  }else{
+    ctx.fillStyle='rgba(215, 226, 255, 0.85)';
+    ctx.fillText('ENTER: SELECT  //  ESC: RESUME  //  VOLUME OPTIONS INSIDE', CANVAS_WIDTH/2, CANVAS_HEIGHT - 64);
+  }
+  ctx.restore();
 };
 
 const drawHUD = () => {
@@ -2574,6 +3578,13 @@ const drawHUD = () => {
   ctx.strokeStyle='#f8f8f8'; ctx.lineWidth=2; ctx.strokeRect(margin, margin, hpW, hpH);
   ctx.font='14px "Press Start 2P", monospace'; ctx.fillStyle='#fff'; ctx.textAlign='left';
   ctx.fillText(`${p.name}`, margin, margin + hpH + 24);
+  const defeated=game.world?.defeatedCount ?? 0;
+  const target=game.world?.defeatedTarget ?? 0;
+  ctx.textAlign='right';
+  ctx.font='12px "Press Start 2P", monospace';
+  ctx.fillStyle='#fff';
+  ctx.fillText(`DEFEATED ${defeated}/${target}`, CANVAS_WIDTH - margin, margin + 16);
+  ctx.textAlign='left';
 
   if(p.mutation.enabled){
     const mw=220, mh=12, mx=margin, my=margin + hpH + 48;
@@ -2626,6 +3637,15 @@ const gameLoop = (timestamp) => {
     case GAME_STATES.LOADING: drawLoading(); break;
     case GAME_STATES.TITLE: updateTitle(dt); drawTitle(); break;
     case GAME_STATES.MENU: updateMenu(dt); drawMenu(); break;
+    case GAME_STATES.PAUSED:
+      updatePause(dt);
+      if(game.state===GAME_STATES.PAUSED) drawPause();
+      else if(game.state===GAME_STATES.PLAYING) drawGame();
+      else if(game.state===GAME_STATES.MENU) drawMenu();
+      else if(game.state===GAME_STATES.TITLE) drawTitle();
+      else if(game.state===GAME_STATES.LOADING) drawLoading();
+      else if(game.state===GAME_STATES.LEVEL2 && typeof level2Manager.draw==='function') level2Manager.draw(ctx);
+      break;
     case GAME_STATES.PLAYING: updateGame(dt); drawGame(); break;
     case GAME_STATES.LEVEL2:
       if(typeof level2Manager.update==='function') level2Manager.update(dt);
