@@ -1458,10 +1458,19 @@ function applyActionToMediaElements(doc, action) {
 
 function restoreWindowIframes(windowElement) {
     if (!windowElement) return;
+    const shouldLoad = isWindowOpen(windowElement);
     const iframes = windowElement.querySelectorAll('iframe');
     iframes.forEach(iframe => {
-        if (!iframe.dataset.originalSrc) {
-            iframe.dataset.originalSrc = iframe.getAttribute('src') || '';
+        const configuredSrc = iframe.dataset.src;
+        if (!iframe.dataset.originalSrc || iframe.dataset.originalSrc === 'about:blank') {
+            if (configuredSrc) {
+                iframe.dataset.originalSrc = configuredSrc;
+            } else {
+                const currentAttributeSrc = iframe.getAttribute('src');
+                if (currentAttributeSrc && currentAttributeSrc !== 'about:blank') {
+                    iframe.dataset.originalSrc = currentAttributeSrc;
+                }
+            }
         }
         if (!iframe.dataset.loadHandlerAttached) {
             iframe.addEventListener('load', () => {
@@ -1474,7 +1483,7 @@ function restoreWindowIframes(windowElement) {
             iframe.dataset.loadHandlerAttached = 'true';
         }
         const currentSrc = iframe.getAttribute('src');
-        if (currentSrc === 'about:blank') {
+        if (shouldLoad && currentSrc === 'about:blank') {
             const restoreSrc = iframe.dataset.lastKnownSrc || iframe.dataset.originalSrc;
             if (restoreSrc) {
                 iframe.setAttribute('src', restoreSrc);
