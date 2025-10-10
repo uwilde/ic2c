@@ -8,6 +8,12 @@ const CANVAS_HEIGHT = 540;
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 
+const menuBackdropCanvas = document.createElement('canvas');
+menuBackdropCanvas.width = CANVAS_WIDTH;
+menuBackdropCanvas.height = CANVAS_HEIGHT;
+const menuBackdropCtx = menuBackdropCanvas.getContext('2d');
+menuBackdropCtx.imageSmoothingEnabled = false;
+
 const GAME_STATES = {
   LOADING: 'loading',
   TITLE: 'title',
@@ -44,6 +50,20 @@ const preventDefaultKeys = new Set([
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const range = (s, e) => { const a=[]; for(let i=s;i<=e;i++) a.push(i); return a; };
 const framePaths = (s, e, t) => range(s, e).map((n)=>t.replace('%', n));
+const drawRoundedRectPath = (context, x, y, width, height, radius) => {
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.lineTo(x + width - r, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + r);
+  context.lineTo(x + width, y + height - r);
+  context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  context.lineTo(x + r, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - r);
+  context.lineTo(x, y + r);
+  context.quadraticCurveTo(x, y, x + r, y);
+  context.closePath();
+};
 const createImage = (src) => new Promise((res, rej)=>{
   const img = new Image();
   img.onload = () => res(img);
@@ -2696,7 +2716,17 @@ const game = {
   session: { characterKey:null },
   pause: null,
   title: { timer: 0, flashTimer: 0, lightPhase: 0, beamPhase: Math.random() * Math.PI * 2 },
-  menu: { options: [], selectedIndex: 0, blinkTimer: 0, section:'characters', volumeIndex:0, sparkTimer:0, gridPhase:0 },
+  menu: {
+    options: [],
+    selectedIndex: 0,
+    blinkTimer: 0,
+    section: 'characters',
+    volumeIndex: 0,
+    settingsOpen: false,
+    settingsRow: 0,
+    sparkTimer: 0,
+    gridPhase: 0
+  },
   loading: { progress: 0 }
 };
 
@@ -2718,6 +2748,8 @@ const initMenu = () => {
   game.menu.selectedIndex=0; game.menu.blinkTimer=0; game.menu.gridPhase=0; game.menu.sparkTimer=0;
   game.menu.section='characters';
   game.menu.volumeIndex=0;
+  game.menu.settingsOpen=false;
+  game.menu.settingsRow=0;
   game.menu.decals = Array.from({ length: 16 }, () => ({
     x: Math.random(),
     y: Math.random(),
@@ -2905,6 +2937,49 @@ const updateMenu = (dt) => {
   game.menu.gridPhase=(game.menu.gridPhase ?? 0) + dt*60;
   game.menu.sparkTimer=(game.menu.sparkTimer ?? 0) + dt;
   game.menu.blinkTimer+=dt;
+  if(game.menu.settingsOpen){
+    const totalRows=VOLUME_KEYS.length + 1;
+    const cancelIndex=VOLUME_KEYS.length;
+    let row=clamp(game.menu.settingsRow ?? 0, 0, cancelIndex);
+    if(input.wasPressed(INPUT_KEYS.PAUSE)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.settingsOpen=false;
+      game.menu.settingsRow=0;
+      game.menu.section='settings';
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.UP)){
+      playAudio(game.audio?.menuNavigate);
+      row = (row + totalRows - 1) % totalRows;
+    }else if(input.wasPressed(INPUT_KEYS.DOWN)){
+      playAudio(game.audio?.menuNavigate);
+      row = (row + 1) % totalRows;
+    }else if(input.wasPressed(INPUT_KEYS.LEFT) && row<cancelIndex){
+      const key=VOLUME_KEYS[row];
+      adjustAudioSetting(key, -0.05);
+      playAudio(game.audio?.menuNavigate);
+    }else if(input.wasPressed(INPUT_KEYS.RIGHT) && row<cancelIndex){
+      const key=VOLUME_KEYS[row];
+      adjustAudioSetting(key, 0.05);
+      playAudio(game.audio?.menuNavigate);
+    }else if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      if(row===cancelIndex){
+        playAudio(game.audio?.menuSelect);
+        game.menu.settingsOpen=false;
+        game.menu.settingsRow=0;
+        game.menu.section='settings';
+        return;
+      }else{
+        playAudio(game.audio?.menuNavigate);
+      }
+    }
+    if(row<cancelIndex){
+      game.menu.volumeIndex=row;
+    }
+    game.menu.settingsRow=row;
+    return;
+  }
+
   const section=game.menu.section ?? 'characters';
   if(section==='characters'){
     if(input.wasPressed(INPUT_KEYS.LEFT)){
@@ -2914,9 +2989,14 @@ const updateMenu = (dt) => {
       playAudio(game.audio?.menuNavigate);
       game.menu.selectedIndex = (game.menu.selectedIndex + 1) % game.menu.options.length;
     }
-    if(input.wasPressed(INPUT_KEYS.UP) || input.wasPressed(INPUT_KEYS.DOWN)){
+    if(input.wasPressed(INPUT_KEYS.DOWN)){
       playAudio(game.audio?.menuNavigate);
-      game.menu.section='volume';
+      game.menu.section='settings';
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.UP)){
+      playAudio(game.audio?.menuNavigate);
+      game.menu.section='settings';
       return;
     }
     if(input.wasPressed(INPUT_KEYS.ACCEPT)){
@@ -2924,29 +3004,18 @@ const updateMenu = (dt) => {
       const choice=game.menu.options[game.menu.selectedIndex];
       startGameWithCharacter(choice.key);
     }
-  }else{
-    if(input.wasPressed(INPUT_KEYS.UP)){
-      if(game.menu.volumeIndex===0){
-        playAudio(game.audio?.menuNavigate);
-        game.menu.section='characters';
-      }else{
-        playAudio(game.audio?.menuNavigate);
-        game.menu.volumeIndex = (game.menu.volumeIndex + VOLUME_KEYS.length - 1) % VOLUME_KEYS.length;
-      }
-    }else if(input.wasPressed(INPUT_KEYS.DOWN)){
+  }else if(section==='settings'){
+    if(input.wasPressed(INPUT_KEYS.UP) || input.wasPressed(INPUT_KEYS.DOWN)){
       playAudio(game.audio?.menuNavigate);
-      game.menu.volumeIndex = (game.menu.volumeIndex + 1) % VOLUME_KEYS.length;
-    }else if(input.wasPressed(INPUT_KEYS.LEFT)){
-      const key=VOLUME_KEYS[game.menu.volumeIndex];
-      adjustAudioSetting(key, -0.05);
-      playAudio(game.audio?.menuNavigate);
-    }else if(input.wasPressed(INPUT_KEYS.RIGHT)){
-      const key=VOLUME_KEYS[game.menu.volumeIndex];
-      adjustAudioSetting(key, 0.05);
-      playAudio(game.audio?.menuNavigate);
-    }else if(input.wasPressed(INPUT_KEYS.ACCEPT)){
-      playAudio(game.audio?.menuSelect);
       game.menu.section='characters';
+      return;
+    }
+    if(input.wasPressed(INPUT_KEYS.ACCEPT)){
+      playAudio(game.audio?.menuSelect);
+      game.menu.settingsOpen=true;
+      game.menu.settingsRow=game.menu.volumeIndex ?? 0;
+      game.menu.settingsRow=clamp(game.menu.settingsRow, 0, VOLUME_KEYS.length);
+      return;
     }
   }
 };
@@ -3110,7 +3179,7 @@ const drawMenu = () => {
   ctx.shadowBlur = 0;
   ctx.font = '16px "Press Start 2P", monospace';
   ctx.fillStyle = '#b6c9ff';
-  ctx.fillText('LEFT/RIGHT: PICK A HERO  //  ENTER: START  //  UP/DOWN: VOLUME', CANVAS_WIDTH / 2, 142);
+  ctx.fillText('LEFT/RIGHT: PICK A HERO  //  ENTER: START  //  UP/DOWN: SETTINGS', CANVAS_WIDTH / 2, 142);
   ctx.restore();
 
   ctx.save();
@@ -3243,23 +3312,62 @@ const drawMenu = () => {
     ctx.restore();
   });
 
-  const volumeHighlight = section==='volume';
-  drawVolumeControlsPanel({
-    centerX: CANVAS_WIDTH / 2,
-    startY: CANVAS_HEIGHT - 230,
-    activeIndex: game.menu.volumeIndex ?? 0,
-    highlight: volumeHighlight,
-    width: 420,
-    header: 'VOLUME'
-  });
+  const settingsButtonActive = section==='settings' && !game.menu.settingsOpen;
+  const blink = game.menu.blinkTimer ?? 0;
+  const settingsBaseY = CANVAS_HEIGHT - 230;
+  const settingsWidth = 280;
+  const settingsHeight = 72;
+  const subtleBob = Math.sin(timer * 3.2) * (settingsButtonActive ? 8 : 4);
+  const glowPulse = 0.5 + 0.5 * Math.sin(blink * 5.2);
+  const glowStrength = settingsButtonActive ? 0.35 + glowPulse * 0.35 : 0.18 + glowPulse * 0.22;
 
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.font = '12px "Press Start 2P", monospace';
-  ctx.fillStyle = volumeHighlight ? '#ffe9ba' : 'rgba(214, 224, 255, 0.82)';
-  const volumeHint = volumeHighlight ? 'LEFT/RIGHT: ADJUST  //  ENTER: BACK' : 'PRESS UP/DOWN TO TUNE VOLUME';
-  ctx.fillText(volumeHint, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 104);
+  ctx.translate(CANVAS_WIDTH / 2, settingsBaseY + subtleBob);
+  const buttonRadius = 24;
+  drawRoundedRectPath(ctx, -settingsWidth / 2, -settingsHeight / 2, settingsWidth, settingsHeight, buttonRadius);
+  const buttonFill = ctx.createLinearGradient(-settingsWidth / 2, -settingsHeight / 2, settingsWidth / 2, settingsHeight / 2);
+  if(settingsButtonActive){
+    buttonFill.addColorStop(0, 'rgba(255, 214, 167, 0.95)');
+    buttonFill.addColorStop(1, 'rgba(255, 128, 220, 0.92)');
+  }else{
+    buttonFill.addColorStop(0, 'rgba(96, 128, 200, 0.82)');
+    buttonFill.addColorStop(1, 'rgba(168, 110, 210, 0.78)');
+  }
+  ctx.fillStyle = buttonFill;
+  ctx.globalAlpha = 0.94;
+  ctx.fill();
+
+  ctx.globalAlpha = 1;
+  drawRoundedRectPath(ctx, -settingsWidth / 2, -settingsHeight / 2, settingsWidth, settingsHeight, buttonRadius);
+  ctx.lineWidth = settingsButtonActive ? 4 : 2;
+  ctx.strokeStyle = settingsButtonActive ? 'rgba(255, 236, 200, 0.9)' : 'rgba(210, 224, 255, 0.55)';
+  ctx.stroke();
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = glowStrength;
+  const aura = ctx.createRadialGradient(0, 0, 12, 0, 0, settingsWidth);
+  aura.addColorStop(0, 'rgba(255, 228, 190, 0.85)');
+  aura.addColorStop(1, 'rgba(255, 118, 220, 0)');
+  ctx.fillStyle = aura;
+  ctx.fillRect(-settingsWidth, -settingsHeight, settingsWidth * 2, settingsHeight * 2);
   ctx.restore();
+
+  ctx.textAlign = 'center';
+  ctx.font = '20px "Press Start 2P", monospace';
+  ctx.fillStyle = settingsButtonActive ? '#1a1228' : '#f7f2ff';
+  ctx.fillText('SETTINGS', 0, 8);
+  ctx.restore();
+
+  if(!game.menu.settingsOpen){
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = '12px "Press Start 2P", monospace';
+    ctx.fillStyle = settingsButtonActive ? '#ffe9ba' : 'rgba(214, 224, 255, 0.82)';
+    const settingsHint = settingsButtonActive ? 'ENTER: OPEN SETTINGS  //  ESC: PAUSE' : 'PRESS UP/DOWN TO OPEN SETTINGS';
+    ctx.fillText(settingsHint, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 104);
+    ctx.restore();
+  }
 
   const pulse = 0.55 + 0.45 * Math.sin(game.menu.blinkTimer * 4);
 
@@ -3293,6 +3401,106 @@ const drawMenu = () => {
   ctx.fillStyle = `rgba(255, 238, 160, ${pulse})`;
   ctx.fillText('PRESS START (ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 36);
   ctx.restore();
+
+  if(game.menu.settingsOpen){
+    menuBackdropCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    menuBackdropCtx.drawImage(canvas, 0, 0);
+
+    ctx.save();
+    ctx.filter = 'blur(10px)';
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(menuBackdropCanvas, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(6, 10, 30, 0.58)';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    ctx.restore();
+
+    const panelWidth = 540;
+    const panelHeight = 360;
+    const panelX = (CANVAS_WIDTH - panelWidth) / 2;
+    const panelY = (CANVAS_HEIGHT - panelHeight) / 2;
+    const panelRadius = 28;
+    const cancelIndex = VOLUME_KEYS.length;
+    const settingsRow = clamp(game.menu.settingsRow ?? 0, 0, cancelIndex);
+    const highlightVolumes = settingsRow < cancelIndex;
+
+    drawRoundedRectPath(ctx, panelX, panelY, panelWidth, panelHeight, panelRadius);
+    const panelFill = ctx.createLinearGradient(panelX, panelY, panelX + panelWidth, panelY + panelHeight);
+    panelFill.addColorStop(0, 'rgba(18, 24, 52, 0.96)');
+    panelFill.addColorStop(1, 'rgba(26, 16, 46, 0.94)');
+    ctx.fillStyle = panelFill;
+    ctx.fill();
+
+    drawRoundedRectPath(ctx, panelX, panelY, panelWidth, panelHeight, panelRadius);
+    const panelStroke = ctx.createLinearGradient(panelX, panelY, panelX + panelWidth, panelY + panelHeight);
+    panelStroke.addColorStop(0, 'rgba(255, 218, 184, 0.7)');
+    panelStroke.addColorStop(1, 'rgba(132, 206, 255, 0.52)');
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = panelStroke;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = '24px "Press Start 2P", monospace';
+    ctx.fillStyle = '#ffe4c4';
+    ctx.fillText('SETTINGS', CANVAS_WIDTH / 2, panelY + 70);
+    ctx.font = '12px "Press Start 2P", monospace';
+    ctx.fillStyle = 'rgba(216, 226, 255, 0.78)';
+    ctx.fillText('Adjust audio levels', CANVAS_WIDTH / 2, panelY + 100);
+    ctx.restore();
+
+    drawVolumeControlsPanel({
+      centerX: CANVAS_WIDTH / 2,
+      startY: panelY + 132,
+      activeIndex: game.menu.volumeIndex ?? 0,
+      highlight: highlightVolumes,
+      width: 380,
+      alpha: 1,
+      header: null
+    });
+
+    const cancelSelected = settingsRow === cancelIndex;
+    const cancelWidth = 220;
+    const cancelHeight = 58;
+    const cancelY = panelY + panelHeight - 90;
+    const cancelBlink = 0.5 + 0.5 * Math.sin((game.menu.blinkTimer ?? 0) * 4.4);
+    const cancelLift = (cancelSelected ? 6 : 3) * Math.sin((game.menu.sparkTimer ?? 0) * 3.4);
+
+    ctx.save();
+    ctx.translate(CANVAS_WIDTH / 2, cancelY + cancelLift);
+    const cancelRadius = 18;
+    drawRoundedRectPath(ctx, -cancelWidth / 2, -cancelHeight / 2, cancelWidth, cancelHeight, cancelRadius);
+    const cancelFill = ctx.createLinearGradient(-cancelWidth / 2, -cancelHeight / 2, cancelWidth / 2, cancelHeight / 2);
+    if(cancelSelected){
+      cancelFill.addColorStop(0, `rgba(255, 190, 160, ${0.85 + cancelBlink * 0.12})`);
+      cancelFill.addColorStop(1, `rgba(255, 130, 180, ${0.85 + cancelBlink * 0.12})`);
+    }else{
+      cancelFill.addColorStop(0, 'rgba(98, 120, 186, 0.82)');
+      cancelFill.addColorStop(1, 'rgba(150, 104, 186, 0.78)');
+    }
+    ctx.fillStyle = cancelFill;
+    ctx.fill();
+
+    drawRoundedRectPath(ctx, -cancelWidth / 2, -cancelHeight / 2, cancelWidth, cancelHeight, cancelRadius);
+    ctx.lineWidth = cancelSelected ? 3 : 2;
+    ctx.strokeStyle = cancelSelected ? 'rgba(255, 236, 210, 0.88)' : 'rgba(210, 224, 255, 0.55)';
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.font = '18px "Press Start 2P", monospace';
+    ctx.fillStyle = cancelSelected ? '#1f1528' : '#f6f4ff';
+    ctx.fillText('CANCEL', 0, 6);
+    ctx.restore();
+
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.font = '12px "Press Start 2P", monospace';
+    ctx.fillStyle = 'rgba(214, 224, 255, 0.82)';
+    ctx.fillText('LEFT/RIGHT: ADJUST  //  UP/DOWN: NAVIGATE  //  ENTER: SELECT  //  ESC: CLOSE', CANVAS_WIDTH / 2, panelY + panelHeight - 28);
+    ctx.restore();
+  }
 };
 
 
