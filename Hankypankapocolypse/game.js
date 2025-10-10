@@ -14,6 +14,20 @@ menuBackdropCanvas.height = CANVAS_HEIGHT;
 const menuBackdropCtx = menuBackdropCanvas.getContext('2d');
 menuBackdropCtx.imageSmoothingEnabled = false;
 
+const applyCanvasFit = () => {
+  const width = window.innerWidth || CANVAS_WIDTH;
+  const height = window.innerHeight || CANVAS_HEIGHT;
+  const scale = Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT);
+  const displayWidth = Math.max(1, Math.round(CANVAS_WIDTH * scale));
+  const displayHeight = Math.max(1, Math.round(CANVAS_HEIGHT * scale));
+  canvas.style.width = `${displayWidth}px`;
+  canvas.style.height = `${displayHeight}px`;
+};
+
+window.addEventListener('resize', applyCanvasFit);
+window.addEventListener('orientationchange', applyCanvasFit);
+applyCanvasFit();
+
 const GAME_STATES = {
   LOADING: 'loading',
   TITLE: 'title',
@@ -1099,9 +1113,22 @@ class Player extends Entity {
 
     // During power animation: freeze motion & drive transform logic
     if(this.isDuringPowerAnimation){
-      this.velocity.x=0; this.velocity.y=0;
+      let knockVelocity=0;
+      if(this.knockback.timeLeft>0){
+        const duration=this.knockback.duration || 0.0001;
+        const normalized=clamp(this.knockback.timeLeft / duration, 0, 1);
+        knockVelocity=this.knockback.initialVelocity * normalized;
+        this.knockback.timeLeft=Math.max(0, this.knockback.timeLeft - dt);
+        if(this.knockback.timeLeft<=0) this.knockback.initialVelocity=0;
+      }
+      this.velocity.x=knockVelocity;
+      this.velocity.y=0;
       this.updateJump(dt);
       super.update(dt);
+      if(world){
+        this.position.x=clamp(this.position.x, world.bounds.left, world.bounds.right);
+        this.position.y=clamp(this.position.y, FLOOR_Y - WALKWAY_HEIGHT, FLOOR_Y);
+      }
       const animation=this.currentAnimation;
       if(animation){
         if(!this.powerSoundPlayed){
@@ -1765,7 +1792,7 @@ class Enemy extends Entity {
   }
   startExit(){
     this.exiting=true;
-    this.invulnerableTimer=5;
+    this.invulnerableTimer=Math.min(this.invulnerableTimer, 0.2);
     this.setState('walk');
     this.facing=1;
   }
@@ -1976,16 +2003,17 @@ class BossMutant extends Entity {
     this.mudballPush2=false;
     this.spawnedMudballVolley=false;
     this.pendingMudballSpawns.length=0;
+    this.damageFlashTimer=0;
     this.setState('windup');
   }
   handleWindupEvents(player){
     const anim=this.currentAnimation; if(!anim) return;
     const idx=anim.index;
-    if(!this.mudballPush1 && idx>=10){
+    if(!this.mudballPush1 && idx>=11){
       this.mudballPush1=true;
       this.applyMudballShockwave(player, this.world, 1);
     }
-    if(!this.spawnedMudballVolley && idx>=11){
+    if(!this.spawnedMudballVolley && idx>=12){
       this.spawnedMudballVolley=true;
       this.queueMudballVolley(player);
     }
@@ -2082,6 +2110,7 @@ class BossMutant extends Entity {
   enterBarrage(){
     this.vulnerable=true;
     this.loopTimer=5;
+    this.damageFlashTimer=0;
     this.setState('barrage');
     if(this.currentAnimation) this.currentAnimation.reset();
   }
@@ -2155,7 +2184,10 @@ class BossMutant extends Entity {
       }
     }
     this.hp=Math.max(0, this.hp - applied);
-    this.damageFlashTimer=0.32;
+    const isAttacking = this.state==='windup' || this.state==='barrage';
+    if(!isAttacking){
+      this.damageFlashTimer=0.32;
+    }
     const invul = isSpecial ? 0.45 : (chipActive ? 0.25 : 0.35);
     this.invulnerableTimer=invul;
     if(this.hp<=0){ this.beginDefeat(); }
@@ -2315,6 +2347,15 @@ class GameWorld {
       attackCooldownVariance: Math.max(0.15, difficulty.variance),
       aggression: difficulty.attack
     };
+    if(key==='entrado' || key==='peppers'){
+      const speedTuner = key==='entrado' ? 0.88 : 0.9;
+      config.speed = Math.max(60, config.speed * speedTuner);
+      config.depthSpeed = Math.max(60, config.depthSpeed * (speedTuner + 0.05));
+      config.attackRange = Math.round(config.attackRange * 1.18);
+      config.attackCooldownBase = Math.max(0.45, config.attackCooldownBase - 0.22);
+      config.attackCooldownVariance = Math.max(0.12, config.attackCooldownVariance - 0.08);
+      config.attackDamage = Math.max(6, Math.round(config.attackDamage * 1.12));
+    }
     const e=new Enemy(config); this.enemies.push(e); this.entities.push(e); this.snapEntityToWalkMask(e);
   }
   update(dt){
@@ -3109,7 +3150,7 @@ const drawMenu = () => {
 
   ctx.save();
   ctx.globalAlpha = 0.15;
-  ctx.strokeStyle = 'rgba(180, 210, 255, 0.55)';
+  ctx.strokeStyle = 'rgba(180, 210, 255, 0.5)';
   ctx.lineWidth = 1;
   ctx.setLineDash([5, 22]);
   const grid = 56;
@@ -3314,92 +3355,100 @@ const drawMenu = () => {
 
   const settingsButtonActive = section==='settings' && !game.menu.settingsOpen;
   const blink = game.menu.blinkTimer ?? 0;
-  const settingsBaseY = CANVAS_HEIGHT - 230;
-  const settingsWidth = 280;
-  const settingsHeight = 72;
-  const subtleBob = Math.sin(timer * 3.2) * (settingsButtonActive ? 8 : 4);
+  const infoPanelHeight = 140;
+  const infoPanelWidth = Math.min(720, CANVAS_WIDTH - 64);
+  const infoPanelX = (CANVAS_WIDTH - infoPanelWidth) / 2;
+  const infoPanelY = CANVAS_HEIGHT - infoPanelHeight - 24;
+
+  drawRoundedRectPath(ctx, infoPanelX, infoPanelY, infoPanelWidth, infoPanelHeight, 26);
+  const infoFill = ctx.createLinearGradient(infoPanelX, infoPanelY, infoPanelX + infoPanelWidth, infoPanelY + infoPanelHeight);
+  infoFill.addColorStop(0, 'rgba(12, 10, 40, 0.92)');
+  infoFill.addColorStop(1, 'rgba(20, 12, 42, 0.92)');
+  ctx.fillStyle = infoFill;
+  ctx.fill();
+
+  drawRoundedRectPath(ctx, infoPanelX, infoPanelY, infoPanelWidth, infoPanelHeight, 26);
+  const infoStroke = ctx.createLinearGradient(infoPanelX, infoPanelY, infoPanelX + infoPanelWidth, infoPanelY + infoPanelHeight);
+  infoStroke.addColorStop(0, 'rgba(255, 220, 180, 0.55)');
+  infoStroke.addColorStop(1, 'rgba(132, 206, 255, 0.52)');
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = infoStroke;
+  ctx.stroke();
+
+  const buttonRect = {
+    width: Math.min(260, infoPanelWidth * 0.4),
+    height: 64
+  };
+  buttonRect.x = infoPanelX + infoPanelWidth - buttonRect.width - 28;
+  buttonRect.y = infoPanelY + 28;
+
+  const subtleBob = Math.sin(timer * 3) * (settingsButtonActive ? 5 : 2.5);
   const glowPulse = 0.5 + 0.5 * Math.sin(blink * 5.2);
-  const glowStrength = settingsButtonActive ? 0.35 + glowPulse * 0.35 : 0.18 + glowPulse * 0.22;
+  const glowStrength = settingsButtonActive ? 0.28 + glowPulse * 0.28 : 0.16 + glowPulse * 0.18;
 
   ctx.save();
-  ctx.translate(CANVAS_WIDTH / 2, settingsBaseY + subtleBob);
-  const buttonRadius = 24;
-  drawRoundedRectPath(ctx, -settingsWidth / 2, -settingsHeight / 2, settingsWidth, settingsHeight, buttonRadius);
-  const buttonFill = ctx.createLinearGradient(-settingsWidth / 2, -settingsHeight / 2, settingsWidth / 2, settingsHeight / 2);
+  ctx.translate(buttonRect.x + buttonRect.width / 2, buttonRect.y + buttonRect.height / 2 + subtleBob);
+  const buttonRadius = 20;
+  drawRoundedRectPath(ctx, -buttonRect.width / 2, -buttonRect.height / 2, buttonRect.width, buttonRect.height, buttonRadius);
+  const buttonFill = ctx.createLinearGradient(-buttonRect.width / 2, -buttonRect.height / 2, buttonRect.width / 2, buttonRect.height / 2);
   if(settingsButtonActive){
     buttonFill.addColorStop(0, 'rgba(255, 214, 167, 0.95)');
     buttonFill.addColorStop(1, 'rgba(255, 128, 220, 0.92)');
   }else{
-    buttonFill.addColorStop(0, 'rgba(96, 128, 200, 0.82)');
-    buttonFill.addColorStop(1, 'rgba(168, 110, 210, 0.78)');
+    buttonFill.addColorStop(0, 'rgba(108, 140, 216, 0.85)');
+    buttonFill.addColorStop(1, 'rgba(176, 118, 216, 0.82)');
   }
   ctx.fillStyle = buttonFill;
-  ctx.globalAlpha = 0.94;
+  ctx.globalAlpha = 0.96;
   ctx.fill();
 
   ctx.globalAlpha = 1;
-  drawRoundedRectPath(ctx, -settingsWidth / 2, -settingsHeight / 2, settingsWidth, settingsHeight, buttonRadius);
-  ctx.lineWidth = settingsButtonActive ? 4 : 2;
-  ctx.strokeStyle = settingsButtonActive ? 'rgba(255, 236, 200, 0.9)' : 'rgba(210, 224, 255, 0.55)';
+  drawRoundedRectPath(ctx, -buttonRect.width / 2, -buttonRect.height / 2, buttonRect.width, buttonRect.height, buttonRadius);
+  ctx.lineWidth = settingsButtonActive ? 3 : 2;
+  ctx.strokeStyle = settingsButtonActive ? 'rgba(255, 236, 210, 0.9)' : 'rgba(210, 224, 255, 0.55)';
   ctx.stroke();
 
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   ctx.globalAlpha = glowStrength;
-  const aura = ctx.createRadialGradient(0, 0, 12, 0, 0, settingsWidth);
-  aura.addColorStop(0, 'rgba(255, 228, 190, 0.85)');
+  const aura = ctx.createRadialGradient(0, 0, 10, 0, 0, buttonRect.width);
+  aura.addColorStop(0, 'rgba(255, 228, 190, 0.82)');
   aura.addColorStop(1, 'rgba(255, 118, 220, 0)');
   ctx.fillStyle = aura;
-  ctx.fillRect(-settingsWidth, -settingsHeight, settingsWidth * 2, settingsHeight * 2);
+  ctx.fillRect(-buttonRect.width, -buttonRect.height, buttonRect.width * 2, buttonRect.height * 2);
   ctx.restore();
 
   ctx.textAlign = 'center';
-  ctx.font = '20px "Press Start 2P", monospace';
-  ctx.fillStyle = settingsButtonActive ? '#1a1228' : '#f7f2ff';
-  ctx.fillText('SETTINGS', 0, 8);
+  ctx.font = '18px "Press Start 2P", monospace';
+  ctx.fillStyle = settingsButtonActive ? '#1a1326' : '#f7f2ff';
+  ctx.fillText('SETTINGS', 0, 6);
   ctx.restore();
 
   if(!game.menu.settingsOpen){
     ctx.save();
     ctx.textAlign = 'center';
-    ctx.font = '12px "Press Start 2P", monospace';
-    ctx.fillStyle = settingsButtonActive ? '#ffe9ba' : 'rgba(214, 224, 255, 0.82)';
-    const settingsHint = settingsButtonActive ? 'ENTER: OPEN SETTINGS  //  ESC: PAUSE' : 'PRESS UP/DOWN TO OPEN SETTINGS';
-    ctx.fillText(settingsHint, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 104);
+    ctx.font = '10px "Press Start 2P", monospace';
+    ctx.fillStyle = settingsButtonActive ? '#ffe9ba' : 'rgba(214, 224, 255, 0.78)';
+    const hint = settingsButtonActive ? 'ENTER: OPEN  //  ESC: PAUSE' : 'PRESS UP/DOWN TO FOCUS';
+    ctx.fillText(hint, buttonRect.x + buttonRect.width / 2, buttonRect.y + buttonRect.height + 20);
     ctx.restore();
   }
 
-  const pulse = 0.55 + 0.45 * Math.sin(game.menu.blinkTimer * 4);
-
-  const panelWidth = 620;
-  const panelX = (CANVAS_WIDTH - panelWidth) / 2;
-  const panelY = CANVAS_HEIGHT - 122;
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(panelX - 36, panelY);
-  ctx.lineTo(panelX + panelWidth + 42, panelY - 18);
-  ctx.lineTo(panelX + panelWidth + 12, panelY + 86);
-  ctx.lineTo(panelX - 24, panelY + 104);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(8, 6, 34, 0.88)';
-  ctx.fill();
-  const panelGlow = ctx.createLinearGradient(panelX, panelY, panelX + panelWidth, panelY + 60);
-  panelGlow.addColorStop(0, 'rgba(120, 200, 255, 0.25)');
-  panelGlow.addColorStop(0.5, 'rgba(255, 240, 180, 0.25)');
-  panelGlow.addColorStop(1, 'rgba(255, 110, 220, 0.25)');
-  ctx.fillStyle = panelGlow;
-  ctx.globalAlpha = 0.5;
-  ctx.fill();
+  ctx.textAlign = 'left';
+  ctx.font = '12px "Press Start 2P", monospace';
+  ctx.fillStyle = 'rgba(214, 224, 255, 0.86)';
+  const infoLeft = infoPanelX + 28;
+  ctx.fillText('X: ATTACK   Z: POWER   SPACE: JUMP', infoLeft, infoPanelY + infoPanelHeight - 44);
+  ctx.fillText('ESC: PAUSE   ENTER: START GAME', infoLeft, infoPanelY + infoPanelHeight - 24);
   ctx.restore();
 
+  const pulse = 0.55 + 0.45 * Math.sin(game.menu.blinkTimer * 4);
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.font = '14px "Press Start 2P", monospace';
-  ctx.fillStyle = '#b9c4ff';
-  ctx.fillText('X: ATTACK   Z: POWER   SPACE: JUMP   ESC: PAUSE', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 72);
   ctx.font = '18px "Press Start 2P", monospace';
   ctx.fillStyle = `rgba(255, 238, 160, ${pulse})`;
-  ctx.fillText('PRESS START (ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 36);
+  ctx.fillText('PRESS START (ENTER)', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 32);
   ctx.restore();
 
   if(game.menu.settingsOpen){
@@ -3717,32 +3766,37 @@ const drawPause = () => {
   ctx.shadowBlur=0;
   ctx.restore();
 
-  const listX = CANVAS_WIDTH/2;
-  const listStartY = CANVAS_HEIGHT/2 - 30;
-  ctx.save();
-  ctx.textAlign='center';
-  pause.options.forEach((opt, idx)=>{
-    const y = listStartY + idx*44;
-    const isActive = (pause.mode==='options' && idx===pause.selectedIndex) ||
-      (pause.mode==='volume' && opt.key==='volume') ||
-      (pause.mode==='confirm' && pause.confirm?.action===opt.key);
-    ctx.font = isActive ? '22px "Press Start 2P", monospace' : '20px "Press Start 2P", monospace';
-    ctx.fillStyle = isActive ? '#ffe7b4' : 'rgba(215, 226, 255, 0.9)';
-    ctx.fillText(opt.label, listX, y);
-  });
-  ctx.restore();
-
   const volumeMode = pause.mode==='volume';
-  drawVolumeControlsPanel({
-    centerX: CANVAS_WIDTH/2,
-    startY: CANVAS_HEIGHT/2 + 90,
-    activeIndex: pause.volumeIndex ?? 0,
-    highlight: volumeMode,
-    width: 380,
-    header: 'VOLUME'
-  });
-
   const confirmMode = pause.mode==='confirm';
+  const showOptionsList = !volumeMode && !confirmMode;
+
+  if(showOptionsList){
+    const listX = CANVAS_WIDTH/2;
+    const listStartY = CANVAS_HEIGHT/2 - 30;
+    ctx.save();
+    ctx.textAlign='center';
+    pause.options.forEach((opt, idx)=>{
+      const y = listStartY + idx*44;
+      const isActive = (pause.mode==='options' && idx===pause.selectedIndex) ||
+        (pause.mode==='confirm' && pause.confirm?.action===opt.key);
+      ctx.font = isActive ? '22px "Press Start 2P", monospace' : '20px "Press Start 2P", monospace';
+      ctx.fillStyle = isActive ? '#ffe7b4' : 'rgba(215, 226, 255, 0.9)';
+      ctx.fillText(opt.label, listX, y);
+    });
+    ctx.restore();
+  }
+
+  if(volumeMode){
+    drawVolumeControlsPanel({
+      centerX: CANVAS_WIDTH/2,
+      startY: CANVAS_HEIGHT/2 - 40,
+      activeIndex: pause.volumeIndex ?? 0,
+      highlight: true,
+      width: 380,
+      header: 'VOLUME'
+    });
+  }
+
   const confirm=pause.confirm;
   if(confirmMode && confirm){
     const message = PAUSE_CONFIRM_MESSAGES[confirm.action] ?? 'Are you sure?';
