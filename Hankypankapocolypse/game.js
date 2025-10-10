@@ -109,6 +109,57 @@ const loadAudio = (src, { loop = false, volume = 1 } = {}) => new Promise((resol
   audio.addEventListener('error', onError, { once:true });
   audio.load();
 });
+const loadVideo = (src, { loop = false, muted = false } = {}) => new Promise((resolve, reject)=>{
+  if(typeof document==='undefined'){
+    reject(new Error('Video loading is only supported in browser environments'));
+    return;
+  }
+  const video = document.createElement('video');
+  video.src = src;
+  video.preload = 'auto';
+  video.loop = !!loop;
+  video.muted = !!muted;
+  video.playsInline = true;
+  video.crossOrigin = 'anonymous';
+  let resolved=false;
+  const cleanup = ()=>{
+    video.removeEventListener('loadeddata', onLoadedData);
+    video.removeEventListener('error', onError);
+    video.removeEventListener('seeked', onSeeked);
+  };
+  const finish = ()=>{
+    if(resolved) return;
+    resolved=true;
+    try{ video.pause(); }catch(_e){}
+    cleanup();
+    resolve(video);
+  };
+  const onSeeked = ()=>{
+    finish();
+  };
+  const onLoadedData = ()=>{
+    try{
+      video.pause();
+      if(Math.abs(video.currentTime) > 0.001){
+        video.addEventListener('seeked', onSeeked, { once:true });
+        video.currentTime = 0;
+      }else{
+        finish();
+      }
+    }catch(_e){
+      finish();
+    }
+  };
+  const onError = (event)=>{
+    cleanup();
+    const error = new Error(`Failed to load video asset: ${src}`);
+    error.originalEvent = event;
+    reject(error);
+  };
+  video.addEventListener('loadeddata', onLoadedData, { once:true });
+  video.addEventListener('error', onError, { once:true });
+  try{ video.load(); }catch(_e){ /* ignore */ }
+});
 const AUDIO_SETTING_STORAGE_KEY='hp_audio_settings';
 const DEFAULT_AUDIO_SETTINGS={ master:1, music:1, sfx:1 };
 const VOLUME_KEYS=['master','music','sfx'];
@@ -336,6 +387,7 @@ const assetManifest = {
   background: 'eaglesclub.jpg',
   walkMask: 'eaglesclub_path.jpg',
   cover: 'cover.jpg',
+  introVideo: 'intro.mp4',
   players: {
     corky: {
       name: 'Corky',
@@ -553,6 +605,7 @@ const loadAssets = async () => {
   const walkMaskImage = assetManifest.walkMask ? await createImage(assetManifest.walkMask) : null;
   const walkMask = walkMaskImage ? buildWalkMask(walkMaskImage) : null;
   const cover = assetManifest.cover ? await createImage(assetManifest.cover) : null;
+  const introVideo = assetManifest.introVideo ? await loadVideo(assetManifest.introVideo) : null;
 
   const players = {};
   for (const [key, data] of Object.entries(assetManifest.players)) {
@@ -628,7 +681,7 @@ const loadAssets = async () => {
   }
   applyAudioSettings();
 
-  return { background, cover, walkMask, players, bigBoner, enemies, boss, audio };
+  return { background, cover, introVideo, walkMask, players, bigBoner, enemies, boss, audio };
 };
 
 const FLOOR_Y = CANVAS_HEIGHT - 5;
@@ -2756,7 +2809,14 @@ const game = {
   settings: { audio: { ...storedAudioSettings } },
   session: { characterKey:null },
   pause: null,
-  title: { timer: 0, flashTimer: 0, lightPhase: 0, beamPhase: Math.random() * Math.PI * 2 },
+  title: {
+    timer: 0,
+    flashTimer: 0,
+    lightPhase: 0,
+    beamPhase: Math.random() * Math.PI * 2,
+    introPlaying: false,
+    introFinished: false
+  },
   menu: {
     options: [],
     selectedIndex: 0,
@@ -2776,6 +2836,17 @@ const initTitle = () => {
   game.title.flashTimer = 0;
   game.title.lightPhase = Math.random() * Math.PI * 2;
   game.title.beamPhase = Math.random() * Math.PI * 2;
+  game.title.introPlaying = false;
+  game.title.introFinished = false;
+  const intro = game.assets?.introVideo ?? null;
+  if(intro){
+    try{
+      intro.pause();
+      if(Math.abs(intro.currentTime) > 0.001){
+        intro.currentTime = 0;
+      }
+    }catch(_e){}
+  }
   if (game.audio) {
     game.audio.menuMusicPlaying = false;
   }
@@ -2809,6 +2880,30 @@ const updateTitle = (dt) => {
   game.title.flashTimer += dt;
   game.title.lightPhase = (game.title.lightPhase + dt * 0.75) % (Math.PI * 2);
   game.title.beamPhase = (game.title.beamPhase + dt * 0.45) % (Math.PI * 2);
+  const intro = game.assets?.introVideo ?? null;
+
+  if(game.title.introPlaying){
+    if(game.title.introFinished || (intro && intro.ended)){
+      if(intro){
+        try{ intro.pause(); }catch(_e){}
+      }
+      game.title.introPlaying = false;
+      game.title.introFinished = false;
+      initMenu();
+      game.state = GAME_STATES.MENU;
+    }
+    return;
+  }
+
+  if(game.title.introFinished){
+    if(intro){
+      try{ intro.pause(); }catch(_e){}
+    }
+    game.title.introFinished = false;
+    initMenu();
+    game.state = GAME_STATES.MENU;
+    return;
+  }
 
   if (game.audio?.menuMusic && !game.audio.menuMusicPlaying) {
     setMusic(game.audio.menuMusic);
@@ -2816,25 +2911,59 @@ const updateTitle = (dt) => {
   }
 
   if (game.title.timer > 0.25 && input.wasPressed(INPUT_KEYS.ACCEPT)) {
-    playAudio(game.audio?.menuSelect);
-    initMenu();
-    game.state = GAME_STATES.MENU;
+    if(intro){
+      playAudio(game.audio?.menuSelect);
+      if(game.audio?.menuMusicPlaying){
+        setMusic(null);
+        game.audio.menuMusicPlaying = false;
+      }
+      game.title.introPlaying = true;
+      game.title.introFinished = false;
+      try{
+        if(Math.abs(intro.currentTime) > 0.001){
+          intro.currentTime = 0;
+        }
+      }catch(_e){}
+      const playPromise = intro.play();
+      if(playPromise?.catch){
+        playPromise.catch(()=>{
+          game.title.introPlaying = false;
+          game.title.introFinished = true;
+        });
+      }
+    }else{
+      playAudio(game.audio?.menuSelect);
+      initMenu();
+      game.state = GAME_STATES.MENU;
+    }
   }
 };
 
 const drawTitle = () => {
+  const introVideo = game.assets?.introVideo ?? null;
+  const HAVE_CURRENT_DATA = typeof HTMLMediaElement !== 'undefined' ? HTMLMediaElement.HAVE_CURRENT_DATA : 2;
+  const introReady = !!(introVideo && introVideo.readyState >= HAVE_CURRENT_DATA && introVideo.videoWidth && introVideo.videoHeight);
   const cover = game.assets?.cover ?? game.assets?.background ?? null;
+  const backgroundSource = introReady ? introVideo : cover;
   ctx.fillStyle = '#05060e';
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  if (cover) {
-    const scale = Math.max(CANVAS_WIDTH / cover.width, CANVAS_HEIGHT / cover.height);
-    const w = cover.width * scale;
-    const h = cover.height * scale;
-    const sway = Math.sin(game.title.lightPhase * 0.45) * 8;
-    const ox = (CANVAS_WIDTH - w) / 2 + sway;
-    const oy = (CANVAS_HEIGHT - h) / 2;
-    ctx.drawImage(cover, ox, oy, w, h);
+  if (backgroundSource) {
+    const srcWidth = introReady ? introVideo.videoWidth : backgroundSource.width;
+    const srcHeight = introReady ? introVideo.videoHeight : backgroundSource.height;
+    if(srcWidth && srcHeight){
+      const scale = Math.max(CANVAS_WIDTH / srcWidth, CANVAS_HEIGHT / srcHeight);
+      const w = srcWidth * scale;
+      const h = srcHeight * scale;
+      const sway = introReady ? 0 : Math.sin(game.title.lightPhase * 0.45) * 8;
+      const ox = (CANVAS_WIDTH - w) / 2 + sway;
+      const oy = (CANVAS_HEIGHT - h) / 2;
+      ctx.drawImage(backgroundSource, 0, 0, srcWidth, srcHeight, ox, oy, w, h);
+    }
+  }
+
+  if(game.title.introPlaying){
+    return;
   }
 
   ctx.save();
@@ -3925,6 +4054,13 @@ const boot = async () => {
     game.assets = assets;
     game.audio = assets.audio ?? null;
     setAudioRegistry(game.audio);
+    const introVideo = assets.introVideo ?? null;
+    if(introVideo){
+      introVideo.addEventListener('ended', ()=>{
+        game.title.introFinished = true;
+        game.title.introPlaying = false;
+      });
+    }
     initTitle(); game.state = GAME_STATES.TITLE;
   }catch(e){
     console.error('Failed to load assets', e);
