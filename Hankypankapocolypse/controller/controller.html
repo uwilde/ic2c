@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Retro Mobile Controller Overlay</title>
+<style>
+  :root{
+    --scale: 1;
+    --gap: calc(10px * var(--scale));
+    --pad: calc(12px * var(--scale));
+    --dpad: calc(400px * var(--scale));
+    --btn: calc(150px * var(--scale));
+    --btn-lg: calc(150px * var(--scale));
+    --pill-w: calc(170px * var(--scale));
+    --pill-h: calc(88px * var(--scale));
+    --shadow-outer: 0 14px 22px rgba(0,0,0,.35);
+    --shadow-press: 0 6px 0 rgba(0,0,0,.45), 0 6px 12px rgba(0,0,0,.35) inset;
+    --shine: radial-gradient(120% 120% at 28% 22%, rgba(255,255,255,.65) 0, rgba(255,255,255,0) 45%);
+    --red1:#ff6767; --red2:#d63a3a;
+    --blue1:#b8d6ff; --blue2:#5d94ff;
+    --metal2:#bdbdbd;
+  }
+  html, body { margin:0; height:100%; background:black; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; }
+  /* ensure anything with [hidden] is truly hidden, regardless of other styles */
+  [hidden] { display: none !important; }
+
+  /* ===== FAB ===== */
+  .fab {
+    position: fixed; right: 18px; bottom: 18px;
+    z-index: 2147483600;
+    border: solid 2px white; 
+    cursor: pointer;
+    padding: 14px 20px;
+    border-radius: 999px;
+    font: 800 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    letter-spacing: .6px;
+    background:transparent;
+    color: white;
+    transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .fab:hover { filter: brightness(1.03); }
+  .fab:active { transform: translateY(1px); box-shadow: 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.4); }
+
+  /* ===== Controller Overlay (transparent sheet) ===== */
+  .controller {
+    position: fixed; inset: 0; z-index: 2147483646;
+    background: transparent;
+    pointer-events: none; /* re-enable on children */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: 1fr auto;
+    align-items: end;
+    padding: clamp(8px, 3.2vw, 24px);
+    gap: clamp(6px, 2.2vw, 18px);
+  }
+
+  .zone { pointer-events: none; }
+  .zone > * { pointer-events: auto; }
+
+  .zone-left   { grid-column: 1; grid-row: 2; display:flex; justify-content:flex-start; }
+  .zone-center { grid-column: 2; grid-row: 2; display:flex; flex-direction:column; align-items:center; gap: var(--gap); }
+  .zone-right  { grid-column: 3; grid-row: 2; display:flex; justify-content:flex-end; }
+
+  /* ===== D-PAD (visible cross) ===== */
+  .dpad {
+    width: var(--dpad); height: var(--dpad); position: relative;
+    touch-action: none; user-select:none;
+  }
+  .dpad svg {
+    width: 100%; height: 100%; display: block;
+    filter: drop-shadow(0 12px 14px rgba(0,0,0,.5));
+  }
+  .d-btn { position:absolute; border:none; background:transparent; outline:none; }
+  .d-btn.up    { left: 32%; right: 32%; top: 0;    height: 40%; }
+  .d-btn.down  { left: 32%; right: 32%; bottom: 0; height: 40%; }
+  .d-btn.left  { top: 32%; bottom: 32%; left: 0;    width: 40%; }
+  .d-btn.right { top: 32%; bottom: 32%; right: 0;   width: 40%; }
+
+  .dpad.pressing-up    .arm-up,
+  .dpad.pressing-down  .arm-down,
+  .dpad.pressing-left  .arm-left,
+  .dpad.pressing-right .arm-right { filter: brightness(1.2); }
+  .d-btn:active {
+  filter: brightness(1.1); /* Subtle glow for individual buttons */
+  transform: scale(1.05);  /* Slight enlarge for feedback */
+  }
+
+  /* ===== START / SELECT + COLLAPSE ===== */
+  .slab {
+    display:flex; gap: calc(var(--gap) * 1.2);
+    align-items:center; justify-content:center;
+  }
+  .pill {
+    width: var(--pill-w); height: var(--pill-h);
+    border: none; border-radius: 999px;
+    background: linear-gradient(#f3f3f3, var(--metal2));
+    
+    font: 800 12px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:#222; letter-spacing: .8px;
+    text-transform: uppercase;
+    touch-action: none; user-select:none;
+  }
+  .pill:active { transform: translateY(2px); filter: brightness(1.05);box-shadow: var(--shadow-press); }
+
+  .circle-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: solid 2px white;
+    background:transparent;
+    box-shadow: var(--shadow-press);
+    display:flex; align-items:center; justify-content:center;
+    font: 900 16px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:white;
+    touch-action: none; user-select:none;
+  }
+  .circle-btn:active { transform: translateY(2px); filter: brightness(1.06); }
+
+  /* ===== FACE BUTTONS ===== */
+  .face {
+    display:grid; align-items:end; justify-items:end;
+    grid-template-columns: auto; grid-template-rows: auto auto;
+    gap: var(--gap);
+    padding-right: var(--pad);
+  }
+  .cluster { position: relative; width: calc(var(--btn-lg) * 2.2); height: calc(var(--btn-lg) * 1.5); }
+  .bubble {
+    position:absolute; width: var(--btn-lg); height: var(--btn-lg);
+    border-radius: 50%;
+    border: none; outline:none;
+    background: var(--red1);
+
+    color:#111; font: 900 16px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
+    touch-action: none; user-select:none;
+  }
+  .bubble.b { left: 0; bottom: 0; }
+  .bubble.a { right: 0; bottom: 0; }
+  .bubble.dd{
+    top: -40%; right: 0;
+    width: var(--btn); height: var(--btn);
+    background:var(--blue1);
+    
+    font-weight: 800;
+  }
+  .bubble.dd:active{background:var(--blue2);box-shadow: var(--shadow-press);;}
+  .bubble:active { transform: translateY(2px);background:var(--red2);box-shadow: var(--shadow-press); }
+  .badge { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: rgba(0,0,0,.7); font-weight:900; font-size: 18px; pointer-events:none; }
+
+  @media (max-width: 900px) { :root { --scale: .95; } }
+  @media (max-width: 780px) { :root { --scale: .85; } }
+  @media (max-width: 640px) { :root { --scale: .78; } }
+  @media (max-width: 520px) { :root { --scale: .72; } }
+</style>
+</head>
+<body>
+
+<!-- FAB -->
+<button class="fab" id="fabToggle" aria-label="Enable mobile controls">MOBILE</button>
+
+<!-- Transparent Controller Overlay (hidden on load) -->
+<div id="controller" class="controller" hidden aria-hidden="true">
+  <!-- LEFT: D-PAD -->
+  <div class="zone zone-left">
+    <div class="dpad" id="dpad" aria-label="D-Pad" role="group">
+      <!-- Visible cross -->
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="100" r="24" fill="#0f0f0f"/>
+        <circle cx="100" cy="100" r="18" fill="#1a1a1a"/>
+        <g class="arm-up">
+          <rect x="75" y="15" width="50" height="70" rx="10" fill="#1b1b1b"/>
+          <rect x="78" y="18" width="44" height="64" rx="8" fill="#2a2a2a"/>
+          <rect x="82" y="22" width="36" height="56" rx="7" fill="#171717"/>
+        </g>
+        <g class="arm-down">
+          <rect x="75" y="115" width="50" height="70" rx="10" fill="#1b1b1b"/>
+          <rect x="78" y="118" width="44" height="64" rx="8" fill="#2a2a2a"/>
+          <rect x="82" y="122" width="36" height="56" rx="7" fill="#171717"/>
+        </g>
+        <g class="arm-left">
+          <rect x="15" y="75" width="70" height="50" rx="10" fill="#1b1b1b"/>
+          <rect x="18" y="78" width="64" height="44" rx="8" fill="#2a2a2a"/>
+          <rect x="22" y="82" width="56" height="36" rx="7" fill="#171717"/>
+        </g>
+        <g class="arm-right">
+          <rect x="115" y="75" width="70" height="50" rx="10" fill="#1b1b1b"/>
+          <rect x="118" y="78" width="64" height="44" rx="8" fill="#2a2a2a"/>
+          <rect x="122" y="82" width="56" height="36" rx="7" fill="#171717"/>
+        </g>
+        <ellipse cx="78" cy="65" rx="20" ry="8" fill="rgba(255,255,255,0)"/>
+      </svg>
+      <!-- Hit areas -->
+      <button class="d-btn up"    data-key="ArrowUp"    data-code="ArrowUp"    aria-label="Up"></button>
+      <button class="d-btn down"  data-key="ArrowDown"  data-code="ArrowDown"  aria-label="Down"></button>
+      <button class="d-btn left"  data-key="ArrowLeft"  data-code="ArrowLeft"  aria-label="Left"></button>
+      <button class="d-btn right" data-key="ArrowRight" data-code="ArrowRight" aria-label="Right"></button>
+    </div>
+  </div>
+
+  <!-- CENTER: SELECT – COLLAPSE – START -->
+  <div class="zone zone-center">
+    <div class="slab">
+      <button class="pill" data-key="Escape"  data-code="Escape"  aria-label="Select">SELECT</button>
+
+      <!-- NEW: Collapse button -->
+      <button class="circle-btn" id="collapseBtn" aria-label="Hide controls" title="Hide">
+        ⤺
+      </button>
+
+      <button class="pill" data-key="Enter" data-code="Enter" aria-label="Start">START</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: FACE CLUSTER (B A + DD) -->
+  <div class="zone zone-right">
+    <div class="face">
+      <div class="cluster" aria-label="Face Buttons" role="group">
+        <button class="bubble b"  data-key=" " data-code="Space" aria-label="B (Space)">
+          <span class="badge">B</span>
+        </button>
+        <button class="bubble a"  data-key="x" data-code="KeyX" aria-label="A (X)">
+          <span class="badge">A</span>
+        </button>
+        <button class="bubble dd" data-key="z" data-code="KeyZ" aria-label="DD (Z)">
+          <span class="badge">DD</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Retro Mobile Controller - NES-style layout with show/hide logic
+   Keys:
+     Arrows, Enter(SELECT), Escape(START), Space(B), X(A), Z(DD)
+*/
+(function(){
+  const $  = (sel, el=document) => el.querySelector(sel);
+  const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+  const fab = $('#fabToggle');
+  const overlay = $('#controller');
+  const dpad = $('#dpad');
+  const collapseBtn = $('#collapseBtn');
+
+  function focusGame() {
+    const target = document.querySelector('[data-game-focus], canvas, [tabindex]');
+    if (target && target.focus) target.focus({preventScroll:true});
+  }
+
+  // Emit synthetic keyboard events
+  function emitKey(type, key, code) {
+    const target = (document.activeElement && document.activeElement !== document.body)
+      ? document.activeElement : window;
+    const ev = new KeyboardEvent(type, { key, code, bubbles:true, cancelable:true, repeat:false });
+    const codeMap = {'ArrowUp':38,'ArrowDown':40,'ArrowLeft':37,'ArrowRight':39,'Escape':27,'Enter':13,' ':32,'x':88,'X':88,'z':90,'Z':90};
+    Object.defineProperty(ev, 'keyCode', { get: () => codeMap[key] ?? codeMap[code] ?? 0 });
+    Object.defineProperty(ev, 'which',   { get: () => codeMap[key] ?? codeMap[code] ?? 0 });
+    target.dispatchEvent(ev);
+  }
+
+  const pressed = new Set();
+  function press(el){
+    const key  = el.getAttribute('data-key');
+    const code = el.getAttribute('data-code');
+    const id = code + '::' + key;
+    if (!pressed.has(id)){
+      pressed.add(id);
+      emitKey('keydown', key, code);
+      if (el.classList.contains('up'))    dpad.classList.add('pressing-up');
+      if (el.classList.contains('down'))  dpad.classList.add('pressing-down');
+      if (el.classList.contains('left'))  dpad.classList.add('pressing-left');
+      if (el.classList.contains('right')) dpad.classList.add('pressing-right');
+    }
+  }
+  function release(el){
+    const key  = el.getAttribute('data-key');
+    const code = el.getAttribute('data-code');
+    const id = code + '::' + key;
+    if (pressed.has(id)){
+      pressed.delete(id);
+      emitKey('keyup', key, code);
+      dpad.classList.remove('pressing-up','pressing-down','pressing-left','pressing-right');
+    }
+  }
+  function releaseAll(){
+    $$('.d-btn, .pill, .bubble', overlay).forEach(release);
+    pressed.clear();
+    dpad.classList.remove('pressing-up','pressing-down','pressing-left','pressing-right');
+  }
+
+  function showOverlay(){
+    fab.hidden = true;
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden','false');
+    focusGame();
+  }
+  function hideOverlay(){
+    releaseAll();
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden','true');
+    fab.hidden = false;
+    // ensure FAB is visually present
+  }
+
+  // FAB → show
+  fab.addEventListener('click', showOverlay, {passive:true});
+  // Collapse button → hide
+  collapseBtn.addEventListener('click', hideOverlay, {passive:true});
+
+  // Attach press behavior
+  function attachPressable(btn){
+    btn.addEventListener('pointerdown', (e)=>{
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      btn.setPointerCapture?.(e.pointerId);
+      press(btn);
+    });
+    btn.addEventListener('pointerup', (e)=>{
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      release(btn);
+      try{ btn.releasePointerCapture(e.pointerId); }catch{}
+    });
+    btn.addEventListener('pointercancel', (e)=>{ e.preventDefault(); release(btn); try{ btn.releasePointerCapture(e.pointerId);}catch{} });
+    btn.addEventListener('pointerout', ()=> release(btn));
+
+    // Mouse fallback for desktop testing
+    btn.addEventListener('mousedown', (e)=>{ if (e.button!==0) return; e.preventDefault(); press(btn); });
+    btn.addEventListener('mouseup',   (e)=>{ if (e.button!==0) return; e.preventDefault(); release(btn); });
+    btn.addEventListener('mouseleave', ()=> release(btn));
+  }
+
+  $$('.d-btn, .pill, .bubble', overlay).forEach(attachPressable);
+
+  // Prevent scroll while touching controls
+  overlay.addEventListener('touchmove', (e)=>{
+    if (e.target.closest('.d-btn, .pill, .bubble')) e.preventDefault();
+  }, {passive:false});
+
+  // Safety: release keys on blur/visibility
+  window.addEventListener('blur', releaseAll);
+  document.addEventListener('visibilitychange', ()=>{ if (document.hidden) releaseAll(); });
+
+  // On load, enforce hidden state (robust for any SSR/CSP quirks)
+  window.addEventListener('load', ()=>{
+    overlay.hidden = true;
+    fab.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
