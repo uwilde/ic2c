@@ -20,10 +20,13 @@
     --red1:#ff6767; --red2:#d63a3a;
     --blue1:#b8d6ff; --blue2:#5d94ff;
     --metal2:#bdbdbd;
+    /* New theme accents for minimalist insets */
+    --inset-fill: rgba(255,255,255,.12);
+    --inset-stroke: rgba(0,0,0,.05);
+    --inset-glow: rgba(255,255,255,.35);
   }
   html, body { margin:0; height:100%; background:black; -webkit-tap-highlight-color: transparent; }
   * { box-sizing: border-box; }
-  /* ensure anything with [hidden] is truly hidden, regardless of other styles */
   [hidden] { display: none !important; }
 
   /* ===== FAB ===== */
@@ -39,15 +42,16 @@
     background:transparent;
     color: white;
     transition: transform .08s ease, box-shadow .12s ease, filter .12s ease;
+    user-select:none;
   }
   .fab:hover { filter: brightness(1.03); }
   .fab:active { transform: translateY(1px); box-shadow: 0 8px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.4); }
 
-  /* ===== Controller Overlay (transparent sheet) ===== */
+  /* ===== Controller Overlay ===== */
   .controller {
     position: fixed; inset: 0; z-index: 2147483646;
     background: transparent;
-    pointer-events: none; /* re-enable on children */
+    pointer-events: none;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     grid-template-rows: 1fr auto;
@@ -55,102 +59,123 @@
     padding: clamp(8px, 3.2vw, 24px);
     gap: clamp(6px, 2.2vw, 18px);
   }
-
   .zone { pointer-events: none; }
   .zone > * { pointer-events: auto; }
-
   .zone-left   { grid-column: 1; grid-row: 2; display:flex; justify-content:flex-start; }
   .zone-center { grid-column: 2; grid-row: 2; display:flex; flex-direction:column; align-items:center; gap: var(--gap); }
   .zone-right  { grid-column: 3; grid-row: 2; display:flex; justify-content:flex-end; }
 
   /* ===== D-PAD (visible cross) ===== */
-  .dpad {
-    width: var(--dpad); height: var(--dpad); position: relative;
-    touch-action: none; user-select:none;
-  }
-  .dpad svg {
-    width: 100%; height: 100%; display: block;
-    filter: drop-shadow(0 12px 14px rgba(0,0,0,.5));
-  }
+  .dpad { width: var(--dpad); height: var(--dpad); position: relative; touch-action: none; user-select:none; }
+  .dpad svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 12px 14px rgba(0,0,0,.5)); }
   .d-btn { position:absolute; border:none; background:transparent; outline:none; }
   .d-btn.up    { left: 32%; right: 32%; top: 0;    height: 40%; }
   .d-btn.down  { left: 32%; right: 32%; bottom: 0; height: 40%; }
   .d-btn.left  { top: 32%; bottom: 32%; left: 0;    width: 40%; }
   .d-btn.right { top: 32%; bottom: 32%; right: 0;   width: 40%; }
-
   .dpad.pressing-up    .arm-up,
   .dpad.pressing-down  .arm-down,
   .dpad.pressing-left  .arm-left,
   .dpad.pressing-right .arm-right { filter: brightness(1.2); }
-  .d-btn:active {
-  filter: brightness(1.1); /* Subtle glow for individual buttons */
-  transform: scale(1.05);  /* Slight enlarge for feedback */
-  }
+  .d-btn:active { filter: brightness(1.1); transform: scale(1.05); }
 
   /* ===== START / SELECT + COLLAPSE ===== */
-  .slab {
-    display:flex; gap: calc(var(--gap) * 1.2);
-    align-items:center; justify-content:center;
-  }
+  .slab { display:flex; gap: calc(var(--gap) * 1.2); align-items:center; justify-content:center; }
+
+  /*
+    Minimalist-but-interesting pills: an elongated octagon inset (echoes the D-pad arm geometry),
+    with etched ring and shine. Pure CSS; easy to tweak.
+  */
   .pill {
+    --bg: linear-gradient(#f3f3f3, var(--metal2));
+    position: relative;
     width: var(--pill-w); height: var(--pill-h);
     border: none; border-radius: 999px;
-    background: linear-gradient(#f3f3f3, var(--metal2));
-    
+    background: var(--bg);
+    box-shadow: var(--shadow-outer), inset 0 1px 0 rgba(255,255,255,.6);
     font: 800 12px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color:#222; letter-spacing: .8px;
-    text-transform: uppercase;
+    color:#222; letter-spacing: .8px; text-transform: uppercase;
     touch-action: none; user-select:none;
+    overflow: hidden;
   }
-  .pill:active { transform: translateY(2px); filter: brightness(1.05);box-shadow: var(--shadow-press); }
+  /* inner elongated-octagon echo */
+  .pill::before {
+      content: "";
+      position: absolute;
+      inset: 5% 5%;
+      background: var(--inset-fill);
+      clip-path: polygon(8% 0, 92% 0, 100% 20%, 100% 80%, 92% 100%, 8% 100%, 0 80%, 0 20%);
+      box-shadow: inset 0 0 0 2px var(--inset-stroke), inset 0 4px 8px rgba(0, 0, 0, .25), 0 1px 0 var(--inset-glow);
+      border-radius: 35%;
+  }
+  .pill::after{
+    content:""; position:absolute; inset:0; background: var(--shine);
+    mix-blend-mode: screen; opacity:.35; pointer-events:none;
+  }
+  .pill:active { transform: translateY(2px); filter: brightness(1.05); box-shadow: var(--shadow-press); }
 
+  /* Small circular collapse button (unchanged look, but harmonize with new badges) */
   .circle-btn {
     width: 44px; height: 44px; border-radius: 50%;
-    border: solid 2px white;
-    background:transparent;
+    border: solid 2px white; background:transparent;
     box-shadow: var(--shadow-press);
     display:flex; align-items:center; justify-content:center;
     font: 900 16px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color:white;
-    touch-action: none; user-select:none;
+    color:white; touch-action: none; user-select:none;
   }
   .circle-btn:active { transform: translateY(2px); filter: brightness(1.06); }
 
   /* ===== FACE BUTTONS ===== */
-  .face {
-    display:grid; align-items:end; justify-items:end;
-    grid-template-columns: auto; grid-template-rows: auto auto;
-    gap: var(--gap);
-    padding-right: var(--pad);
-  }
+  .face { display:grid; align-items:end; justify-items:end; grid-template-columns: auto; grid-template-rows: auto auto; gap: var(--gap); padding-right: var(--pad); }
   .cluster { position: relative; width: calc(var(--btn-lg) * 2.2); height: calc(var(--btn-lg) * 1.5); }
+
+  /*
+    Minimalist-but-interesting bubbles: circular shell with an internal octagon echo.
+    Each has a subtle etched ring + shine; labels are embossed.
+  */
   .bubble {
     position:absolute; width: var(--btn-lg); height: var(--btn-lg);
-    border-radius: 50%;
-    border: none; outline:none;
-    background: var(--red1);
-
+    border-radius: 50%; border: none; outline:none;
+    background: radial-gradient(180% 140% at 30% 24%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 38%), var(--red1);
+    box-shadow: var(--shadow-outer), inset 0 2px 0 rgba(255,255,255,.45);
     color:#111; font: 900 16px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    text-shadow: 0 1px 0 rgba(255,255,255,.6);
-    touch-action: none; user-select:none;
+    text-shadow: 0 1px 0 rgba(255,255,255,.45);
+    touch-action: none; user-select:none; overflow:hidden;
+  }
+  /* inner octagon echo */
+  .bubble::before {
+      content: "";
+      position: absolute;
+      inset: 3%;
+      background: var(--inset-fill);
+      clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+      box-shadow: inset 0 0 0 2px var(--inset-stroke), inset 0 6px 10px rgba(0, 0, 0, .25), 0 1px 0 var(--inset-glow);
+      border-radius: 50%;
   }
   .bubble.b { left: 0; bottom: 0; }
   .bubble.a { right: 0; bottom: 0; }
+
   .bubble.dd{
-    top: -40%; right: 0;
-    width: var(--btn); height: var(--btn);
-    background:var(--blue1);
-    
-    font-weight: 800;
+    top: -40%; right: 0; width: var(--btn); height: var(--btn); font-weight: 800;
+    background: radial-gradient(180% 140% at 30% 24%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 38%), var(--blue1);
   }
-  .bubble.dd:active{background:var(--blue2);box-shadow: var(--shadow-press);;}
-  .bubble:active { transform: translateY(2px);background:var(--red2);box-shadow: var(--shadow-press); }
-  .badge { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color: rgba(0,0,0,.7); font-weight:900; font-size: 18px; pointer-events:none; }
+
+  .bubble:active { transform: translateY(2px); background: var(--red2); box-shadow: var(--shadow-press); }
+  .bubble.dd:active{ background: var(--blue2); box-shadow: var(--shadow-press); }
+
+  /* Embossed/etched badge text */
+  .badge {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color: rgba(0,0,0,.76); font-weight:900; font-size: 18px; letter-spacing:.5px; pointer-events:none;
+    text-shadow: 0 1px 0 rgba(255,255,255,.45), 0 -1px 0 rgba(0,0,0,.1);
+  }
 
   @media (max-width: 900px) { :root { --scale: .95; } }
   @media (max-width: 780px) { :root { --scale: .85; } }
   @media (max-width: 640px) { :root { --scale: .78; } }
   @media (max-width: 520px) { :root { --scale: .72; } }
+
+  .dpad-joy { position: absolute; inset: 0; z-index: 9; touch-action: none; user-select: none; background: transparent; }
 </style>
 </head>
 <body>
@@ -165,35 +190,45 @@
     <div class="dpad" id="dpad" aria-label="D-Pad" role="group">
       <!-- Visible cross -->
       <svg viewBox="0 0 200 200" aria-hidden="true">
+        <!-- center hub -->
         <circle cx="100" cy="100" r="24" fill="#0f0f0f"/>
         <circle cx="100" cy="100" r="18" fill="#1a1a1a"/>
+
+        <!-- UP (octagon, 3-layer) -->
         <g class="arm-up">
-          <rect x="75" y="15" width="50" height="70" rx="10" fill="#1b1b1b"/>
-          <rect x="78" y="18" width="44" height="64" rx="8" fill="#2a2a2a"/>
-          <rect x="82" y="22" width="36" height="56" rx="7" fill="#171717"/>
+          <polygon fill="#1b1b1b" points="87,15 113,15 125,27 125,73 113,85 87,85 75,73 75,27" />
+          <polygon fill="#2a2a2a" points="88,18 112,18 122,28 122,72 112,82 88,82 78,72 78,28" />
+          <polygon fill="#171717" points="91,22 109,22 118,31 118,69 109,78 91,78 82,69 82,31" />
         </g>
+
+        <!-- DOWN -->
         <g class="arm-down">
-          <rect x="75" y="115" width="50" height="70" rx="10" fill="#1b1b1b"/>
-          <rect x="78" y="118" width="44" height="64" rx="8" fill="#2a2a2a"/>
-          <rect x="82" y="122" width="36" height="56" rx="7" fill="#171717"/>
+          <polygon fill="#1b1b1b" points="87,115 113,115 125,127 125,173 113,185 87,185 75,173 75,127" />
+          <polygon fill="#2a2a2a" points="88,118 112,118 122,128 122,172 112,182 88,182 78,172 78,128" />
+          <polygon fill="#171717" points="91,122 109,122 118,131 118,169 109,178 91,178 82,169 82,131" />
         </g>
+
+        <!-- LEFT -->
         <g class="arm-left">
-          <rect x="15" y="75" width="70" height="50" rx="10" fill="#1b1b1b"/>
-          <rect x="18" y="78" width="64" height="44" rx="8" fill="#2a2a2a"/>
-          <rect x="22" y="82" width="56" height="36" rx="7" fill="#171717"/>
+          <polygon fill="#1b1b1b" points="27,75 73,75 85,87 85,113 73,125 27,125 15,113 15,87" />
+          <polygon fill="#2a2a2a" points="28,78 72,78 82,88 82,112 72,122 28,122 18,112 18,88" />
+          <polygon fill="#171717" points="31,82 69,82 78,91 78,109 69,118 31,118 22,109 22,91" />
         </g>
+
+        <!-- RIGHT -->
         <g class="arm-right">
-          <rect x="115" y="75" width="70" height="50" rx="10" fill="#1b1b1b"/>
-          <rect x="118" y="78" width="64" height="44" rx="8" fill="#2a2a2a"/>
-          <rect x="122" y="82" width="56" height="36" rx="7" fill="#171717"/>
+          <polygon fill="#1b1b1b" points="127,75 173,75 185,87 185,113 173,125 127,125 115,113 115,87" />
+          <polygon fill="#2a2a2a" points="128,78 172,78 182,88 182,112 172,122 128,122 118,112 118,88" />
+          <polygon fill="#171717" points="131,82 169,82 178,91 178,109 169,118 131,118 122,109 122,91" />
         </g>
-        <ellipse cx="78" cy="65" rx="20" ry="8" fill="rgba(255,255,255,0)"/>
       </svg>
+
       <!-- Hit areas -->
       <button class="d-btn up"    data-key="ArrowUp"    data-code="ArrowUp"    aria-label="Up"></button>
       <button class="d-btn down"  data-key="ArrowDown"  data-code="ArrowDown"  aria-label="Down"></button>
       <button class="d-btn left"  data-key="ArrowLeft"  data-code="ArrowLeft"  aria-label="Left"></button>
-      <button class="d-btn right" data-key="ArrowRight" data-code="ArrowRight" aria-label="Right"></button>
+      <button class="d-btn right" data-key="ArrowRight" aria-label="Right" data-code="ArrowRight"></button>
+      <div class="dpad-joy" id="dpadJoy" aria-hidden="true"></div>
     </div>
   </div>
 
@@ -201,12 +236,7 @@
   <div class="zone zone-center">
     <div class="slab">
       <button class="pill" data-key="Escape"  data-code="Escape"  aria-label="Select">SELECT</button>
-
-      <!-- NEW: Collapse button -->
-      <button class="circle-btn" id="collapseBtn" aria-label="Hide controls" title="Hide">
-        ⤺
-      </button>
-
+      <button class="circle-btn" id="collapseBtn" aria-label="Hide controls" title="Hide">⤺</button>
       <button class="pill" data-key="Enter" data-code="Enter" aria-label="Start">START</button>
     </div>
   </div>
@@ -215,15 +245,9 @@
   <div class="zone zone-right">
     <div class="face">
       <div class="cluster" aria-label="Face Buttons" role="group">
-        <button class="bubble b"  data-key=" " data-code="Space" aria-label="B (Space)">
-          <span class="badge">B</span>
-        </button>
-        <button class="bubble a"  data-key="x" data-code="KeyX" aria-label="A (X)">
-          <span class="badge">A</span>
-        </button>
-        <button class="bubble dd" data-key="z" data-code="KeyZ" aria-label="DD (Z)">
-          <span class="badge">DD</span>
-        </button>
+        <button class="bubble b"  data-key=" " data-code="Space" aria-label="B (Space)"><span class="badge">B</span></button>
+        <button class="bubble a"  data-key="x" data-code="KeyX" aria-label="A (X)"><span class="badge">A</span></button>
+        <button class="bubble dd" data-key="z" data-code="KeyZ" aria-label="DD (Z)"><span class="badge">DD</span></button>
       </div>
     </div>
   </div>
@@ -242,13 +266,93 @@
   const overlay = $('#controller');
   const dpad = $('#dpad');
   const collapseBtn = $('#collapseBtn');
+  const dpadJoy = $('#dpadJoy');
+  const joyDirsPressed = new Set();
+  let joyActivePointerId = null;
+
+  function centerOf(el){
+    const r = el.getBoundingClientRect();
+    return { cx: r.left + r.width/2, cy: r.top + r.height/2, w: r.width, h: r.height };
+  }
+
+  function computeDirs(x, y, el){
+    const { cx, cy, w, h } = centerOf(el);
+    const dx = x - cx;
+    const dy = y - cy;
+    const rx = dx / (w * 0.5);
+    const ry = dy / (h * 0.5);
+    const dead = 0.15;
+    const dirs = [];
+    if (Math.abs(rx) > dead) { dirs.push(rx < 0 ? 'ArrowLeft' : 'ArrowRight'); }
+    if (Math.abs(ry) > dead) { dirs.push(ry < 0 ? 'ArrowUp'   : 'ArrowDown'); }
+    return new Set(dirs);
+  }
+
+  function setDpadVisual(dirs){
+    dpad.classList.toggle('pressing-up',    dirs.has('ArrowUp'));
+    dpad.classList.toggle('pressing-down',  dirs.has('ArrowDown'));
+    dpad.classList.toggle('pressing-left',  dirs.has('ArrowLeft'));
+    dpad.classList.toggle('pressing-right', dirs.has('ArrowRight'));
+  }
+
+  function syncJoyKeys(next){
+    for (const key of joyDirsPressed) {
+      if (!next.has(key)) { emitKey('keyup', key, key); }
+    }
+    for (const key of next) {
+      if (!joyDirsPressed.has(key)) { emitKey('keydown', key, key); }
+    }
+    joyDirsPressed.clear();
+    next.forEach(k => joyDirsPressed.add(k));
+    setDpadVisual(joyDirsPressed);
+  }
+
+  function endJoy(){
+    if (joyDirsPressed.size){
+      for (const key of Array.from(joyDirsPressed)) emitKey('keyup', key, key);
+      joyDirsPressed.clear();
+      setDpadVisual(joyDirsPressed);
+    }
+    joyActivePointerId = null;
+  }
+
+  dpadJoy.addEventListener('pointerdown', (e) => {
+    if (joyActivePointerId !== null) return; // single-finger joystick
+    e.preventDefault();
+    joyActivePointerId = e.pointerId;
+    dpadJoy.setPointerCapture?.(e.pointerId);
+    const next = computeDirs(e.clientX, e.clientY, dpadJoy);
+    syncJoyKeys(next);
+  });
+
+  dpadJoy.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== joyActivePointerId) return;
+    e.preventDefault();
+    const next = computeDirs(e.clientX, e.clientY, dpadJoy);
+    syncJoyKeys(next);
+  });
+
+  dpadJoy.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== joyActivePointerId) return;
+    e.preventDefault();
+    endJoy();
+    try { dpadJoy.releasePointerCapture(e.pointerId); } catch {}
+  });
+  dpadJoy.addEventListener('pointercancel', (e) => {
+    if (e.pointerId !== joyActivePointerId) return;
+    e.preventDefault();
+    endJoy();
+    try { dpadJoy.releasePointerCapture(e.pointerId); } catch {}
+  });
+
+  const _oldReleaseAll = releaseAll;
+  releaseAll = function(){ endJoy(); _oldReleaseAll(); };
 
   function focusGame() {
     const target = document.querySelector('[data-game-focus], canvas, [tabindex]');
     if (target && target.focus) target.focus({preventScroll:true});
   }
 
-  // Emit synthetic keyboard events
   function emitKey(type, key, code) {
     const target = (document.activeElement && document.activeElement !== document.body)
       ? document.activeElement : window;
@@ -280,7 +384,11 @@
     if (pressed.has(id)){
       pressed.delete(id);
       emitKey('keyup', key, code);
-      dpad.classList.remove('pressing-up','pressing-down','pressing-left','pressing-right');
+      if (el.classList.contains('up'))    dpad.classList.remove('pressing-up');
+      if (el.classList.contains('down'))  dpad.classList.remove('pressing-down');
+      if (el.classList.contains('left'))  dpad.classList.remove('pressing-left');
+      if (el.classList.contains('right')) dpad.classList.remove('pressing-right');
+      setDpadVisual(joyDirsPressed);
     }
   }
   function releaseAll(){
@@ -290,42 +398,20 @@
   }
 
   function showOverlay(){
-    fab.hidden = true;
-    overlay.hidden = false;
-    overlay.setAttribute('aria-hidden','false');
-    focusGame();
+    fab.hidden = true; overlay.hidden = false; overlay.setAttribute('aria-hidden','false'); focusGame();
   }
   function hideOverlay(){
-    releaseAll();
-    overlay.hidden = true;
-    overlay.setAttribute('aria-hidden','true');
-    fab.hidden = false;
-    // ensure FAB is visually present
+    releaseAll(); overlay.hidden = true; overlay.setAttribute('aria-hidden','true'); fab.hidden = false;
   }
 
-  // FAB → show
   fab.addEventListener('click', showOverlay, {passive:true});
-  // Collapse button → hide
   collapseBtn.addEventListener('click', hideOverlay, {passive:true});
 
-  // Attach press behavior
   function attachPressable(btn){
-    btn.addEventListener('pointerdown', (e)=>{
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      e.preventDefault();
-      btn.setPointerCapture?.(e.pointerId);
-      press(btn);
-    });
-    btn.addEventListener('pointerup', (e)=>{
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      e.preventDefault();
-      release(btn);
-      try{ btn.releasePointerCapture(e.pointerId); }catch{}
-    });
-    btn.addEventListener('pointercancel', (e)=>{ e.preventDefault(); release(btn); try{ btn.releasePointerCapture(e.pointerId);}catch{} });
+    btn.addEventListener('pointerdown', (e)=>{ if (e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); btn.setPointerCapture?.(e.pointerId); press(btn); });
+    btn.addEventListener('pointerup',   (e)=>{ if (e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); release(btn); try{ btn.releasePointerCapture(e.pointerId); }catch{} });
+    btn.addEventListener('pointercancel',(e)=>{ e.preventDefault(); release(btn); try{ btn.releasePointerCapture(e.pointerId);}catch{} });
     btn.addEventListener('pointerout', ()=> release(btn));
-
-    // Mouse fallback for desktop testing
     btn.addEventListener('mousedown', (e)=>{ if (e.button!==0) return; e.preventDefault(); press(btn); });
     btn.addEventListener('mouseup',   (e)=>{ if (e.button!==0) return; e.preventDefault(); release(btn); });
     btn.addEventListener('mouseleave', ()=> release(btn));
@@ -333,20 +419,13 @@
 
   $$('.d-btn, .pill, .bubble', overlay).forEach(attachPressable);
 
-  // Prevent scroll while touching controls
   overlay.addEventListener('touchmove', (e)=>{
     if (e.target.closest('.d-btn, .pill, .bubble')) e.preventDefault();
   }, {passive:false});
 
-  // Safety: release keys on blur/visibility
   window.addEventListener('blur', releaseAll);
   document.addEventListener('visibilitychange', ()=>{ if (document.hidden) releaseAll(); });
-
-  // On load, enforce hidden state (robust for any SSR/CSP quirks)
-  window.addEventListener('load', ()=>{
-    overlay.hidden = true;
-    fab.hidden = false;
-  });
+  window.addEventListener('load', ()=>{ overlay.hidden = true; fab.hidden = false; });
 })();
 </script>
 </body>
